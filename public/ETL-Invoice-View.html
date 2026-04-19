@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL | Your Invoice</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --primary:#1a3c6e; --secondary:#4fa3d1; --gold:#c8860a;
+    --light-bg:#eaf2fb; --lighter-bg:#f5f9fd; --white:#ffffff;
+    --text:#1e293b; --text-muted:#64748b; --border:#cfe3f0;
+    --success:#0f7a4a; --success-bg:#e6f7ef;
+  }
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--lighter-bg); color:var(--text); min-height:100vh; }
+
+  .top-nav { background:var(--white); height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 5%; border-bottom:3px solid var(--secondary); box-shadow:0 2px 12px rgba(79,163,209,0.1); position:sticky; top:0; z-index:100; }
+  .top-nav-brand { display:flex; align-items:center; gap:10px; }
+  .nav-sq { background:transparent; width:34px; height:34px; border-radius:6px; display:flex; align-items:center; justify-content:center; }
+  .nav-title { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--primary); text-transform:uppercase; }
+  .nav-sub { font-size:9px; color:var(--secondary); font-weight:700; text-transform:uppercase; letter-spacing:1.5px; display:block; }
+
+  .state-box { max-width:480px; margin:80px auto; text-align:center; padding:0 5%; }
+  .state-icon { font-size:52px; margin-bottom:16px; }
+  .state-box h2 { font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:900; color:var(--primary); text-transform:uppercase; margin-bottom:10px; }
+  .state-box p { color:var(--text-muted); font-size:14px; line-height:1.7; }
+  .spinner-wrap { display:flex; flex-direction:column; align-items:center; gap:16px; margin-top:80px; }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .preview-controls { background:var(--white); border-bottom:1px solid var(--border); padding:14px 5%; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn-ctrl { padding:9px 20px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; border:none; transition:all 0.2s; }
+  .btn-pdf { background:var(--primary); color:#fff; }
+  .btn-pdf:hover { background:var(--secondary); }
+  .btn-print { background:var(--lighter-bg); color:var(--primary); border:1.5px solid var(--border); }
+  .ctrl-info { font-size:12px; color:var(--text-muted); margin-left:auto; }
+
+  .doc-wrap { max-width:860px; margin:32px auto; padding:0 5% 60px; }
+  .invoice-doc { background:var(--white); border-radius:12px; box-shadow:0 4px 32px rgba(26,60,110,0.10); overflow:hidden; }
+
+  /* Header */
+  .doc-header { background:var(--primary); padding:32px 36px; display:flex; justify-content:space-between; align-items:flex-start; color:#fff; }
+  .doc-header h1 { font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:900; margin-bottom:6px; }
+  .doc-header p { font-size:12px; opacity:0.75; line-height:1.6; }
+  .doc-header-right { text-align:right; }
+  .doc-header-right h2 { font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900; letter-spacing:3px; margin-bottom:8px; }
+  .doc-header-right p { font-size:12px; opacity:0.8; line-height:1.8; }
+
+  /* Ref bar */
+  .doc-ref-bar { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--border); }
+  .doc-ref-item { padding:14px 20px; border-right:1px solid var(--border); }
+  .doc-ref-item:last-child { border-right:none; }
+  .doc-ref-item label { display:block; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:4px; }
+  .doc-ref-item span { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:800; color:var(--primary); }
+
+  /* Parties */
+  .doc-parties { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid var(--border); }
+  .doc-party { padding:20px 24px; }
+  .doc-party:first-child { border-right:1px solid var(--border); }
+  .doc-party h3 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:10px; }
+  .doc-party-name { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800; color:var(--primary); margin-bottom:6px; }
+  .doc-party-detail { font-size:13px; color:var(--text-muted); line-height:1.7; }
+
+  /* Items */
+  .doc-items { padding:24px; }
+  .doc-items table { width:100%; border-collapse:collapse; font-size:13px; }
+  .doc-items th { background:var(--primary); color:#fff; padding:10px 12px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; }
+  .doc-items th:last-child { text-align:right; }
+  .doc-items td { padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .doc-items td:last-child { text-align:right; font-weight:700; font-family:'Barlow Condensed',sans-serif; font-size:15px; }
+  .doc-items tr:nth-child(even) td { background:var(--lighter-bg); }
+
+  /* Totals */
+  .doc-totals { display:flex; justify-content:flex-end; padding:0 24px 24px; }
+  .totals-inner { width:260px; }
+  .totals-row { display:flex; justify-content:space-between; padding:7px 0; font-size:13px; border-bottom:1px solid var(--border); }
+  .totals-row:last-child { border-bottom:none; }
+  .totals-row.grand { border-top:2px solid var(--primary); border-bottom:none; margin-top:4px; padding-top:12px; }
+  .totals-row.grand span:last-child { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; color:var(--primary); }
+
+  /* Bank & payment */
+  .doc-bank { background:var(--light-bg); border-top:1px solid var(--border); padding:20px 24px; }
+  .doc-bank h3 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:12px; }
+  .doc-bank-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 24px; font-size:13px; }
+  .doc-bank-grid span:first-child { color:var(--text-muted); }
+  .doc-bank-grid span:last-child { font-weight:700; }
+
+  /* Notes */
+  .doc-notes { padding:16px 24px; border-top:1px solid var(--border); font-size:13px; color:var(--text-muted); }
+
+  /* Signatures */
+  .doc-sig { display:grid; grid-template-columns:1fr 1fr; gap:40px; padding:24px; border-top:1px solid var(--border); }
+  .sig-box { text-align:center; }
+  .sig-area { height:52px; border-bottom:1.5px solid var(--text); margin-bottom:6px; margin-top:16px; }
+  .sig-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* Footer */
+  .doc-stamp { background:var(--primary); color:rgba(255,255,255,0.7); text-align:center; padding:14px; font-size:10px; letter-spacing:0.5px; }
+
+  /* CTA */
+  .doc-cta { border:2px solid var(--secondary); border-radius:12px; padding:20px 24px; margin:24px; text-align:center; }
+  .doc-cta h3 { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:900; color:var(--primary); margin-bottom:6px; }
+  .doc-cta p { font-size:13px; color:var(--text-muted); margin-bottom:14px; }
+  .doc-cta a { display:inline-block; background:var(--primary); color:#fff; padding:11px 24px; border-radius:8px; font-weight:700; font-size:13px; text-decoration:none; }
+
+  @media print {
+    .top-nav, .preview-controls, .doc-cta, .no-print { display:none !important; }
+    body { background:#fff; }
+    .doc-wrap { margin:0; padding:0; }
+    .invoice-doc { box-shadow:none; border-radius:0; }
+  }
+  @media (max-width:600px) {
+    .doc-ref-bar { grid-template-columns:1fr 1fr; }
+    .doc-parties, .doc-bank-grid, .doc-sig { grid-template-columns:1fr; }
+    .doc-party:first-child { border-right:none; border-bottom:1px solid var(--border); }
+    .doc-wrap { padding: 0 3% 40px; }
+    .doc-header { padding: 20px 24px; flex-direction: column; }
+    .doc-header-right { text-align: left; margin-top: 12px; }
+    .doc-items { padding: 16px; }
+    .doc-items table { font-size: 11px; }
+    .doc-items th, .doc-items td { padding: 8px 10px; }
+    .doc-totals { padding: 0 12px 16px; }
+    .totals-inner { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="top-nav-brand">
+    <img src="/etl-images/etl-logo.png" alt="ETL" class="nav-sq" style="width:36px;height:36px;object-fit:contain;;mix-blend-mode:multiply;">
+    <div>
+      <span class="nav-title">Engineering Trade Links</span>
+      <span class="nav-sub">Invoice</span>
+    </div>
+  </div>
+  <a href="/" style="font-size:12px;font-weight:700;color:var(--primary);text-decoration:none;">← Back to Website</a>
+</nav>
+
+<!-- LOADING -->
+<div id="loading-state" class="spinner-wrap">
+  <div class="spinner"></div>
+  <p style="color:var(--text-muted);font-size:13px;">Loading your invoice...</p>
+</div>
+
+<!-- ERROR -->
+<div id="error-state" class="state-box" style="display:none;">
+  <div class="state-icon">⚠️</div>
+  <h2>Invoice Not Found</h2>
+  <p>This invoice link may be invalid or has expired. Please contact ETL at <strong>tradelinks.ltd@gmail.com</strong> or <strong>+256 776 566 522</strong>.</p>
+</div>
+
+<!-- CONTROLS -->
+<div class="preview-controls no-print" id="preview-controls" style="display:none;">
+  <button class="btn-ctrl btn-pdf" onclick="downloadPDF()">⬇ Download PDF</button>
+  <button class="btn-ctrl btn-print" onclick="window.print()">🖨 Print Invoice</button>
+  <span class="ctrl-info" id="ctrl-status"></span>
+</div>
+
+<!-- INVOICE DOCUMENT -->
+<div class="doc-wrap" id="doc-wrap" style="display:none;">
+<div class="invoice-doc" id="inv-doc">
+
+  <div class="doc-header">
+    <div>
+      <h1>Engineering Trade Links Co. Ltd</h1>
+      <p>
+        Plot 1353, Sonde-Seeta Road, Goma Division, Mukono Municipality<br>
+        Tel: +256 776 566 522 / +256 704 545 163<br>
+        Email: tradelinks.ltd@gmail.com &nbsp;|&nbsp; www.engineeringtradelinks.com<br>
+        TIN: 1000161539 &nbsp;|&nbsp; VAT Reg: 49481-L
+      </p>
+    </div>
+    <div class="doc-header-right">
+      <h2>INVOICE</h2>
+      <p>
+        No: <strong id="p-inv-number"></strong><br>
+        Date: <strong id="p-inv-date"></strong><br>
+        Due: <strong id="p-inv-due"></strong>
+      </p>
+    </div>
+  </div>
+
+  <div class="doc-ref-bar">
+    <div class="doc-ref-item"><label>Invoice No</label><span id="p-ref-num"></span></div>
+    <div class="doc-ref-item"><label>LPO Reference</label><span id="p-lpo-ref"></span></div>
+    <div class="doc-ref-item"><label>Invoice Date</label><span id="p-date"></span></div>
+    <div class="doc-ref-item"><label>Payment Due</label><span id="p-due"></span></div>
+  </div>
+
+  <div class="doc-parties">
+    <div class="doc-party">
+      <h3>From</h3>
+      <div class="doc-party-name">Engineering Trade Links Co. Ltd</div>
+      <div class="doc-party-detail">
+        Plot 1353, Sonde-Seeta Road<br>
+        Goma Division, Mukono Municipality<br>
+        Kampala, Uganda<br>
+        TIN: 1000161539
+      </div>
+    </div>
+    <div class="doc-party">
+      <h3>Billed To</h3>
+      <div class="doc-party-name" id="p-client-name"></div>
+      <div class="doc-party-detail" id="p-client-detail"></div>
+    </div>
+  </div>
+
+  <div class="doc-items">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:5%">#</th>
+          <th style="width:45%">Description</th>
+          <th style="width:10%">Unit</th>
+          <th style="width:10%">Qty</th>
+          <th style="width:15%">Unit Price (UGX)</th>
+          <th style="width:15%">Total (UGX)</th>
+        </tr>
+      </thead>
+      <tbody id="p-items-body"></tbody>
+    </table>
+  </div>
+
+  <div class="doc-totals">
+    <div class="totals-inner">
+      <div class="totals-row"><span>Subtotal</span><span id="p-subtotal"></span></div>
+      <div class="totals-row" id="p-vat-row" style="display:none;"><span>VAT (18%)</span><span id="p-vat"></span></div>
+      <div class="totals-row grand"><span style="font-weight:700;">GRAND TOTAL</span><span id="p-total"></span></div>
+    </div>
+  </div>
+
+  <div class="doc-bank">
+    <h3>Payment Details</h3>
+    <div class="doc-bank-grid">
+      <span>Bank Name:</span><span>Equity Bank Uganda Ltd</span>
+      <span>Account Name:</span><span>Engineering Trade Links Co. Ltd</span>
+      <span>Payment Terms:</span><span id="p-terms"></span>
+      <span>Due Date:</span><span id="p-due2"></span>
+    </div>
+  </div>
+
+  <div class="doc-notes" id="p-notes-wrap" style="display:none;">
+    <strong>Notes:</strong> <span id="p-notes"></span>
+  </div>
+
+  <div class="doc-sig">
+    <div class="sig-box">
+      <div class="sig-area"></div>
+      <div class="sig-label">Authorised By: ETL Management</div>
+    </div>
+    <div class="sig-box">
+      <div class="sig-area"></div>
+      <div class="sig-label">Client Acknowledgement</div>
+    </div>
+  </div>
+
+  <div class="doc-stamp">
+    Engineering Trade Links Company Limited &nbsp;|&nbsp; Reg No: 82786 &nbsp;|&nbsp; VAT: 49481-L &nbsp;|&nbsp; PPDA: PRV/WKRS/25051515/MAY/25 &nbsp;|&nbsp; Quality at Service Since 2006
+  </div>
+
+</div><!-- end invoice-doc -->
+
+<!-- CLIENT CTA -->
+<div class="doc-cta no-print">
+  <h3>Questions about this invoice?</h3>
+  <p>Contact Engineering Trade Links Co. Ltd for any queries regarding payment or this invoice.</p>
+  <a href="tel:+256776566522">📞 Call Us: +256 776 566 522</a>
+</div>
+
+</div><!-- end doc-wrap -->
+
+<script>
+  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+
+  function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'"); }
+  function fmt(n) { return 'UGX ' + Math.round(n||0).toLocaleString(); }
+  function fmtNum(n) { return Math.round(n||0).toLocaleString(); }
+
+  (async function loadInvoice() {
+    const params = new URLSearchParams(window.location.search);
+    const invLink = params.get('inv');
+    if(!invLink) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').style.display = 'block';
+      return;
+    }
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoices?unique_link=eq.${invLink}&limit=1`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await res.json();
+
+      if(!data || !data.length) {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-state').style.display = 'block';
+        return;
+      }
+
+      renderInvoice(data[0]);
+    } catch(e) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').innerHTML = `
+        <div class="state-icon">⚠️</div>
+        <h2>Connection Error</h2>
+        <p>Could not load invoice. Please try again or contact ETL.</p>`;
+      document.getElementById('error-state').style.display = 'block';
+    }
+  })();
+
+  function renderInvoice(inv) {
+    document.title = `Invoice ${decode(inv.invoice_number)} | ETL`;
+
+    // Header
+    document.getElementById('p-inv-number').innerText = decode(inv.invoice_number);
+    document.getElementById('p-ref-num').innerText    = decode(inv.invoice_number);
+    document.getElementById('p-inv-date').innerText   = inv.invoice_date || '—';
+    document.getElementById('p-inv-due').innerText    = inv.due_date     || '—';
+    document.getElementById('p-date').innerText       = inv.invoice_date || '—';
+    document.getElementById('p-due').innerText        = inv.due_date     || '—';
+    document.getElementById('p-due2').innerText       = inv.due_date     || '—';
+    document.getElementById('p-lpo-ref').innerText    = decode(inv.lpo_ref) || '—';
+    document.getElementById('p-terms').innerText      = inv.payment_terms || '—';
+
+    // Client
+    document.getElementById('p-client-name').innerText = inv.client_name || '—';
+    document.getElementById('p-client-detail').innerText = inv.client_email || '';
+
+    // Items
+    const items = inv.items || [];
+    const tbody = document.getElementById('p-items-body');
+    tbody.innerHTML = items.map((item, i) => `
+      <tr>
+        <td>${i+1}</td>
+        <td>${item.desc || ''}</td>
+        <td>${item.unit || ''}</td>
+        <td style="text-align:right">${item.qty || 0}</td>
+        <td style="text-align:right">${fmtNum(item.price || 0)}</td>
+        <td>${fmtNum((item.qty||0)*(item.price||0))}</td>
+      </tr>`).join('');
+
+    // Totals
+    document.getElementById('p-subtotal').innerText = fmt(inv.subtotal);
+    document.getElementById('p-total').innerText    = fmt(inv.total);
+    if(inv.vat > 0) {
+      document.getElementById('p-vat').innerText = fmt(inv.vat);
+      document.getElementById('p-vat-row').style.display = '';
+    }
+
+    // Notes
+    if(inv.notes) {
+      document.getElementById('p-notes').innerText = inv.notes;
+      document.getElementById('p-notes-wrap').style.display = '';
+    }
+
+    // Controls info
+    document.getElementById('ctrl-status').innerText =
+      `Invoice ${decode(inv.invoice_number)} | Due: ${inv.due_date}`;
+
+    // Show document
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('preview-controls').style.display = 'flex';
+    document.getElementById('doc-wrap').style.display = 'block';
+
+    window._invoiceData = inv;
+  }
+
+  function downloadPDF() {
+    const inv = window._invoiceData;
+    const num = decode(inv.invoice_number).replace(/\//g,'-').replace(/\s/g,'_');
+    const el = document.getElementById('inv-doc');
+    html2pdf().set({
+      margin: 8,
+      filename: `ETL_Invoice_${num}.pdf`,
+      image: { type:'jpeg', quality:0.98 },
+      html2canvas: { scale:2, useCORS:true },
+      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+    }).from(el).save();
+  }
+</script>
+</body>
+</html>

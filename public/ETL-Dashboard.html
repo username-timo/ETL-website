@@ -1,0 +1,998 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL | Operations Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
+    --lighter-bg: #f5f9fd; --white: #ffffff; --text: #1e293b;
+    --text-muted: #64748b; --border: #cfe3f0;
+    --gold: #c8860a; --gold-bg: #fdf3e0;
+    --success: #0f7a4a; --success-bg: #e6f7ef;
+    --danger: #c0392b; --danger-bg: #fdf0ef;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--lighter-bg); color: var(--text); min-height: 100vh; }
+
+  .top-nav {
+    background: var(--primary); height: 64px; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 5%;
+  }
+  .top-nav-brand { display: flex; align-items: center; gap: 12px; }
+  .top-nav-sq { background: transparent; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .top-nav-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--white); text-transform: uppercase; }
+  .top-nav-sub { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; display: block; }
+  .nav-actions { display: flex; gap: 10px; }
+  .nav-btn { text-decoration: none; color: var(--white); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 16px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.2s; background: transparent; cursor: pointer; }
+  .nav-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
+  .nav-btn.gold { background: var(--gold); border-color: var(--gold); }
+
+  .dash-wrap { max-width: 1500px; margin: 0 auto; padding: 36px 3% 60px; }
+
+  /* STATS */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 32px; }
+  @media(max-width:700px){ .stats-row { grid-template-columns: repeat(2,1fr); } }
+  .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; }
+  .stat-num { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 900; color: var(--primary); }
+  .stat-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-top: 2px; }
+  .stat-card.gold .stat-num { color: var(--gold); }
+  .stat-card.green .stat-num { color: var(--success); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 4px; width: fit-content; }
+  .tab-btn { padding: 8px 20px; border-radius: 8px; border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; text-transform: uppercase; letter-spacing: 0.5px; }
+  .tab-btn.active { background: var(--primary); color: var(--white); }
+
+  /* TABLE */
+  .table-card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: auto; }
+  .table-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .table-header h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+  .table-header .refresh-btn { background: var(--light-bg); border: 1px solid var(--border); border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700; color: var(--primary); cursor: pointer; transition: all 0.2s; }
+  .table-header .refresh-btn:hover { background: var(--secondary); color: var(--white); border-color: var(--secondary); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { background: var(--lighter-bg); padding: 11px 16px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+  td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--lighter-bg); }
+
+  /* LPO Table Column Widths */
+  tbody tr:first-child td:nth-child(1), thead tr th:nth-child(1) { width: 12%; }
+  tbody tr:first-child td:nth-child(2), thead tr th:nth-child(2) { width: 15%; }
+  tbody tr:first-child td:nth-child(3), thead tr th:nth-child(3) { width: 10%; }
+  tbody tr:first-child td:nth-child(4), thead tr th:nth-child(4) { width: 15%; }
+  tbody tr:first-child td:nth-child(5), thead tr th:nth-child(5) { width: 10%; }
+  tbody tr:first-child td:nth-child(6), thead tr th:nth-child(6) { width: 10%; }
+  tbody tr:first-child td:nth-child(7), thead tr th:nth-child(7) { width: 10%; }
+  tbody tr:first-child td:nth-child(8), thead tr th:nth-child(8) { width: auto; min-width: 160px; }
+
+  /* LPO Table Only - responsive width */
+  #lpos-body table { width: 100%; }
+
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+  .badge-pending     { background: var(--gold-bg); color: var(--gold); }
+  .badge-active      { background: var(--success-bg); color: var(--success); }
+  .badge-sent        { background: var(--light-bg); color: var(--secondary); }
+  .badge-in_progress { background: #e8f0fe; color: #1a56db; }
+  .badge-responded   { background: var(--success-bg); color: var(--success); }
+  .badge-closed      { background: #f3f4f6; color: #6b7280; }
+  .badge-issued      { background: var(--light-bg); color: var(--primary); }
+  .badge-lpo-active    { background: var(--light-bg); color: var(--secondary); }
+  .badge-lpo-issued    { background: var(--light-bg); color: var(--primary); }
+  .badge-lpo-delivered { background: #e0f7ef; color: #006644; }
+  .badge-lpo-paid      { background: var(--success-bg); color: var(--success); }
+  .badge-lpo-disputed  { background: #fdf0ef; color: #c0392b; }
+  .badge-lpo-closed    { background: #f3f4f6; color: #6b7280; }
+  .badge-delivered   { background: #e0f7ef; color: #006644; }
+  .badge-paid        { background: var(--success-bg); color: var(--success); }
+  .badge-disputed    { background: #fdf0ef; color: #c0392b; }
+  .badge-outward { background: var(--light-bg); color: var(--primary); }
+  .badge-inward  { background: var(--gold-bg); color: var(--gold); }
+
+  .action-btn { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--lighter-bg); font-size: 11px; font-weight: 700; color: var(--primary); cursor: pointer; transition: all 0.2s; margin-right: 4px; margin-bottom: 2px; display: inline-flex; align-items: center; white-space: nowrap; flex-shrink: 0; }
+  .action-btn:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
+  .action-btn.gold:hover { background: var(--gold); border-color: var(--gold); }
+  .action-btn:disabled, .action-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Actions column styling */
+  #lpos-body table td:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+
+  .action-btn:hover { background: var(--primary); color: var(--white); border-color: var(--primary); }
+  .action-btn.gold:hover { background: var(--gold); border-color: var(--gold); }
+  .action-btn:disabled, .action-btn.disabled { opacity: 0.4; cursor: not-allowed; }
+  .action-btn:disabled:hover, .action-btn.disabled:hover { background: var(--lighter-bg); color: var(--primary); border-color: var(--border); }
+  .status-select {
+    padding: 5px 10px; border-radius: 6px; border: 1px solid var(--border);
+    background: var(--lighter-bg); font-size: 11px; font-weight: 700;
+    color: var(--primary); cursor: pointer; font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .status-select:focus { outline: none; border-color: var(--secondary); }
+  .status-select:disabled { cursor: not-allowed; opacity: 0.5; }
+  .status-select:disabled:hover { border-color: var(--gold); }
+
+  .empty-state { padding: 48px 24px; text-align: center; color: var(--text-muted); }
+  .empty-state .icon { font-size: 40px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  .loading-state { padding: 40px; text-align: center; color: var(--text-muted); font-size: 14px; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 14px; max-width: 620px; width: 100%; max-height: 85vh; overflow-y: auto; padding: 32px; }
+  .modal h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 20px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+  .modal-field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); display: block; margin-bottom: 3px; }
+  .modal-field p { font-size: 14px; color: var(--text); font-weight: 500; }
+  .modal-field.full { grid-column: 1/-1; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+  .modal-btn { padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }
+  .modal-btn.primary { background: var(--primary); color: var(--white); }
+  .modal-btn.secondary { background: var(--lighter-bg); color: var(--text); border: 1px solid var(--border); }
+  .modal-btn.gold { background: var(--gold); color: var(--white); }
+
+  /* ── Approved / Pending Row Highlight ── */
+  tr.row-approved td { background: #e6f7ef !important; border-top: 2px solid #0f7a4a; border-bottom: 2px solid #0f7a4a; }
+  tr.row-approved td:first-child { border-left: 5px solid #0f7a4a !important; }
+  tr.row-pending td { background: #fdf3e0 !important; border-top: 2px solid #c8860a; border-bottom: 2px solid #c8860a; }
+  tr.row-pending td:first-child { border-left: 5px solid #c8860a !important; }
+
+  /* MOBILE RESPONSIVE - TABLETS (768px and below) */
+  @media(max-width:768px) {
+    .top-nav { padding: 0 3%; }
+    .top-nav-title { font-size: 16px; }
+    .nav-btn { font-size: 10px; padding: 6px 12px; }
+    .dash-wrap { padding: 24px 3% 40px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 24px; }
+    .stat-card { padding: 16px 20px; }
+    .stat-num { font-size: 28px; }
+    .stat-label { font-size: 10px; }
+    .tabs { flex-wrap: wrap; }
+    .tab-btn { padding: 6px 16px; font-size: 12px; }
+    table { font-size: 12px; }
+    th { padding: 8px 12px; font-size: 9px; }
+    td { padding: 10px 8px; }
+    .action-btn { padding: 4px 10px; font-size: 10px; }
+    .modal { padding: 24px; max-height: 90vh; }
+    .modal h2 { font-size: 18px; }
+    .modal-grid { grid-template-columns: 1fr; gap: 12px; }
+  }
+
+  /* MOBILE RESPONSIVE - TABLETS (768px) - TABLES */
+  @media(max-width:768px) {
+    table { font-size: 12px; }
+    thead { display: table; width: 100%; }
+    tbody { display: table; width: 100%; }
+    tr { display: table-row; width: 100%; }
+    th, td { padding: 10px 8px; font-size: 12px; }
+    th { font-size: 9px; }
+    th:before, td:before { display: none !important; }
+  }
+
+  /* Prevent text wrapping on buttons and labels */
+  .nav-btn, .action-btn, .modal-btn, .btn-primary, .btn-secondary, .badge, .tab-btn {
+    white-space: nowrap;
+  }
+
+  /* MOBILE RESPONSIVE - PHONES (480px and below) */
+  @media(max-width:480px) {
+    :root {
+      --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
+      --lighter-bg: #f5f9fd; --white: #ffffff; --text: #1e293b;
+      --text-muted: #64748b; --border: #cfe3f0;
+      --gold: #c8860a; --gold-bg: #fdf3e0;
+      --success: #0f7a4a; --success-bg: #e6f7ef;
+      --danger: #c0392b; --danger-bg: #fdf0ef;
+    }
+
+    body { font-size: 14px; }
+
+    /* NAV */
+    .top-nav { height: 56px; padding: 0 2%; }
+    .top-nav-brand { gap: 8px; }
+    .top-nav-sq { width: 32px; height: 32px; font-size: 14px; }
+    .top-nav-title { font-size: 14px; font-weight: 700; }
+    .top-nav-sub { font-size: 8px; }
+    .nav-actions { flex-wrap: wrap; gap: 6px; }
+    .nav-btn { font-size: 9px; padding: 6px 10px; border-radius: 4px; }
+
+    /* MAIN */
+    .dash-wrap { padding: 16px 2% 32px; max-width: 100%; }
+
+    /* STATS */
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 16px; }
+    .stat-card { padding: 12px 14px; border-radius: 8px; }
+    .stat-num { font-size: 20px; }
+    .stat-label { font-size: 9px; }
+
+    /* TABS */
+    .tabs { gap: 2px; padding: 3px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tab-btn { padding: 6px 12px; font-size: 11px; border-radius: 6px; }
+
+    /* TABLE */
+    .table-card { border-radius: 8px; }
+    .table-header { padding: 12px 14px; }
+    .table-header h3 { font-size: 14px; }
+    .table-header .refresh-btn { padding: 6px 12px; font-size: 11px; }
+
+    table { font-size: 11px; width: 100%; display: block; overflow-x: auto; }
+    thead { display: block; }
+    tbody { display: block; overflow-x: auto; }
+    tr { display: flex; width: 100%; }
+    th, td { padding: 8px; font-size: 11px; word-break: break-word; min-width: 100px; flex: 1; }
+    th { font-size: 8px; font-weight: 700; background: var(--lighter-bg); }
+
+    .badge { padding: 2px 6px; font-size: 8px; }
+    .action-btn { padding: 4px 8px; font-size: 9px; margin-right: 2px; margin-bottom: 4px; display: inline-block; }
+    .status-select { padding: 4px 8px; font-size: 10px; }
+
+    /* MODAL */
+    .modal-overlay { padding: 10px; }
+    .modal { padding: 20px; border-radius: 10px; max-height: 95vh; }
+    .modal h2 { font-size: 16px; margin-bottom: 16px; }
+    .modal-grid { grid-template-columns: 1fr; gap: 10px; }
+    .modal-field label { font-size: 9px; margin-bottom: 2px; }
+    .modal-field p { font-size: 13px; }
+    .modal-actions { flex-direction: column-reverse; gap: 8px; }
+    .modal-btn { padding: 10px 16px; font-size: 12px; width: 100%; }
+
+    /* EMPTY STATE */
+    .empty-state { padding: 32px 16px; }
+    .empty-state .icon { font-size: 32px; }
+    .empty-state p { font-size: 12px; }
+
+    /* LOADING STATE */
+    .loading-state { padding: 24px; font-size: 12px; }
+
+    /* ROW HIGHLIGHTS */
+    tr.row-approved td:first-child,
+    tr.row-pending td:first-child { border-left-width: 3px !important; }
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ROLE LOGIN OVERLAY -->
+<div class="role-overlay" id="role-overlay">
+  <div class="role-card">
+    <img src="/etl-images/etl-logo.png" alt="ETL" class="role-sq" style="width:56px;height:56px;object-fit:contain;margin-bottom:12px;;mix-blend-mode:multiply;">
+    <div class="role-title">Operations Dashboard</div>
+    <div class="role-sub">Engineering Trade Links Co. Ltd</div>
+    <div class="role-field">
+      <label>Sign in as</label>
+      <select id="role-select">
+        <option value="staff">ETL Staff</option>
+        <option value="management">Management (MD / Director Finance)</option>
+      </select>
+    </div>
+    <div class="role-field">
+      <label>PIN</label>
+      <input type="password" id="role-pin" placeholder="Enter PIN" maxlength="6" onkeydown="if(event.key==='Enter')doRoleLogin()">
+    </div>
+    <button class="role-btn" onclick="doRoleLogin()">Sign In →</button>
+  </div>
+</div>
+
+<nav class="top-nav" id="top-nav" style="display:none;">
+  <div class="top-nav-brand">
+    <img src="/etl-images/etl-logo.png" alt="ETL" class="top-nav-sq" style="width:36px;height:36px;object-fit:contain;;mix-blend-mode:multiply;">
+    <div>
+      <span class="top-nav-title">Operations Dashboard</span>
+      <span class="top-nav-sub">Engineering Trade Links Co. Ltd — Internal Use</span>
+    </div>
+  </div>
+  <div class="nav-actions">
+    <a href="/ETL-Quotation-generator.html" class="nav-btn">📋 New Quotation</a>
+    <a href="/ETL-LPO-Outward.html" class="nav-btn gold">📦 New LPO</a>
+    <a href="/ETL-Inventory.html" class="nav-btn">📦 Inventory</a>
+    <button class="nav-btn" onclick="doLogout()" id="logout-btn" style="display:none;">🔓 Log Out</button>
+  </div>
+</nav>
+
+<div class="dash-wrap" id="dash-wrap" style="display:none;">
+
+  <!-- STATS -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-total-req">—</div>
+      <div class="stat-label">Quotation Requests</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-num" id="stat-pending">—</div>
+      <div class="stat-label">Pending Review</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-num" id="stat-total-lpo">—</div>
+      <div class="stat-label">Total LPOs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-outward">—</div>
+      <div class="stat-label">Outward LPOs</div>
+    </div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('requests', this)">📋 Quotation Requests</button>
+    <button class="tab-btn" onclick="switchTab('lpos', this)">📦 LPO Records</button>
+    <button class="tab-btn mgmt-only" id="approvals-tab-btn" onclick="switchTab('approvals', this)" style="display:none;">✅ Approvals <span id="approval-count-badge" style="background:var(--danger);color:white;border-radius:100px;padding:1px 7px;font-size:10px;margin-left:4px;display:none;"></span></button>
+  </div>
+
+  <!-- QUOTATION REQUESTS TABLE -->
+  <div id="tab-requests">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Incoming Quotation Requests</h3>
+        <button class="refresh-btn" onclick="loadRequests()">↻ Refresh</button>
+      </div>
+      <div id="requests-body">
+        <div class="loading-state">Loading requests...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LPO RECORDS TABLE -->
+  <div id="tab-lpos" style="display:none;">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>LPO Records</h3>
+        <button class="refresh-btn" onclick="loadLPOs()">↻ Refresh</button>
+      </div>
+      <div id="lpos-body">
+        <div class="loading-state">Loading LPOs...</div>
+      </div>
+    </div>
+  </div>
+
+<div id="tab-approvals" style="display:none;">
+  <div id="approvals-body"><div class="loading-state">Loading...</div></div>
+</div>
+
+</div>
+
+<!-- DETAIL MODAL v1775123758 -->
+<div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  
+  // ─── Brevo Email Helper ───
+  async function sendEmail(to, subject, body) {
+    if(!to || !to.includes('@')) return;
+    try {
+      const safe = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const linked = safe.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#1a3c6e;font-weight:bold;">$1</a>');
+      const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#1e293b;max-width:600px;">' + linked.replace(/\n/g,'<br>') + '<br><br><hr style="border:none;border-top:1px solid #cfe3f0;"><p style="font-size:11px;color:#64748b;">Engineering Trade Links Co. Ltd | Plot 1353, Sonde-Seeta Road, Mukono | +256 776 566 522</p></div>';
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'api-key': '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' },
+        body: JSON.stringify({
+          sender: { name: 'Engineering Trade Links Co. Ltd', email: 'timookui@gmail.com' },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: html
+        })
+      });
+    } catch(e) { console.warn('Email error:', e); }
+  }
+
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+
+  function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'"); }
+
+  function fmtDate(d) {
+    if(!d) return '—';
+    return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
+  }
+
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-requests').style.display = tab === 'requests' ? '' : 'none';
+    document.getElementById('tab-lpos').style.display = tab === 'lpos' ? '' : 'none';
+    if(tab === 'lpos') loadLPOs();
+  }
+
+  async function loadRequests() {
+    document.getElementById('requests-body').innerHTML = '<div class="loading-state">Loading...</div>';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?order=created_at.desc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await res.json();
+
+      // Update stats
+      document.getElementById('stat-total-req').innerText = data.length;
+      // Count pending quotations + pending LPOs for the stat card
+      fetch(`${SUPABASE_URL}/rest/v1/lpos?status=eq.pending_approval&select=id`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      }).then(r => r.json()).then(lpoPending => {
+        const qPending = data.filter(r => r.status === 'pending_approval' || r.status === 'pending').length;
+        document.getElementById('stat-pending').innerText = qPending + (lpoPending.length || 0);
+      }).catch(() => {
+        document.getElementById('stat-pending').innerText = data.filter(r => r.status === 'pending_approval' || r.status === 'pending').length;
+      });
+
+      if(!data.length) {
+        document.getElementById('requests-body').innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No quotation requests yet. Share the request form link with clients!</p></div>';
+        return;
+      }
+
+      window._reqData = data;
+      let rows = data.map((r,i) => `
+        <tr data-id="${r.id}" class="${r.status==='approved'?'row-approved':r.status==='pending_approval'||r.status==='pending'?'row-pending':''}">
+          <td><strong>${r.client_name || '—'}</strong></td>
+          <td>${r.contact_person || '—'}</td>
+          <td>${r.project_title || '—'}</td>
+          <td>${r.client_email || '—'}</td>
+          <td>${fmtDate(r.created_at)}</td>
+          <td><span class="badge badge-${r.status}" id="req-badge-${r.id}">${r.status}</span></td>
+          <td>
+            <button class="action-btn" onclick="showRequest(${i})">View</button>
+            ${r.status === 'approved' ? '<button class="action-btn gold" onclick="openGenerator(' + i + ')">📋 Generate Quotation</button>' : r.status === 'pending_approval' ? '<span style="font-size:11px;color:var(--warning);font-weight:700;">⏳ Awaiting Approval</span>' : r.status === 'rejected' ? '<span style="font-size:11px;color:var(--danger);font-weight:700;">❌ Rejected</span>' : '<button class="action-btn gold" onclick="openGenerator(' + i + ')">📋 Generate Quotation</button>'}
+${(()=>{
+              const mg = currentRole==='management';
+              return `<select class="status-select" onchange="updateStatus('${r.id}', this.value)">
+                ${mg?`<option value="pending_approval" ${r.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${r.status==='approved'?'selected':''}>✅ Approved</option>`:''}
+                <option value="in_progress" ${r.status==='in_progress'?'selected':''}>🔄 In Progress</option>
+                <option value="responded" ${r.status==='responded'?'selected':''}>📤 Responded</option>
+                ${mg?`<option value="rejected" ${r.status==='rejected'?'selected':''}>❌ Rejected</option>`:''}
+                <option value="closed" ${r.status==='closed'?'selected':''}>🔒 Closed</option>
+              </select>`;
+            })()}
+          </td>
+        </tr>`).join('');
+
+      document.getElementById('requests-body').innerHTML = `
+        <table>
+          <thead><tr>
+            <th>Organisation</th><th>Contact</th><th>Project</th>
+            <th>Email</th><th>Date</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch(e) {
+      document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
+    }
+  }
+
+  async function loadLPOs() {
+    document.getElementById('lpos-body').innerHTML = '<div class="loading-state">Loading...</div>';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos?order=created_at.desc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await res.json();
+
+      document.getElementById('stat-total-lpo').innerText = data.length;
+      document.getElementById('stat-outward').innerText = data.filter(l => l.direction === 'outward').length;
+
+      if(!data.length) {
+        document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>No LPOs recorded yet.</p></div>';
+        return;
+      }
+
+      window._lpoData = data;
+      let rows = data.map((l,i) => `
+        <tr data-lpo-id="${l.id}" class="${l.status==='approved'?'row-approved':l.status==='pending_approval'?'row-pending':''}">
+          <td><strong>${l.lpo_number || '—'}</strong></td>
+          <td>${l.entity_name || '—'}</td>
+          <td><span class="badge badge-${l.direction}">${l.direction}</span></td>
+          <td>${l.entity_email || '—'}</td>
+          <td>UGX ${(l.total||0).toLocaleString()}</td>
+          <td>${fmtDate(l.created_at)}</td>
+          <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
+          <td>
+            <button class="action-btn" onclick="showLPO(${i})">View</button>
+            ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">⏳ Awaiting Approval</span>`}
+            ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
+            ${l.status === 'approved' && l.direction === 'inward' ? `<button class="action-btn" onclick="checkStock(${i})" style="background:var(--light-bg);color:var(--secondary);border-color:var(--secondary)">📦 Check Stock</button>` : ''}
+${(()=>{
+              const mg = currentRole==='management';
+              const isApproved = l.status === 'approved';
+              return `<select class="status-select" onchange="updateLPOStatus('${l.id}', this.value)" ${!isApproved && !mg ? 'disabled' : ''} style="${!isApproved && !mg ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+                ${mg?`<option value="pending_approval" ${l.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${l.status==='approved'?'selected':''}>✅ Approved</option>`:''}
+                ${isApproved ? `<option value="active" ${l.status==='active'?'selected':''}>📋 Active</option>` : `<option value="active" disabled>📋 Active</option>`}
+                ${isApproved ? `<option value="issued" ${l.status==='issued'?'selected':''}>📤 Issued</option>` : `<option value="issued" disabled>📤 Issued</option>`}
+                ${isApproved ? `<option value="delivered" ${l.status==='delivered'?'selected':''}>✅ Delivered</option>` : `<option value="delivered" disabled>✅ Delivered</option>`}
+                ${isApproved ? `<option value="paid" ${l.status==='paid'?'selected':''}>💰 Paid</option>` : `<option value="paid" disabled>💰 Paid</option>`}
+                ${isApproved ? `<option value="disputed" ${l.status==='disputed'?'selected':''}>⚠️ Disputed</option>` : `<option value="disputed" disabled>⚠️ Disputed</option>`}
+                ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>🔒 Closed</option>` : `<option value="closed" disabled>🔒 Closed</option>`}
+              </select>`;
+            })()}
+          </td>
+        </tr>`).join('');
+
+      document.getElementById('lpos-body').innerHTML = `
+        <table>
+          <thead><tr>
+            <th>LPO Number</th><th>Entity</th><th>Direction</th>
+            <th>Email</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch(e) {
+      document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
+    }
+  }
+
+  function showLPO(i) {
+    const l = window._lpoData[i];
+    const items = (l.items || []).map((i,n) => `<tr><td>${n+1}</td><td>${i.desc}</td><td>${i.unit}</td><td>${i.qty}</td><td>UGX ${(i.price||0).toLocaleString()}</td><td>UGX ${(i.total||0).toLocaleString()}</td></tr>`).join('');
+    document.getElementById('modal-content').innerHTML = `
+      <h2>📦 LPO Details</h2>
+      <div class="modal-grid">
+        <div class="modal-field"><label>LPO Number</label><p>${l.lpo_number || '—'}</p></div>
+        <div class="modal-field"><label>Direction</label><p><span class="badge badge-${l.direction}">${l.direction}</span></p></div>
+        <div class="modal-field"><label>Entity Name</label><p>${l.entity_name || '—'}</p></div>
+        <div class="modal-field"><label>Email</label><p>${l.entity_email || '—'}</p></div>
+        <div class="modal-field"><label>Issue Date</label><p>${fmtDate(l.issue_date)}</p></div>
+        <div class="modal-field"><label>Delivery Date</label><p>${fmtDate(l.delivery_date)}</p></div>
+        <div class="modal-field"><label>Total Amount</label><p><strong>UGX ${(l.total||0).toLocaleString()}</strong></p></div>
+        <div class="modal-field"><label>Status</label><p><span class="badge badge-${l.status}">${l.status}</span></p></div>
+        ${l.project_name ? `<div class="modal-field full"><label>Project / Contract Title</label><p>${l.project_name}</p></div>` : ''}${l.delivery_location ? `<div class="modal-field"><label>Delivery Location</label><p>${l.delivery_location}</p></div>` : ''}${l.notes ? `<div class="modal-field full"><label>Notes</label><p>${l.notes}</p></div>` : ''}
+      </div>
+      ${items ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:var(--lighter-bg)"><th style="padding:8px;text-align:left">#</th><th style="padding:8px;text-align:left">Description</th><th style="padding:8px">Unit</th><th style="padding:8px">Qty</th><th style="padding:8px">Price</th><th style="padding:8px">Total</th></tr></thead><tbody>${items}</tbody></table>` : ''}
+      <div class="modal-actions">
+        <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+        ${l.direction === 'outward' && l.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${l.unique_link}')">📋 Copy Supplier Link</button>` : ''}
+      </div>`;
+    document.getElementById('detail-modal').classList.add('open');
+  }
+
+
+  function copyLink(uniqueLink) {
+    const base = 'https://engineeringtradelinks.pages.dev/';
+    const url = base + 'ETL-LPO-View.html?lpo=' + uniqueLink;
+    prompt('✅ LPO link ready!\n\nShare this link with the supplier so they can view their LPO:', url);
+  }
+
+  async function updateLPOStatus(id, status) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ status })
+      });
+      if(res.ok) {
+        const badge = document.getElementById(`lpo-status-${id}`);
+        if(badge) {
+          const labels = {
+            active:'📋 Active', issued:'📤 Issued', delivered:'✅ Delivered',
+            paid:'💰 Paid', disputed:'⚠️ Disputed', closed:'🔒 Closed'
+          };
+          badge.className = `badge badge-lpo-${status}`;
+          badge.innerText = labels[status] || status;
+        }
+        // Update stats
+        loadLPOs();
+      } else {
+        alert('Could not update LPO status. Please try again.');
+      }
+    } catch(e) {
+      alert('Network error: ' + e.message);
+    }
+  }
+
+  async function updateStatus(id, status) {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ status })
+      });
+      if(res.ok) {
+        // Update badge
+        const badge = document.getElementById(`req-badge-${id}`);
+        if(badge) {
+          const labels = { pending_approval:'⏳ Pending Approval', approved:'✅ Approved', in_progress:'🔄 In Progress', responded:'📤 Responded', rejected:'❌ Rejected', closed:'🔒 Closed' };
+          badge.className = `badge badge-${status}`;
+          badge.innerText = labels[status] || status;
+        }
+        // If status changed to approved, notify ETL staff
+        if(status === 'approved') {
+          const r = window._reqData && window._reqData.find(x => x.id === id);
+          const name    = r ? r.client_name    : 'Client';
+          const email   = r ? r.client_email   : '';
+          const project = r ? r.project_title  : 'Project';
+          // Notify ETL staff
+          sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved and is ready for you to generate.\n\nCLIENT DETAILS:\nName: ${name}\nEmail: ${email}\nProject: ${project}\n\nLog in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: https://engineeringtradelinks.pages.dev/ETL-Dashboard.html`);
+
+        }
+        // Reload to reflect new button states
+        loadRequests();
+      } else {
+        alert('Could not update status. Please try again.');
+      }
+    } catch(e) {
+      alert('Network error: ' + e.message);
+    }
+  }
+
+  function openGeneratorFromModal() {
+    openGenerator(null, window._currentRequest);
+  }
+
+  function openGenerator(i, directRecord) {
+    // If called from a request row, pass the data via URL params
+    const r = directRecord || (i !== undefined && i !== null && window._reqData) ? (directRecord || window._reqData[i]) : null;
+    if(r) {
+      const params = new URLSearchParams({
+        client_name:    r.client_name    || '',
+        contact_person: r.contact_person || '',
+        client_email:   r.client_email   || '',
+        client_phone:   r.client_phone   || '',
+        client_address: r.client_address || '',
+        project_title:  r.project_title  || '',
+        project_location: r.project_location || '',
+        project_description: r.project_description || '',
+        services_category:   r.services_category   || '',
+        project_duration:    r.project_duration     || '',
+        ref_id: r.id || ''
+      });
+      window.open('ETL-Quotation-generator.html?' + params.toString(), '_blank');
+    } else {
+      window.open('ETL-Quotation-generator.html', '_blank');
+    }
+  }
+
+  function closeModal() {
+    document.getElementById('detail-modal').classList.remove('open');
+  }
+
+  function blockActionUntilApproval(actionName) {
+    if(currentRole === 'staff') {
+      alert(`⏳ ${actionName} is not available until the LPO is approved by Management.\n\nPlease ask your manager to review and approve this LPO first.`);
+      return false;
+    }
+    return true;
+  }
+
+  // ─── ROLE LOGIN ───
+  const STAFF_PIN = '1353';
+  const MGMT_PIN  = '8282';
+  let currentRole = '';
+
+  function doLogout() {
+    currentRole = '';
+    document.getElementById('dash-wrap').style.display = 'none';
+    document.getElementById('top-nav').style.display = 'none';
+    document.getElementById('role-overlay').style.display = 'flex';
+    document.getElementById('role-pin').value = '';
+    document.getElementById('logout-btn').style.display = 'none';
+  }
+
+  function doRoleLogin() {
+    const role = document.getElementById('role-select').value;
+    const pin  = document.getElementById('role-pin').value.trim();
+    const validPin = role === 'management' ? MGMT_PIN : STAFF_PIN;
+    if(pin !== validPin) { alert('Incorrect PIN. Please try again.'); return; }
+    currentRole = role;
+    document.getElementById('role-overlay').style.display = 'none';
+    document.getElementById('dash-wrap').style.display = '';
+    document.getElementById('top-nav').style.display = '';
+    document.getElementById('logout-btn').style.display = '';
+    // Show management tab if management
+    if(role === 'management') {
+      document.getElementById('approvals-tab-btn').style.display = '';
+    }
+    // Update nav with role
+    document.querySelector('.top-nav-sub').innerText = role === 'management' ? 'Management Access' : 'Staff Access';
+    loadRequests();
+    loadLPOs();
+    if(role === 'management') loadApprovals();
+  }
+
+  // ─── APPROVALS ───
+  async function loadApprovals() {
+    document.getElementById('approvals-body').innerHTML = '<div class="loading-state">Loading...</div>';
+    try {
+      // Fetch pending quotation requests
+      const [resQ, resL] = await Promise.all([
+        fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?status=in.(pending_approval,pending)&order=created_at.desc`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        }),
+        fetch(`${SUPABASE_URL}/rest/v1/lpos?status=eq.pending_approval&order=created_at.desc`, {
+          headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+        })
+      ]);
+      const data  = await resQ.json();
+      const lpos  = await resL.json();
+
+      // Update badge count
+      const badge = document.getElementById('approval-count-badge');
+      const total = data.length + lpos.length;
+      if(total > 0) { badge.style.display = ''; badge.innerText = total; }
+      else { badge.style.display = 'none'; }
+
+      if(!data.length && !lpos.length) {
+        document.getElementById('approvals-body').innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>No pending approvals. All requests have been reviewed.</p></div>';
+        return;
+      }
+
+      window._approvalData = data;
+      let html = '';
+
+      if(data.length) {
+        const rows = data.map((r,i) => `
+          <tr>
+            <td><strong>${r.client_name || '—'}</strong></td>
+            <td>${r.contact_person || '—'}</td>
+            <td>${r.project_title || '—'}</td>
+            <td>${r.client_email || '—'}</td>
+            <td>${r.estimated_budget || '—'}</td>
+            <td>${fmtDate(r.created_at)}</td>
+            <td>
+              <button class="action-btn" onclick="showRequest(${i},'approval')">View</button>
+              <button class="action-btn approve" onclick="doApprove(${i})">✅ Approve</button>
+              <button class="action-btn reject" onclick="doReject(${i})">❌ Reject</button>
+            </td>
+          </tr>`).join('');
+        html += '<div style="margin-bottom:24px;"><h3 style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:var(--primary);text-transform:uppercase;padding:0 4px 8px;border-bottom:2px solid var(--border);margin-bottom:12px;">⏳ Pending Quotation Requests (' + data.length + ')</h3><table><thead><tr><th>Organisation</th><th>Contact</th><th>Project</th><th>Email</th><th>Budget</th><th>Date</th><th>Actions</th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+      }
+
+      if(lpos.length) {
+        const lpoRows = lpos.map((l,i) => `
+          <tr class="row-pending">
+            <td data-label="LPO Number"><strong>${decode(l.lpo_number) || '—'}</strong></td>
+            <td data-label="Entity">${l.entity_name || '—'}</td>
+            <td data-label="Direction"><span class="badge badge-${l.direction}">${l.direction}</span></td>
+            <td data-label="Email">${l.entity_email || '—'}</td>
+            <td data-label="Total">UGX ${(l.total||0).toLocaleString()}</td>
+            <td data-label="Date">${fmtDate(l.created_at)}</td>
+            <td data-label="Actions">
+              <button class="action-btn" onclick="showLPO(${i})">View</button>
+              <button class="action-btn approve" onclick="approveLPO('${l.id}')">✅ Approve</button>
+              <button class="action-btn reject" onclick="rejectLPO('${l.id}')">❌ Reject</button>
+            </td>
+          </tr>`).join('');
+        html += '<div><h3 style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:var(--primary);text-transform:uppercase;padding:0 4px 8px;border-bottom:2px solid var(--border);margin-bottom:12px;">⏳ Pending LPOs (' + lpos.length + ')</h3><table><thead><tr><th>LPO Number</th><th>Entity</th><th>Direction</th><th>Email</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead><tbody>' + lpoRows + '</tbody></table></div>';
+        window._lpoData = [...(window._lpoData||[]), ...lpos];
+      }
+
+      document.getElementById('approvals-body').innerHTML = html;
+    } catch(e) {
+      document.getElementById('approvals-body').innerHTML = '<div class="empty-state"><p>Error: ' + e.message + '</p></div>';
+    }
+  }
+
+  async function rejectLPO(id) {
+    const reason = prompt('Enter rejection reason (optional):');
+    if(reason === null) return;
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ status: 'rejected', notes: reason || 'Rejected by management' })
+      });
+      alert('LPO has been rejected.');
+      loadApprovals();
+      loadLPOs();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  async function approveLPO(id) {
+    if(!confirm('Approve this LPO?')) return;
+    try {
+      await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ status: 'approved' })
+      });
+      alert('✅ LPO approved successfully!');
+      loadApprovals();
+      loadLPOs();
+    } catch(e) { alert('Error: ' + e.message); }
+  }
+
+  function doApprove(i) {
+    const r = window._approvalData[i];
+    approveRequest(r.id, r.client_email, r.client_name, r.project_title);
+  }
+  function doReject(i) {
+    const r = window._approvalData[i];
+    rejectRequest(r.id, r.client_email, r.client_name, r.project_title);
+  }
+  function doApproveById(id, email, name, project) {
+    approveRequest(id, email, name, project);
+    closeModal();
+  }
+  function doRejectById(id, email, name, project) {
+    rejectRequest(id, email, name, project);
+    closeModal();
+  }
+
+  async function approveRequest(id, email, name, project) {
+    if(!confirm(`Approve quotation request from ${name} for ${project}?`)) return;
+    const approver = currentRole === 'management' ? 'Management' : 'ETL Staff';
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status: 'approved', approved_by: approver, approved_at: new Date().toISOString() })
+    });
+    if(res.ok) {
+
+      // Email 1 → ETL Staff: Action required + confirmation
+      sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved by ${approver} and is ready for you to generate.
+
+CLIENT DETAILS:
+Name: ${name}
+Email: ${email}
+Project: ${project}
+
+Please log in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: https://engineeringtradelinks.pages.dev/ETL-Dashboard.html`);
+
+      alert('✅ Request approved! ETL staff have been notified to generate the quotation.');
+      loadApprovals();
+      loadRequests();
+    } else { alert('Could not update. Please try again.'); }
+  }
+
+  async function rejectRequest(id, email, name, project) {
+    const reason = prompt(`Enter reason for rejecting ${name}'s request (this will be sent to the client):`);
+    if(!reason) return;
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status: 'rejected', rejection_reason: reason, approved_by: 'Management' })
+    });
+    if(res.ok) {
+      // Notify client via EmailJS
+      sendEmail(email, `Re: Your Quotation Request — ${project}`, `Dear ${name},
+
+Thank you for reaching out to Engineering Trade Links Co. Ltd.
+
+After reviewing your quotation request for "${project}", we regret that we are unable to proceed at this time.
+
+Reason: ${reason}
+
+We encourage you to reach out again in the future. We appreciate your interest in our services.
+
+Kind regards,
+Engineering Trade Links Co. Ltd
++256 776 566 522
+tradelinks.ltd@gmail.com`);
+      alert('Request rejected and client has been notified by email.');
+      loadApprovals();
+      loadRequests();
+    } else { alert('Could not update. Please try again.'); }
+  }
+
+  // ─── STOCK CHECK ───
+  async function checkStock(i) {
+    const l = window._lpoData[i];
+    if(!l.items || !l.items.length) { alert('No items found in this LPO to check against inventory.'); return; }
+
+    // Load inventory
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/inventory_items?select=name,current_stock,unit`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+    });
+    const inventory = await res.json();
+
+    // Check each LPO item against inventory
+    let html = '<div class="stock-check-list">';
+    let allInStock = true;
+    let outOfStock = [];
+
+    l.items.forEach(item => {
+      const inv = inventory.find(i => i.name.toLowerCase().includes(item.desc.toLowerCase()) || item.desc.toLowerCase().includes(i.name.toLowerCase()));
+      let statusHtml = '';
+      if(inv) {
+        if(inv.current_stock >= item.qty) {
+          statusHtml = `<span style="color:var(--success);font-weight:700;">✅ In Stock (${Math.round(inv.current_stock).toLocaleString()} ${inv.unit})</span>`;
+        } else if(inv.current_stock > 0) {
+          statusHtml = `<span style="color:var(--warning);font-weight:700;">⚠️ Low (${Math.round(inv.current_stock).toLocaleString()} / ${item.qty} needed)</span>`;
+          allInStock = false;
+          outOfStock.push(item.desc);
+        } else {
+          statusHtml = `<span style="color:var(--danger);font-weight:700;">❌ Out of Stock</span>`;
+          allInStock = false;
+          outOfStock.push(item.desc);
+        }
+      } else {
+        statusHtml = `<span style="color:var(--text-muted);font-weight:700;">⚠️ Not in Inventory</span>`;
+        allInStock = false;
+        outOfStock.push(item.desc);
+      }
+      html += `<div class="stock-check-item">
+        <span><strong>${item.desc}</strong> — ${item.qty} ${item.unit}</span>
+        ${statusHtml}
+      </div>`;
+    });
+
+    html += '</div>';
+
+    if(allInStock) {
+      html += `<div style="padding:16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <p style="font-size:13px;color:var(--success);font-weight:600;flex:1;">✅ All items are in stock. You can proceed.</p>
+        <button class="modal-btn primary" onclick="window.open('ETL-Invoice.html?lpo_id=${l.id}','_blank');closeModal()">🧾 Generate Invoice</button>
+      </div>`;
+    } else {
+      html += `<div style="padding:16px;border-top:1px solid var(--border);">
+        <p style="font-size:13px;color:var(--warning);font-weight:600;margin-bottom:12px;">⚠️ Some items are not in stock. Generate a supplier LPO first, then invoice when ready.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="modal-btn primary" onclick="window.open('ETL-LPO-Outward.html','_blank');closeModal()">📦 Generate Supplier LPO</button>
+          <button class="modal-btn" style="background:var(--gold);color:#fff;" onclick="window.open('ETL-Invoice.html?lpo_id=${l.id}','_blank');closeModal()">🧾 Generate Invoice Anyway</button>
+        </div>
+      </div>`;
+    }
+
+    document.getElementById('modal-content').innerHTML = `
+      <h2>📦 Stock Check — ${l.lpo_number}</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Client: <strong>${l.entity_name}</strong> | Checking ${l.items.length} item(s) against inventory</p>
+      ${html}
+      <div style="padding:0 16px 16px;">
+        <button class="modal-btn secondary" onclick="closeModal()" style="margin-top:8px;">Close</button>
+      </div>`;
+    document.getElementById('detail-modal').classList.add('open');
+  }
+
+  // ─── OVERRIDE switchTab to include approvals ───
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-requests').style.display  = tab === 'requests'  ? '' : 'none';
+    document.getElementById('tab-lpos').style.display      = tab === 'lpos'      ? '' : 'none';
+    document.getElementById('tab-approvals').style.display = tab === 'approvals' ? '' : 'none';
+    if(tab === 'lpos')      loadLPOs();
+    if(tab === 'approvals') loadApprovals();
+  }
+
+  // ─── UPDATE showRequest to handle approval context ───
+  function showRequest(i, context) {
+    const data = context === 'approval' ? window._approvalData : window._reqData;
+    const r = data ? data[i] : window._reqData[i];
+    if(!r) return;
+    window._currentRequest = r; // store for modal buttons
+    document.getElementById('modal-content').innerHTML = `
+      <h2>📋 Quotation Request</h2>
+      <div class="modal-grid">
+        <div class="modal-field"><label>Organisation</label><p>${r.client_name || '—'}</p></div>
+        <div class="modal-field"><label>Contact Person</label><p>${r.contact_person || '—'}</p></div>
+        <div class="modal-field"><label>Email</label><p>${r.client_email || '—'}</p></div>
+        <div class="modal-field"><label>Phone</label><p>${r.client_phone || '—'}</p></div>
+        <div class="modal-field"><label>Project Title</label><p>${r.project_title || '—'}</p></div>
+        <div class="modal-field"><label>Location</label><p>${r.project_location || '—'}</p></div>
+        <div class="modal-field"><label>Budget</label><p>${r.estimated_budget || '—'}</p></div>
+        <div class="modal-field"><label>Timeline</label><p>${r.timeline || '—'}</p></div>
+        <div class="modal-field full"><label>Services Needed</label><p>${r.services_category || '—'}</p></div>
+        <div class="modal-field full"><label>Description</label><p>${r.project_description || '—'}</p></div>
+        <div class="modal-field"><label>Status</label><p><span class="badge badge-${r.status}">${r.status}</span></p></div>
+        <div class="modal-field"><label>Submitted</label><p>${fmtDate(r.created_at)}</p></div>
+        ${r.approved_by ? `<div class="modal-field"><label>Reviewed By</label><p>${r.approved_by}</p></div>` : ''}
+        ${r.rejection_reason ? `<div class="modal-field full"><label>Rejection Reason</label><p style="color:var(--danger)">${r.rejection_reason}</p></div>` : ''}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+        ${r.status === 'approved' ? '<button class="modal-btn primary" onclick="openGeneratorFromModal()">📋 Generate Quotation</button>' : ''}
+        ${r.status === 'pending_approval' && currentRole === 'management' ? '<button class=\"modal-btn green\" onclick=\"doApproveById(\'' + r.id + '\',\'' + r.client_email + '\',\'' + r.client_name + '\',\'' + r.project_title + '\')\">✅ Approve</button><button class=\"modal-btn danger\" onclick=\"doRejectById(\'' + r.id + '\',\'' + r.client_email + '\',\'' + r.client_name + '\',\'' + r.project_title + '\')\">❌ Reject</button>' : ''}
+        <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+      </div>`;
+    document.getElementById('detail-modal').classList.add('open');
+  }
+
+  // ─── Initial load — wait for login ───
+  // loadRequests and loadLPOs are now called after login
+</script>
+</body>
+</html>

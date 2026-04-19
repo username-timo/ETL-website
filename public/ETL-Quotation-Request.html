@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL | Request a Quotation</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
+    --lighter-bg: #f5f9fd; --white: #ffffff; --text: #1e293b;
+    --text-muted: #64748b; --border: #cfe3f0; --success: #0f7a4a; --success-bg: #e6f7ef;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--lighter-bg); color: var(--text); min-height: 100vh; }
+
+  .top-nav {
+    background: var(--white); height: 60px; display: flex; align-items: center;
+    justify-content: space-between; padding: 0 5%;
+    border-bottom: 3px solid var(--secondary); box-shadow: 0 2px 12px rgba(79,163,209,0.1);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .top-nav-brand { display: flex; align-items: center; gap: 10px; }
+  .top-nav-sq { background: transparent; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .top-nav-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+  .top-nav-sub { font-size: 9px; color: var(--secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; display: block; }
+  .top-nav-back { text-decoration: none; color: var(--primary, #1a3c6e); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; padding: 9px 20px; background: #fff; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.2s; }
+  .top-nav-back:hover { background: var(--light-bg); border-color: var(--secondary); color: var(--secondary); }
+
+  .page-header { background: var(--primary); color: var(--white); padding: 40px 5%; }
+  .page-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 900; text-transform: uppercase; }
+  .page-header p { color: rgba(255,255,255,0.65); font-size: 14px; margin-top: 6px; max-width: 560px; }
+
+  .form-wrap { max-width: 820px; margin: 40px auto; padding: 0 5% 60px; }
+
+  .form-card { background: var(--white); border-radius: 12px; border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; }
+  .form-card-header { background: var(--light-bg); border-bottom: 1px solid var(--border); padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+  .form-card-num { background: var(--primary); color: var(--white); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 15px; flex-shrink: 0; }
+  .form-card-header h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+  .form-card-header p { font-size: 12px; color: var(--text-muted); }
+  .form-body { padding: 24px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .form-grid .full { grid-column: 1 / -1; }
+
+  /* Prevent text wrapping on buttons and labels */
+  .btn-submit, .btn-new, .badge, .form-card-header h2 { white-space: nowrap; }
+
+  @media(max-width:600px){ .form-grid { grid-template-columns: 1fr; } }
+
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); }
+  .field input, .field select, .field textarea {
+    padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: 14px; color: var(--text);
+    background: var(--lighter-bg); transition: border-color 0.2s; outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--secondary); background: var(--white); }
+  .field textarea { resize: vertical; min-height: 100px; }
+  .field input.required-empty { border-color: #e53e3e !important; }
+
+  .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
+  .service-check { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--lighter-bg); }
+  .service-check:hover { border-color: var(--secondary); background: var(--light-bg); }
+  .service-check input[type="checkbox"] { width: 16px; height: 16px; accent-color: var(--primary); flex-shrink: 0; }
+  .service-check span { font-size: 13px; font-weight: 500; }
+  .service-check.checked { border-color: var(--primary); background: var(--light-bg); }
+
+  .form-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 8px; }
+  .btn-submit {
+    background: var(--primary); color: var(--white); padding: 14px 36px;
+    border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+    cursor: pointer; transition: all 0.25s;
+  }
+  .btn-submit:hover { background: var(--secondary); transform: translateY(-1px); }
+  .btn-submit:disabled { background: var(--text-muted); cursor: not-allowed; transform: none; }
+
+  /* SUCCESS */
+  .success-box { display: none; background: var(--white); border-radius: 12px; border: 2px solid var(--success); padding: 48px 36px; text-align: center; }
+  .success-icon { font-size: 56px; margin-bottom: 16px; }
+  .success-box h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; color: var(--success); text-transform: uppercase; margin-bottom: 10px; }
+  .success-box p { color: var(--text-muted); font-size: 15px; line-height: 1.7; max-width: 480px; margin: 0 auto 20px; }
+  .success-ref { background: var(--success-bg); border-radius: 8px; padding: 12px 20px; display: inline-block; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--success); letter-spacing: 1px; margin-bottom: 24px; }
+  .btn-new { background: var(--primary); color: var(--white); padding: 12px 28px; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; text-transform: uppercase; cursor: pointer; }
+
+  .spinner { display: none; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,0.4); border-top-color: white; border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 8px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading .spinner { display: inline-block; }
+
+  /* TABLET BREAKPOINT: 768px */
+  @media (max-width: 768px) {
+    .top-nav { padding: 0 3%; height: 56px; }
+    .top-nav-sq { width: 32px; height: 32px; font-size: 12px; }
+    .top-nav-title { font-size: 14px; }
+    .page-header { padding: 28px 3%; }
+    .page-header h1 { font-size: 28px; }
+    .page-header p { font-size: 13px; }
+    .form-wrap { padding: 0 3% 40px; }
+    .form-card { border-radius: 10px; padding: 20px 18px; margin-bottom: 16px; }
+    .form-card-header { padding: 14px 16px; gap: 10px; }
+    .form-card-num { width: 28px; height: 28px; font-size: 13px; }
+    .form-card-header h2 { font-size: 16px; }
+    .form-body { padding: 16px; }
+    .form-grid { gap: 12px; }
+    .field label { font-size: 10px; }
+    .field input, .field select, .field textarea { padding: 9px 12px; font-size: 13px; }
+    .services-grid { gap: 8px; }
+    .service-check { padding: 8px 10px; }
+    .form-actions { gap: 10px; }
+    .btn-submit { padding: 12px 28px; font-size: 13px; }
+    .success-box { padding: 32px 20px; }
+    .success-icon { font-size: 48px; margin-bottom: 12px; }
+    .success-box h2 { font-size: 24px; }
+    .success-box p { font-size: 13px; margin-bottom: 14px; }
+    .success-ref { font-size: 16px; padding: 10px 16px; }
+  }
+
+  /* PHONE BREAKPOINT: 480px */
+  @media (max-width: 480px) {
+    .top-nav { padding: 0 2%; height: 52px; }
+    .top-nav-brand { gap: 8px; }
+    .top-nav-sq { width: 28px; height: 28px; font-size: 11px; }
+    .top-nav-title { font-size: 12px; }
+    .top-nav-back { padding: 6px 10px; font-size: 10px; }
+    .page-header { padding: 20px 2%; }
+    .page-header h1 { font-size: 22px; }
+    .page-header p { font-size: 12px; }
+    .form-wrap { padding: 0 2% 32px; margin: 20px auto; }
+    .form-card { border-radius: 8px; padding: 14px 12px; margin-bottom: 12px; }
+    .form-card-header { padding: 10px 12px; flex-direction: column; align-items: flex-start; gap: 8px; }
+    .form-card-num { width: 24px; height: 24px; font-size: 11px; }
+    .form-card-header h2 { font-size: 14px; }
+    .form-card-header p { font-size: 11px; }
+    .form-body { padding: 12px; }
+    .form-grid { grid-template-columns: 1fr; gap: 10px; }
+    .field { margin-bottom: 8px; gap: 4px; }
+    .field label { font-size: 9px; }
+    .field input, .field select, .field textarea { padding: 8px 10px; font-size: 13px; border-radius: 6px; }
+    .field textarea { min-height: 80px; }
+    .services-grid { gap: 6px; grid-template-columns: 1fr; }
+    .service-check { padding: 10px 12px; }
+    .service-check input[type="checkbox"] { width: 14px; height: 14px; }
+    .service-check span { font-size: 12px; }
+    .form-actions { flex-direction: column; }
+    .btn-submit { padding: 12px 16px; font-size: 12px; width: 100%; }
+    .success-box { padding: 20px 16px; border-radius: 10px; }
+    .success-icon { font-size: 40px; }
+    .success-box h2 { font-size: 20px; margin-bottom: 8px; }
+    .success-box p { font-size: 12px; margin-bottom: 12px; }
+    .success-ref { font-size: 14px; padding: 8px 12px; }
+    .btn-new { padding: 10px 20px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="top-nav-brand">
+    <img src="/etl-images/etl-logo.png" alt="ETL" class="top-nav-sq" style="width:36px;height:36px;object-fit:contain;;mix-blend-mode:multiply;">
+    <div>
+      <span class="top-nav-title">Engineering Trade Links</span>
+      <span class="top-nav-sub">Quotation Request</span>
+    </div>
+  </div>
+  <a href="/" class="top-nav-back">← Back to Website</a>
+</nav>
+
+<div class="page-header">
+  <h1>📋 Request a Quotation</h1>
+  <p>Fill in the form below and our team will prepare a professional quotation and get back to you within 24–48 hours.</p>
+</div>
+
+<div class="form-wrap">
+
+  <!-- SUCCESS BOX -->
+  <div class="success-box" id="success-box">
+    <div class="success-icon">✅</div>
+    <h2>Request Submitted!</h2>
+    <p>Thank you! Your quotation request has been received by Engineering Trade Links. Our team will review your requirements and respond within 24–48 hours.</p>
+    <div class="success-ref" id="success-ref">REF: ETL/QR/2026/001</div>
+    <p style="font-size:13px;">A reference number has been assigned to your request. Please keep it for follow-up.</p>
+    <br>
+    <button class="btn-new" onclick="location.reload()">Submit Another Request</button>
+  </div>
+
+  <!-- FORM -->
+  <div id="request-form">
+
+    <!-- Card 1: Your Details -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="form-card-num">01</div>
+        <div>
+          <h2>Your Organisation Details</h2>
+          <p>Tell us who you are so we can address the quotation correctly</p>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Organisation / Company Name *</label>
+            <input type="text" id="c-name" placeholder="e.g. Ministry of Works and Transport">
+          </div>
+          <div class="field">
+            <label>Contact Person *</label>
+            <input type="text" id="c-contact" placeholder="e.g. Eng. Mukasa Joseph">
+          </div>
+          <div class="field">
+            <label>Email Address *</label>
+            <input type="email" id="c-email" placeholder="e.g. info@client.go.ug">
+          </div>
+          <div class="field">
+            <label>Phone Number *</label>
+            <input type="text" id="c-phone" placeholder="e.g. +256 700 000 000">
+          </div>
+          <div class="field">
+            <label>Physical Address</label>
+            <input type="text" id="c-address" placeholder="e.g. Plot 23, Jinja Road, Kampala">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card 2: Project Details -->
+    <div class="form-card">
+      <div class="form-card-header">
+        <div class="form-card-num">02</div>
+        <div>
+          <h2>Project / Works Details</h2>
+          <p>Describe what you need so we can prepare an accurate quotation</p>
+        </div>
+      </div>
+      <div class="form-body">
+        <div class="form-grid">
+          <div class="field full">
+            <label>Project Title *</label>
+            <input type="text" id="p-title" placeholder="e.g. Construction of Staff Quarters">
+          </div>
+          <div class="field">
+            <label>Project Location</label>
+            <input type="text" id="p-location" placeholder="e.g. Gulu District, Northern Uganda">
+          </div>
+          <div class="field">
+            <label>Service Category</label>
+            <select id="p-category">
+              <option value="">&mdash; Select Category &mdash;</option>
+              <option>Civil Engineering & Building</option>
+              <option>Road Construction & Maintenance</option>
+              <option>Water Engineering</option>
+              <option>Electro-Mechanical</option>
+              <option>Steel & Aluminium Works</option>
+              <option>Concrete Products Supply</option>
+              <option>Floor Finishing (Belgotex)</option>
+              <option>Road Repair Premix (Instarmac)</option>
+              <option>Architectural & Engineering Design</option>
+              <option>Mixed / Multiple Services</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Expected Duration</label>
+            <input type="text" id="p-duration" placeholder="e.g. 3 months, 6 weeks">
+          </div>
+          <div class="field full">
+            <label>Scope of Works / Description *</label>
+            <textarea id="p-description" rows="4" placeholder="Describe the works you need ETL to carry out..."></textarea>
+          </div>
+          <div class="field">
+            <label>Estimated Budget (UGX)</label>
+            <input type="text" id="p-budget" placeholder="e.g. 50,000,000 or Not yet determined">
+          </div>
+          
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-submit" id="submit-btn" onclick="submitRequest()">
+        <span class="spinner" id="spinner"></span>
+        Submit Quotation Request →
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  
+  // ─── Brevo Email Helper ───
+  async function sendEmail(to, subject, body) {
+    if(!to || !to.includes('@')) return;
+    try {
+      const safe = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const linked = safe.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#1a3c6e;font-weight:bold;">$1</a>');
+      const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#1e293b;max-width:600px;">' + linked.replace(/\n/g,'<br>') + '<br><br><hr style="border:none;border-top:1px solid #cfe3f0;"><p style="font-size:11px;color:#64748b;">Engineering Trade Links Co. Ltd | Plot 1353, Sonde-Seeta Road, Mukono | +256 776 566 522</p></div>';
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'api-key': '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' },
+        body: JSON.stringify({
+          sender: { name: 'Engineering Trade Links Co. Ltd', email: 'timookui@gmail.com' },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: html
+        })
+      });
+    } catch(e) { console.warn('Email error:', e); }
+  }
+
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+
+  // Checkbox visual toggle
+  document.querySelectorAll('.service-check input').forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('.service-check').classList.toggle('checked', cb.checked);
+    });
+  });
+
+  function generateRef() {
+    const yr = new Date().getFullYear();
+    const num = String(Math.floor(Math.random() * 900) + 100);
+    return `ETL/QR/${yr}/${num}`;
+  }
+
+  async function submitRequest() {
+    const cName    = document.getElementById('c-name').value.trim();
+    const cContact = document.getElementById('c-contact').value.trim();
+    const cEmail   = document.getElementById('c-email').value.trim();
+    const cPhone   = document.getElementById('c-phone').value.trim();
+    const pTitle   = document.getElementById('p-title').value.trim();
+    const pDesc    = document.getElementById('p-description').value.trim();
+
+    // Validate
+    let valid = true;
+    ['c-name','c-contact','c-email','c-phone','p-title','p-description'].forEach(id => {
+      const el = document.getElementById(id);
+      if(!el.value.trim()) { el.classList.add('required-empty'); valid = false; }
+      else el.classList.remove('required-empty');
+    });
+    if(!valid) { alert('Please fill in all required fields marked with *'); return; }
+
+    // Get selected services
+
+    const ref = generateRef();
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    btn.querySelector('.spinner').style.display = 'inline-block';
+
+    const payload = {
+      client_name:     cName,
+      contact_person:  cContact,
+      client_email:    cEmail,
+      client_phone:    cPhone,
+      client_address:  document.getElementById('c-address').value.trim(),
+      project_title:   pTitle,
+      project_location: document.getElementById('p-location').value.trim(),
+          services_category: document.getElementById('p-category').value,
+          project_duration:  document.getElementById('p-duration').value.trim(),
+      project_description: pDesc,
+      estimated_budget: document.getElementById('p-budget').value.trim(),
+      reference:       ref,
+      status:          'pending_approval'
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if(res.ok) {
+        // Send email notification to ETL
+        sendEmail('timookui@gmail.com', `🔔 New Request Needs Approval — ${cName} | ${pTitle}`, `A new quotation request has been submitted and requires your approval.
+
+Client: ${cName}
+Email: ${cEmail}
+Project: ${pTitle}
+
+Dashboard: https://engineeringtradelinks.pages.dev/ETL-Dashboard.html`);
+
+        document.getElementById('request-form').style.display = 'none';
+        document.getElementById('success-box').style.display = 'block';
+        document.getElementById('success-ref').innerText = `REF: ${ref}`;
+        window.scrollTo(0, 0);
+      } else {
+        const err = await res.json();
+        alert('Submission failed: ' + (err.message || 'Please try again.'));
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    } catch(e) {
+      alert('Network error. Please check your connection and try again.');
+      btn.disabled = false;
+      btn.classList.remove('loading');
+    }
+  }
+</script>
+</body>
+</html>

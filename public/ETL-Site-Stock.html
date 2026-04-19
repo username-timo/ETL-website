@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL | Site Stock Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
+    --lighter-bg: #f5f9fd; --white: #ffffff; --text: #1e293b;
+    --text-muted: #64748b; --border: #cfe3f0;
+    --success: #0f7a4a; --success-bg: #e6f7ef;
+    --danger: #c0392b; --danger-bg: #fdf0ef;
+    --warning: #d97706; --warning-bg: #fef3c7;
+    --gold: #c8860a; --gold-bg: #fdf3e0;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--lighter-bg); color: var(--text); min-height: 100vh; }
+
+  /* LOGIN SCREEN */
+  .login-screen {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    padding: 20px; background: linear-gradient(135deg, var(--primary) 0%, #2a5a9e 100%);
+  }
+  .login-card {
+    background: var(--white); border-radius: 16px; padding: 40px 32px;
+    width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  .login-logo { text-align: center; margin-bottom: 28px; }
+  .login-sq { background: transparent; width: 56px; height: 56px; border-radius: 14px; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+  .login-title { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; color: var(--primary); }
+  .login-sub { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .field { margin-bottom: 18px; }
+  .field label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); margin-bottom: 6px; }
+  .field select, .field input {
+    width: 100%; padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
+    font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--text);
+    background: var(--lighter-bg); outline: none; transition: border-color 0.2s;
+  }
+  .field select:focus, .field input:focus { border-color: var(--secondary); background: var(--white); }
+  .btn-primary {
+    width: 100%; padding: 14px; background: var(--primary); color: var(--white);
+    border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif;
+    font-size: 15px; font-weight: 700; cursor: pointer; transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--secondary); }
+
+  /* MAIN APP */
+  .app { display: none; }
+  .app-nav {
+    background: var(--primary); padding: 16px 20px; display: flex;
+    align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  }
+  .app-nav-brand { display: flex; align-items: center; gap: 10px; }
+  .app-nav-sq { background: transparent; width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .app-nav-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--white); }
+  .app-nav-site { font-size: 10px; color: rgba(255,255,255,0.7); font-weight: 700; text-transform: uppercase; }
+  .logout-btn { background: rgba(255,255,255,0.15); border: none; color: var(--white); padding: 8px 14px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; }
+
+  .app-body { padding: 20px 16px 60px; max-width: 600px; margin: 0 auto; }
+
+  /* STATS */
+  .site-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
+  .site-stat { background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 14px 12px; text-align: center; }
+  .site-stat-num { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; color: var(--primary); }
+  .site-stat-label { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-top: 2px; }
+  .site-stat.danger .site-stat-num { color: var(--danger); }
+  .site-stat.green .site-stat-num { color: var(--success); }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 16px; background: var(--white); border: 1px solid var(--border); border-radius: 10px; padding: 4px; }
+  .tab-btn { flex: 1; padding: 9px 8px; border-radius: 7px; border: none; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; color: var(--text-muted); cursor: pointer; transition: all 0.2s; text-align: center; }
+  .tab-btn.active { background: var(--primary); color: var(--white); }
+
+  /* CARDS */
+  .card { background: var(--white); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
+  .card-header { padding: 14px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+  .card-header h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+
+  /* STOCK ITEM ROWS */
+  .stock-item { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .stock-item:last-child { border-bottom: none; }
+  .stock-item-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .stock-item-name { font-weight: 700; font-size: 14px; }
+  .stock-item-qty { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: var(--primary); }
+  .stock-item-actions { display: flex; gap: 8px; margin-top: 8px; }
+  .action-btn { flex: 1; padding: 9px; border-radius: 8px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .action-btn.use { background: var(--danger-bg); color: var(--danger); }
+  .action-btn.use:hover { background: var(--danger); color: var(--white); }
+  .action-btn.return { background: var(--success-bg); color: var(--success); }
+  .action-btn.return:hover { background: var(--success); color: var(--white); }
+
+  /* QUICK LOG FORM */
+  .quick-form { padding: 16px; }
+  .quick-form .field { margin-bottom: 14px; }
+  .quick-form .field:last-child { margin-bottom: 0; }
+  .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+  .btn-use { padding: 12px; background: var(--danger); color: var(--white); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-return { padding: 12px; background: var(--success); color: var(--white); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; }
+  .btn-request { width: 100%; padding: 12px; background: var(--secondary); color: var(--white); border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; margin-top: 10px; }
+
+  /* HISTORY */
+  .history-item { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 12px; }
+  .history-item:last-child { border-bottom: none; }
+  .history-badge { padding: 4px 10px; border-radius: 100px; font-size: 10px; font-weight: 700; text-transform: uppercase; white-space: nowrap; }
+  .badge-consumed { background: var(--danger-bg); color: var(--danger); }
+  .badge-returned { background: var(--success-bg); color: var(--success); }
+  .badge-received { background: var(--light-bg); color: var(--primary); }
+  .history-info { flex: 1; }
+  .history-name { font-weight: 700; font-size: 13px; }
+  .history-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .history-qty { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; color: var(--text); }
+
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--text-muted); font-size: 14px; }
+  .loading { padding: 30px; text-align: center; color: var(--text-muted); }
+  .alert { padding: 12px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; font-weight: 600; }
+  .alert-warning { background: var(--warning-bg); color: var(--warning); border: 1px solid #fcd34d; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: flex-end; justify-content: center; padding: 0; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--white); border-radius: 16px 16px 0 0; width: 100%; max-width: 600px; padding: 24px 20px 40px; max-height: 85vh; overflow-y: auto; }
+  .modal h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 16px; }
+  .modal-close { float: right; background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
+
+  /* Prevent text wrapping on buttons and labels */
+  .btn-action, .stat-label, .badge {
+    white-space: nowrap;
+  }
+
+  /* MOBILE RESPONSIVE - TABLETS (768px and below) */
+  @media(max-width:768px) {
+    .top-nav { padding: 0 3%; }
+    .page-main { padding: 20px 3% 40px; }
+    .page-title { font-size: 26px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .stat-card { padding: 14px 18px; }
+    .stat-num { font-size: 24px; }
+    .stat-label { font-size: 10px; }
+    .filter-section { gap: 10px; }
+    .filter-item { flex: 1; }
+    .filter-item label { font-size: 10px; }
+    .filter-item input, .filter-item select { font-size: 13px; padding: 8px 10px; }
+    .table-wrap { border-radius: 10px; }
+    table { font-size: 12px; }
+    th { padding: 8px 10px; font-size: 9px; }
+    td { padding: 7px 8px; }
+    .btn-action { padding: 5px 10px; font-size: 10px; }
+    .modal { max-width: 500px; padding: 20px 18px 32px; }
+    .modal h2 { font-size: 18px; }
+  }
+
+  /* MOBILE RESPONSIVE - PHONES (480px and below) */
+  @media(max-width:480px) {
+    body { font-size: 13px; }
+    .top-nav { height: 56px; padding: 0 2%; }
+    .top-nav-brand { gap: 8px; }
+    .top-nav-sq { width: 30px; height: 30px; font-size: 13px; }
+    .top-nav-title { font-size: 13px; }
+    .top-nav-back { font-size: 10px; padding: 5px 10px; }
+    .page-main { padding: 16px 2% 32px; }
+    .page-title { font-size: 20px; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .stat-card { padding: 10px 12px; border-radius: 8px; }
+    .stat-num { font-size: 18px; }
+    .stat-label { font-size: 8px; }
+    .filter-section { flex-direction: column; gap: 8px; }
+    .filter-item { flex: 1; }
+    .filter-item label { font-size: 9px; }
+    .filter-item input, .filter-item select { font-size: 12px; padding: 7px 9px; }
+    .table-wrap { border-radius: 8px; overflow-x: auto; }
+    table { font-size: 10px; display: block; }
+    thead tr { display: table; width: 100%; }
+    tbody { display: block; overflow-x: auto; }
+    tr { display: table; width: 100%; }
+    th { padding: 6px 6px; font-size: 8px; }
+    td { padding: 5px 6px; }
+    .btn-action { padding: 4px 8px; font-size: 9px; }
+    .empty-state { padding: 24px 16px; }
+    .alert { padding: 10px 12px; font-size: 12px; }
+    .modal { width: 95%; max-width: 100%; border-radius: 12px 12px 0 0; padding: 16px 14px 28px; }
+    .modal h2 { font-size: 16px; margin-bottom: 12px; }
+    .modal-close { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <img src="/etl-images/etl-logo.png" alt="ETL" class="login-sq" style="width:56px;height:56px;object-fit:contain;;mix-blend-mode:multiply;">
+      <div class="login-title">Site Stock Portal</div>
+      <div class="login-sub">Engineering Trade Links Co. Ltd</div>
+    </div>
+    <div class="field">
+      <label>Select Your Site *</label>
+      <select id="login-site">
+        <option value="">Loading sites...</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Your Name *</label>
+      <input type="text" id="login-name" placeholder="e.g. Eng. Patrick Nyathingu">
+    </div>
+    <div class="field">
+      <label>Site PIN *</label>
+      <input type="password" id="login-pin" placeholder="Enter 4-digit PIN" maxlength="4">
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign In to Site Portal →</button>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="app">
+  <nav class="app-nav">
+    <div class="app-nav-brand">
+      <img src="/etl-images/etl-logo.png" alt="ETL" class="app-nav-sq" style="width:36px;height:36px;object-fit:contain;;mix-blend-mode:multiply;">
+      <div>
+        <div class="app-nav-title" id="nav-site-name">Site Portal</div>
+        <div class="app-nav-site" id="nav-engineer-name">Engineer</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+  </nav>
+
+  <div class="app-body">
+
+    <div id="low-stock-warning" class="alert alert-warning" style="display:none;">
+      ⚠️ <span id="low-stock-text"></span>
+    </div>
+
+    <!-- STATS -->
+    <div class="site-stats">
+      <div class="site-stat">
+        <div class="site-stat-num" id="stat-items">—</div>
+        <div class="site-stat-label">Items on Site</div>
+      </div>
+      <div class="site-stat danger">
+        <div class="site-stat-num" id="stat-today">—</div>
+        <div class="site-stat-label">Used Today</div>
+      </div>
+      <div class="site-stat green">
+        <div class="site-stat-num" id="stat-returns">—</div>
+        <div class="site-stat-label">Returns Today</div>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('stock', this)">📦 My Stock</button>
+      <button class="tab-btn" onclick="switchTab('log', this)">📝 Log Usage</button>
+      <button class="tab-btn" onclick="switchTab('history', this)">🕐 History</button>
+    </div>
+
+    <!-- MY STOCK TAB -->
+    <div id="tab-stock">
+      <div class="card">
+        <div class="card-header">
+          <h3>Stock on This Site</h3>
+          <button style="background:var(--light-bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--primary);cursor:pointer;" onclick="loadSiteStock()">↻ Refresh</button>
+        </div>
+        <div id="stock-list"><div class="loading">Loading stock...</div></div>
+      </div>
+    </div>
+
+    <!-- LOG USAGE TAB -->
+    <div id="tab-log" style="display:none;">
+      <div class="card">
+        <div class="card-header"><h3>📤 Record Usage / Return</h3></div>
+        <div class="quick-form">
+          <div class="field">
+            <label>Item *</label>
+            <select id="log-item"></select>
+          </div>
+          <div class="field">
+            <label>Quantity *</label>
+            <input type="number" id="log-qty" min="0.1" step="0.1" placeholder="e.g. 5">
+          </div>
+          <div class="field">
+            <label>Notes (optional)</label>
+            <input type="text" id="log-notes" placeholder="e.g. Used for foundation slab">
+          </div>
+          <div class="btn-row">
+            <button class="btn-use" onclick="submitLog('consumed')">📤 Record Usage</button>
+            <button class="btn-return" onclick="submitLog('returned')">📥 Return to Store</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><h3>📋 Request More Stock</h3></div>
+        <div class="quick-form">
+          <div class="field">
+            <label>Item Needed *</label>
+            <select id="req-item"></select>
+          </div>
+          <div class="field">
+            <label>Quantity Needed *</label>
+            <input type="number" id="req-qty" min="0.1" step="0.1" placeholder="e.g. 20">
+          </div>
+          <div class="field">
+            <label>Reason / Notes</label>
+            <input type="text" id="req-notes" placeholder="e.g. Starting column works tomorrow">
+          </div>
+          <button class="btn-request" onclick="submitRequest()">📨 Send Request to Store</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTORY TAB -->
+    <div id="tab-history" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <h3>My Activity Log</h3>
+          <button style="background:var(--light-bg);border:1px solid var(--border);border-radius:6px;padding:6px 12px;font-size:11px;font-weight:700;color:var(--primary);cursor:pointer;" onclick="loadHistory()">↻ Refresh</button>
+        </div>
+        <div id="history-list"><div class="loading">Loading history...</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+const SITE_PIN = '1353'; // ETL Plot number as PIN
+
+let currentSite = null;
+let currentEngineer = '';
+let siteStock = [];
+let allItems = [];
+
+async function api(table, opts = {}) {
+  const { method = 'GET', filter = '', body = null } = opts;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${filter}`, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Prefer': method === 'POST' ? 'return=minimal' : undefined
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if(method === 'GET') return res.json();
+  return res;
+}
+
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+}
+
+// Load sites for login dropdown
+async function loadSites() {
+  const sites = await api('project_sites', { filter: '?status=eq.active&order=name.asc' });
+  const sel = document.getElementById('login-site');
+  sel.innerHTML = '<option value="">-- Select your site --</option>' +
+    sites.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name} — ${s.location}</option>`).join('');
+}
+
+async function loadAllItems() {
+  allItems = await api('inventory_items', { filter: '?order=name.asc&select=id,name,unit,current_stock' });
+}
+
+function doLogin() {
+  const siteEl = document.getElementById('login-site');
+  const name = document.getElementById('login-name').value.trim();
+  const pin = document.getElementById('login-pin').value.trim();
+
+  if(!siteEl.value) { alert('Please select your site.'); return; }
+  if(!name) { alert('Please enter your name.'); return; }
+  if(pin !== SITE_PIN) { alert('Incorrect PIN. Please check with ETL management.'); return; }
+
+  currentSite = { id: siteEl.value, name: siteEl.options[siteEl.selectedIndex].dataset.name };
+  currentEngineer = name;
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('nav-site-name').innerText = currentSite.name;
+  document.getElementById('nav-engineer-name').innerText = name;
+
+  loadSiteStock();
+  loadHistory();
+  populateItemSelects();
+}
+
+function doLogout() {
+  currentSite = null;
+  currentEngineer = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-pin').value = '';
+}
+
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  ['stock','log','history'].forEach(t => {
+    document.getElementById(`tab-${t}`).style.display = t === tab ? '' : 'none';
+  });
+  if(tab === 'history') loadHistory();
+}
+
+async function loadSiteStock() {
+  document.getElementById('stock-list').innerHTML = '<div class="loading">Loading...</div>';
+  const data = await api('site_stock', { filter: `?site_id=eq.${currentSite.id}&order=item_name.asc` });
+  siteStock = data;
+
+  document.getElementById('stat-items').innerText = data.length;
+
+  const low = data.filter(i => i.quantity <= 2);
+  if(low.length) {
+    document.getElementById('low-stock-warning').style.display = 'block';
+    document.getElementById('low-stock-text').innerText = `Low stock on site: ${low.map(i => i.item_name).join(', ')}`;
+  } else {
+    document.getElementById('low-stock-warning').style.display = 'none';
+  }
+
+  if(!data.length) {
+    document.getElementById('stock-list').innerHTML = '<div class="empty-state">No stock transferred to this site yet.<br>Contact the storekeeper to transfer materials.</div>';
+    return;
+  }
+
+  document.getElementById('stock-list').innerHTML = data.map(item => `
+    <div class="stock-item">
+      <div class="stock-item-top">
+        <div class="stock-item-name">${item.item_name}</div>
+        <div class="stock-item-qty">${item.quantity} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">${item.unit}</span></div>
+      </div>
+      <div class="stock-item-actions">
+        <button class="action-btn use" onclick="quickLog('${item.item_id}','${item.item_name}','${item.unit}','consumed')">📤 Use</button>
+        <button class="action-btn return" onclick="quickLog('${item.item_id}','${item.item_name}','${item.unit}','returned')">📥 Return</button>
+      </div>
+    </div>`).join('');
+}
+
+function quickLog(itemId, itemName, unit, type) {
+  // Switch to log tab and pre-fill
+  document.querySelectorAll('.tab-btn')[1].click();
+  document.getElementById('log-item').value = itemId;
+  document.getElementById('log-qty').focus();
+}
+
+function populateItemSelects() {
+  const opts = allItems.map(i => `<option value="${i.id}" data-name="${i.name}" data-unit="${i.unit}">${i.name} (${i.unit})</option>`).join('');
+  document.getElementById('log-item').innerHTML = opts;
+  document.getElementById('req-item').innerHTML = opts;
+}
+
+async function submitLog(type) {
+  const itemEl = document.getElementById('log-item');
+  const itemId = itemEl.value;
+  const itemName = itemEl.options[itemEl.selectedIndex].dataset.name;
+  const unit = itemEl.options[itemEl.selectedIndex].dataset.unit;
+  const qty = parseFloat(document.getElementById('log-qty').value);
+  const notes = document.getElementById('log-notes').value.trim();
+
+  if(!itemId || !qty || qty <= 0) { alert('Please select an item and enter a valid quantity.'); return; }
+
+  // Check site stock for consumed
+  if(type === 'consumed') {
+    const siteItem = siteStock.find(s => s.item_id === itemId);
+    if(!siteItem || qty > siteItem.quantity) {
+      alert(`⚠️ Insufficient stock on site!\n\nAvailable: ${siteItem ? siteItem.quantity : 0} ${unit}`);
+      return;
+    }
+  }
+
+  try {
+    // Record consumption
+    await api('site_consumption', {
+      method: 'POST',
+      body: {
+        site_id: currentSite.id, site_name: currentSite.name,
+        item_id: itemId, item_name: itemName, unit,
+        quantity: qty, movement_type: type,
+        recorded_by: currentEngineer, notes
+      }
+    });
+
+    // Update site stock
+    const siteItem = siteStock.find(s => s.item_id === itemId);
+    if(siteItem) {
+      const newQty = type === 'consumed' ? siteItem.quantity - qty : siteItem.quantity + qty;
+      await api(`site_stock?id=eq.${siteItem.id}`, { method: 'PATCH', body: { quantity: newQty } });
+
+      // If returned, add back to main store
+      if(type === 'returned') {
+        const storeItem = await api(`inventory_items?id=eq.${itemId}&select=current_stock`);
+        if(storeItem.length) {
+          await api(`inventory_items?id=eq.${itemId}`, {
+            method: 'PATCH', body: { current_stock: storeItem[0].current_stock + qty }
+          });
+          // Record movement in main store
+          await api('stock_movements', {
+            method: 'POST',
+            body: {
+              item_id: itemId, item_name: itemName, movement_type: 'in',
+              quantity: qty, project: currentSite.name,
+              notes: `Returned from site by ${currentEngineer}`
+            }
+          });
+        }
+      }
+    }
+
+    document.getElementById('log-qty').value = '';
+    document.getElementById('log-notes').value = '';
+    await loadSiteStock();
+    await loadHistory();
+
+    const label = type === 'consumed' ? 'Usage recorded' : 'Return recorded';
+    alert(`✅ ${label}!\n\n${itemName}: ${qty} ${unit}\n${type === 'returned' ? 'Stock returned to main store.' : ''}`);
+
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function submitRequest() {
+  const itemEl = document.getElementById('req-item');
+  const itemName = itemEl.options[itemEl.selectedIndex].dataset.name;
+  const unit = itemEl.options[itemEl.selectedIndex].dataset.unit;
+  const qty = parseFloat(document.getElementById('req-qty').value);
+  const notes = document.getElementById('req-notes').value.trim();
+
+  if(!qty || qty <= 0) { alert('Please enter a quantity needed.'); return; }
+
+  try {
+    await api('site_consumption', {
+      method: 'POST',
+      body: {
+        site_id: currentSite.id, site_name: currentSite.name,
+        item_id: itemEl.value, item_name: itemName, unit,
+        quantity: qty, movement_type: 'requested',
+        recorded_by: currentEngineer,
+        notes: notes || `Requested for ${currentSite.name}`
+      }
+    });
+
+    document.getElementById('req-qty').value = '';
+    document.getElementById('req-notes').value = '';
+    alert(`✅ Request sent!\n\n${itemName}: ${qty} ${unit} requested\nThe storekeeper will arrange transfer.`);
+  } catch(e) { alert('Error: ' + e.message); }
+}
+
+async function loadHistory() {
+  document.getElementById('history-list').innerHTML = '<div class="loading">Loading...</div>';
+  const data = await api('site_consumption', {
+    filter: `?site_id=eq.${currentSite.id}&order=created_at.desc&limit=50`
+  });
+
+  // Update today stats
+  const today = new Date().toDateString();
+  const todayUsed = data.filter(m => new Date(m.created_at).toDateString() === today && m.movement_type === 'consumed').length;
+  const todayReturns = data.filter(m => new Date(m.created_at).toDateString() === today && m.movement_type === 'returned').length;
+  document.getElementById('stat-today').innerText = todayUsed;
+  document.getElementById('stat-returns').innerText = todayReturns;
+
+  if(!data.length) {
+    document.getElementById('history-list').innerHTML = '<div class="empty-state">No activity recorded yet.</div>';
+    return;
+  }
+
+  const typeMap = {
+    consumed: { label: '📤 Used', cls: 'badge-consumed' },
+    returned: { label: '📥 Returned', cls: 'badge-returned' },
+    received: { label: '📦 Received', cls: 'badge-received' },
+    requested: { label: '📋 Requested', cls: 'badge-received' },
+  };
+
+  document.getElementById('history-list').innerHTML = data.map(m => {
+    const t = typeMap[m.movement_type] || { label: m.movement_type, cls: 'badge-received' };
+    return `<div class="history-item">
+      <span class="history-badge ${t.cls}">${t.label}</span>
+      <div class="history-info">
+        <div class="history-name">${m.item_name}</div>
+        <div class="history-meta">${fmtDate(m.created_at)} · ${m.recorded_by || 'Unknown'} ${m.notes ? '· ' + m.notes : ''}</div>
+      </div>
+      <div class="history-qty">${m.quantity} <span style="font-size:11px;color:var(--text-muted)">${m.unit}</span></div>
+    </div>`;
+  }).join('');
+}
+
+// Init
+loadSites();
+loadAllItems();
+</script>
+</body>
+</html>

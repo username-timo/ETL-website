@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "engineeringtradelinks",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": {
+    "enabled": true
+  }
+  // Add environment variables via Cloudflare dashboard or with:
+  //   wrangler secret put NEXTAUTH_SECRET
+  //   wrangler secret put GOOGLE_CLIENT_ID
+  //   wrangler secret put GOOGLE_CLIENT_SECRET
+  //   wrangler secret put NEXTAUTH_URL
+}

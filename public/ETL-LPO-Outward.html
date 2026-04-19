@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL | Outward LPO — Internal</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --primary:    #1a3c6e;
+    --secondary:  #4fa3d1;
+    --accent:     #aac8e0;
+    --light-bg:   #eaf2fb;
+    --lighter-bg: #f5f9fd;
+    --white:      #ffffff;
+    --text:       #1e293b;
+    --text-muted: #64748b;
+    --border:     #cfe3f0;
+    --gold:       #c8860a;
+    --gold-bg:    #fdf3e0;
+    --gold-border:#e8c97a;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--lighter-bg); color: var(--text); min-height: 100vh; }
+
+  /* ── TOP NAV ── */
+  .top-nav {
+    background: var(--white); height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5%; border-bottom: 3px solid var(--secondary);
+    box-shadow: 0 2px 12px rgba(79,163,209,0.1); position: sticky; top: 0; z-index: 100;
+  }
+  .top-nav-brand { display: flex; align-items: center; gap: 10px; }
+  .top-nav-sq { background: transparent; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .top-nav-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--primary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .top-nav-sub   { font-size: 9px; color: var(--secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; display: block; }
+  .top-nav-back  { text-decoration: none; color: var(--primary, #1a3c6e); font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.8px; padding: 9px 20px; background: #fff; border: none; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); transition: all 0.2s; }
+  .top-nav-back:hover { background: var(--light-bg); border-color: var(--secondary); color: var(--secondary); }
+
+  /* ── PAGE HEADER ── */
+  .page-header {
+    padding: 36px 5%; display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 3px solid var(--secondary);
+  }
+  .page-header.outward-header { background: var(--primary); }
+  .page-header.inward-header  { background: var(--gold); }
+  .page-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px; color: var(--white); }
+  .page-header p  { color: rgba(255,255,255,0.65); font-size: 13px; margin-top: 4px; }
+  .lpo-badge { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: var(--white); padding: 8px 18px; border-radius: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 800; letter-spacing: 1px; }
+
+  /* ── MODE TOGGLE ── */
+  .mode-section { background: var(--white); border-bottom: 1px solid var(--border); padding: 20px 5%; }
+  .mode-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; }
+  .mode-toggle { display: flex; background: var(--light-bg); padding: 5px; border-radius: 10px; gap: 5px; max-width: 600px; }
+  .mode-btn {
+    flex: 1; padding: 13px; border: none; border-radius: 7px;
+    cursor: pointer; font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 800; font-size: 15px; transition: all 0.25s; color: var(--text-muted);
+    background: transparent;
+  }
+  .mode-btn.active-outward { background: var(--primary); color: var(--white); box-shadow: 0 4px 12px rgba(26,60,110,0.2); }
+  .mode-btn.active-inward  { background: var(--gold);    color: var(--white); box-shadow: 0 4px 12px rgba(200,134,10,0.25); }
+  .mode-hint { font-size: 12px; color: var(--text-muted); margin-top: 8px; }
+
+  /* ── FORM ── */
+  .form-container { max-width: 920px; margin: 32px auto; padding: 0 20px 80px; }
+
+  .form-card {
+    background: var(--white); border-radius: 14px;
+    padding: 28px 30px; margin-bottom: 20px;
+    border: 1px solid var(--border);
+  }
+  .form-card.outward-card { border-left: 4px solid var(--secondary); }
+  .form-card.inward-card  { border-left: 4px solid var(--gold); }
+  .form-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+  .form-card-num-out { background: var(--light-bg); color: var(--primary); width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; flex-shrink: 0; }
+  .form-card-num-in  { background: var(--gold-bg);  color: var(--gold);    width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; flex-shrink: 0; }
+  .form-card h2  { font-family: 'Barlow Condensed', sans-serif; font-size: 17px; font-weight: 800; text-transform: uppercase; color: var(--primary); letter-spacing: 0.5px; }
+  .form-card p.card-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+  .form-grid  { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  .form-grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 18px; }
+  .field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+  .field label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+  .field input, .field select, .field textarea {
+    padding: 11px 14px; border: 1.5px solid var(--border);
+    border-radius: 8px; font-size: 14px; font-family: 'DM Sans', sans-serif;
+    background: var(--lighter-bg); color: var(--text); outline: none; transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--secondary); background: var(--white); }
+  .field.full { grid-column: 1 / -1; }
+
+  /* Items table */
+  .items-wrap { overflow: visible; }
+  .items-table { width: 100%; border-collapse: collapse; min-width: 580px; }
+  .items-table thead tr { background: var(--light-bg); }
+  .items-table th { padding: 12px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); font-weight: 800; text-align: left; border-bottom: 2px solid var(--border); }
+  .items-table td { padding: 6px 6px; vertical-align: middle; border-bottom: 1px solid var(--border); }
+  .items-table tbody tr:last-child td { border-bottom: none; }
+  .items-table input {
+    width: 100%; padding: 9px 10px; border: 1.5px solid var(--border);
+    border-radius: 6px; font-size: 13px; background: var(--lighter-bg);
+    font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s;
+  }
+  .items-table input:focus { border-color: var(--secondary); background: var(--white); }
+  .row-total { font-weight: 700; font-size: 13px; color: var(--primary); text-align: right; padding-right: 8px; white-space: nowrap; }
+  .btn-rm { background: #fee2e2; color: #ef4444; border: none; width: 22px; height: 22px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 900; transition: all 0.2s; }
+  .btn-rm:hover { background: #ef4444; color: var(--white); }
+
+  .table-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 12px; }
+  .btn-add-row { background: var(--light-bg); color: var(--primary); border: 1.5px dashed var(--secondary); padding: 9px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
+  .btn-add-row:hover { background: var(--secondary); color: var(--white); border-color: var(--secondary); }
+
+  .subtotal-panel { background: var(--light-bg); border: 1px solid var(--border); border-radius: 10px; padding: 14px 20px; text-align: right; margin-top: 16px; }
+  .subtotal-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 6px; }
+  .subtotal-row span:first-child { color: var(--text-muted); }
+  .subtotal-row span:last-child  { font-weight: 700; color: var(--primary); }
+  .subtotal-row.grand { font-size: 16px; padding-top: 8px; border-top: 2px solid var(--border); margin-top: 4px; }
+  .subtotal-row.grand span { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--primary); }
+
+  /* Actions */
+  .form-actions { display: flex; gap: 14px; margin-top: 8px; }
+  .btn-generate-out {
+    flex: 1; background: var(--primary); color: var(--white);
+    border: none; padding: 18px; border-radius: 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900;
+    cursor: pointer; text-transform: uppercase; transition: all 0.25s;
+  }
+  .btn-generate-out:hover { background: var(--secondary); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(79,163,209,0.3); }
+  .btn-generate-in {
+    flex: 1; background: var(--gold); color: var(--white);
+    border: none; padding: 18px; border-radius: 10px;
+    font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900;
+    cursor: pointer; text-transform: uppercase; transition: all 0.25s;
+  }
+  .btn-generate-in:hover { background: #a86e08; transform: translateY(-2px); }
+  .btn-reset { background: var(--lighter-bg); color: var(--text-muted); border: 1.5px solid var(--border); padding: 18px 28px; border-radius: 10px; font-weight: 700; font-size: 13px; text-transform: uppercase; cursor: pointer; transition: all 0.2s; }
+  .btn-reset:hover { border-color: var(--secondary); color: var(--primary); }
+
+  /* ── PREVIEW ── */
+  #preview-section { display: none; padding-bottom: 80px; }
+  .preview-controls { max-width: 920px; margin: 28px auto 20px; padding: 0 20px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-ctrl { padding: 12px 24px; border-radius: 8px; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-pdf  { background: var(--primary); color: var(--white); }
+  .btn-pdf:hover { background: var(--secondary); }
+  .btn-edit { background: var(--lighter-bg); color: var(--text-muted); border: 1.5px solid var(--border); }
+  .btn-edit:hover { border-color: var(--secondary); color: var(--primary); }
+
+  /* Document */
+  .lpo-doc {
+    background: var(--white); max-width: 880px;
+    margin: 0 auto; box-shadow: 0 4px 40px rgba(26,60,110,0.12);
+    border-radius: 4px; overflow: hidden;
+  }
+  .doc-header-out { background: var(--primary); }
+  .doc-header-in  { background: var(--gold); }
+  .doc-header { color: var(--white); padding: 36px 44px; display: flex; justify-content: space-between; align-items: flex-start; }
+  .doc-header-left h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; text-transform: uppercase; margin-bottom: 6px; }
+  .doc-header-left p  { font-size: 12px; color: rgba(255,255,255,0.65); line-height: 1.75; }
+  .doc-header-right   { text-align: right; }
+  .doc-header-right h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 2px; }
+  .doc-header-right .doc-type-badge { display: inline-block; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); color: var(--white); padding: 4px 14px; border-radius: 100px; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+  .doc-header-right p  { font-size: 12px; color: rgba(255,255,255,0.7); margin-top: 6px; line-height: 1.75; }
+
+  .doc-ref-bar { background: var(--light-bg); padding: 14px 44px; display: flex; gap: 40px; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .doc-ref-item label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); font-weight: 700; display: block; margin-bottom: 3px; }
+  .doc-ref-item span  { font-size: 14px; font-weight: 700; color: var(--primary); }
+
+  .doc-body { padding: 36px 44px; }
+  .doc-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-bottom: 32px; }
+  .doc-party-label { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; margin-bottom: 8px; display: block; }
+  .label-out { color: var(--secondary); }
+  .label-in  { color: var(--gold); }
+  .doc-party-name   { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; color: var(--primary); font-weight: 800; margin-bottom: 4px; }
+  .doc-party-detail { font-size: 13px; color: var(--text-muted); line-height: 1.75; }
+
+  .doc-table { width: 100%; border-collapse: collapse; margin: 24px 0; }
+  .doc-table thead tr { background: var(--primary); }
+  .doc-table th { padding: 13px 14px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--white); font-weight: 700; text-align: left; }
+  .doc-table th:last-child { text-align: right; }
+  .doc-table tbody tr { border-bottom: 1px solid var(--border); }
+  .doc-table tbody tr:nth-child(even) { background: var(--light-bg); }
+  .doc-table td { padding: 13px 14px; font-size: 13.5px; }
+  .doc-table td:last-child { text-align: right; font-weight: 600; }
+  .doc-total-out { background: var(--primary) !important; }
+  .doc-total-in  { background: var(--gold) !important; }
+  .doc-total-row td { color: var(--white) !important; font-weight: 800 !important; font-size: 15px !important; padding: 16px 14px !important; }
+
+  .doc-sig-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; margin-top: 50px; }
+  .doc-sig-area { height: 52px; }
+  .doc-sig-line { border-top: 2px solid var(--primary); padding-top: 10px; text-align: center; font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .doc-notice { margin-top: 32px; padding: 16px 20px; background: var(--light-bg); border-radius: 8px; border: 1px solid var(--border); font-size: 11px; color: var(--text-muted); line-height: 1.75; }
+  .doc-notice strong { color: var(--primary); }
+
+  .doc-brand-footer { background: var(--primary); padding: 16px 44px; display: flex; justify-content: space-between; align-items: center; }
+  .doc-brand-footer span { font-size: 11px; color: rgba(255,255,255,0.5); }
+  .doc-brand-footer strong { color: rgba(255,255,255,0.8); }
+
+  @media print {
+    .top-nav, .page-header, .mode-section, .form-container, .preview-controls { display: none !important; }
+    #preview-section { display: block !important; }
+    body { background: white; }
+    .lpo-doc { box-shadow: none; }
+  }
+  @media (max-width: 600px) {
+    html { overflow-x: hidden; }
+    body { overflow-x: hidden; width: 100vw; }
+    .form-grid, .form-grid3 { grid-template-columns: 1fr; }
+    .doc-parties, .doc-sig-grid { grid-template-columns: 1fr; }
+    .doc-ref-bar { gap: 16px; }
+    .lpo-doc { overflow: visible; border-radius: 0; margin: 0; max-width: 100%; width: 100%; }
+    .doc-header { padding: 20px 16px; flex-direction: column; }
+    .doc-header-right { text-align: left; margin-top: 12px; }
+    .doc-body { padding: 16px 12px; }
+    .doc-table { font-size: 11px; }
+    .doc-table th { padding: 10px 10px; }
+    .doc-table td { padding: 10px 10px; font-size: 12px; }
+    #preview-section { padding: 0; width: 100%; }
+    .preview-controls { max-width: 100%; margin: 0; padding: 12px; width: 100%; }
+  }
+
+  @media(max-width:480px) {
+    body { font-size: 13px; }
+    .top-nav { height: 56px; padding: 0 2%; }
+    .form-container { padding: 0 2% 32px; }
+    .form-grid, .form-grid3 { grid-template-columns: 1fr; gap: 10px; padding: 12px; }
+    .field { gap: 4px; }
+    .field label { font-size: 9px; }
+    .field input, .field select, .field textarea { font-size: 12px; padding: 8px 10px; }
+    .lpo-doc { border-radius: 0; }
+    .doc-ref-bar { padding: 12px; gap: 12px; flex-wrap: wrap; }
+    .doc-body { padding: 12px; }
+    .doc-table { margin: 12px 0; }
+    .doc-table th { padding: 8px 8px; font-size: 9px; }
+    .doc-table td { padding: 8px 8px; font-size: 11px; }
+    .doc-parties { gap: 16px; margin-bottom: 16px; }
+    .doc-brand-footer { padding: 12px; flex-direction: column; gap: 8px; }
+    #preview-section { padding: 0; margin: 0; }
+    .preview-controls { padding: 10px 2%; gap: 8px; }
+    /* Items table mobile */
+    .items-table { min-width: 100%; font-size: 10px; }
+    .items-table th { padding: 8px 6px; font-size: 8px; }
+    .items-table td { padding: 6px 4px; }
+    .items-table input { font-size: 11px; padding: 4px 6px; }
+    .row-total { font-size: 11px; padding-right: 4px; }
+  }
+  /* Autocomplete */
+  .desc-wrap { position: relative; }
+  .autocomplete-list {
+    position: absolute; top: calc(100% + 2px); left: 0; right: 0;
+    background: #fff; border: 1.5px solid #4fa3d1;
+    border-radius: 6px; z-index: 9999; min-width: 300px;
+    display: none;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  }
+  .autocomplete-list.show { display: block; }
+  .ac-item {
+    padding: 10px 14px; font-size: 13px;
+    color: #1e293b; font-weight: 500;
+    border-bottom: 1px solid #e8f0f8;
+    user-select: none; cursor: pointer !important;
+  }
+  .ac-item:last-child { border-bottom: none; }
+  .ac-item:hover { background: #1a3c6e; color: #fff; }
+  .ac-item.highlighted { background: #1a3c6e; color: #fff; }
+  .ac-no-results { padding: 10px 14px; font-size: 12px; color: #64748b; text-align: center; }
+  .autocomplete-list * { cursor: pointer !important; }
+
+  /* Prevent text wrapping on buttons and labels */
+  .btn-primary, .btn-secondary, .btn-add-row, .badge, .tab-btn, .vat-toggle label {
+    white-space: nowrap;
+  }
+
+  /* MOBILE RESPONSIVE - TABLETS (768px and below) */
+  @media(max-width:768px) {
+    .top-nav { padding: 0 3%; }
+    .page-header { padding: 24px 3%; }
+    .page-header h1 { font-size: 26px; }
+    .form-container { padding: 0 3% 60px; }
+    .form-card { padding: 20px 22px; }
+    .form-grid, .form-grid3 { grid-template-columns: 1fr; gap: 14px; }
+    .field label { font-size: 9px; }
+    .field input, .field select, .field textarea { font-size: 13px; padding: 9px 12px; }
+    .items-table { font-size: 12px; }
+    .items-table th { padding: 10px 8px; font-size: 9px; }
+    .items-table td { padding: 5px 5px; }
+    .btn-add-row { font-size: 11px; padding: 8px 16px; }
+    .subtotal-panel { padding: 12px 16px; }
+    .action-bar { gap: 10px; }
+    .btn-primary, .btn-secondary { padding: 11px 22px; font-size: 13px; }
+  }
+
+  /* MOBILE RESPONSIVE - PHONES (480px and below) */
+  @media(max-width:480px) {
+    body { font-size: 13px; }
+    .top-nav { height: 56px; padding: 0 2%; }
+    .top-nav-brand { gap: 8px; }
+    .top-nav-sq { width: 30px; height: 30px; font-size: 13px; }
+    .top-nav-title { font-size: 13px; }
+    .top-nav-back { font-size: 9px; padding: 5px 10px; }
+    .page-header { padding: 20px 2%; }
+    .page-header h1 { font-size: 20px; }
+    .page-header p { font-size: 11px; }
+    .form-container { padding: 0 2% 40px; }
+    .form-card { padding: 14px 16px; margin-bottom: 12px; }
+    .form-grid, .form-grid3 { grid-template-columns: 1fr; gap: 10px; }
+    .field { gap: 4px; margin-bottom: 10px; }
+    .field label { font-size: 8px; }
+    .field input, .field select, .field textarea { font-size: 12px; padding: 8px 10px; }
+    .field textarea { min-height: 70px; }
+    .items-wrap { overflow-x: auto; }
+    .items-table { font-size: 10px; display: block; }
+    .items-table thead tr { display: table; width: 100%; }
+    .items-table tbody { display: block; overflow-x: auto; }
+    .items-table tr { display: table; width: 100%; }
+    .items-table th { padding: 6px 6px; font-size: 8px; }
+    .items-table td { padding: 4px 4px; }
+    .items-table input { font-size: 11px; padding: 6px 8px; }
+    .btn-rm { width: 20px; height: 20px; font-size: 10px; }
+    .btn-add-row { width: 100%; font-size: 10px; padding: 6px 12px; }
+    .subtotal-panel { padding: 10px 12px; }
+    .subtotal-row { font-size: 11px; margin-bottom: 4px; }
+    .action-bar { flex-direction: column; gap: 8px; }
+    .btn-primary, .btn-secondary { width: 100%; padding: 12px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<div class="top-nav">
+  <div class="top-nav-brand">
+    <img src="/etl-images/etl-logo.png" alt="ETL" alt="ETL"  style="width:36px;height:36px;object-fit:contain;mix-blend-mode:multiply;">
+    <div>
+      <span class="top-nav-title">Outward LPO — Supplier</span>
+      <span class="top-nav-sub">ETL Internal Use Only</span>
+    </div>
+  </div>
+  <a href="/" class="top-nav-back">← Back to Website</a>
+</div>
+
+<!-- PAGE HEADER -->
+<div class="page-header outward-header" id="page-header">
+  <div>
+    <h1 id="header-title">Outward LPO — ETL to Supplier</h1>
+    <p id="header-sub">Issue a Local Purchase Order to a supplier or vendor</p>
+  </div>
+  <div class="lpo-badge" id="lpo-badge-display">ETL/LPO/2026/001</div>
+</div>
+
+<!-- MODE TOGGLE -->
+<div class="mode-section">
+  <div class="mode-label">Select LPO Direction</div>
+  <div class="mode-toggle" style="display:none;">
+    <button class="mode-btn active-outward" id="btn-outward" onclick="setMode('outward')">
+      📤 Outward — ETL Issues to Supplier
+    </button>
+    <button class="mode-btn" id="btn-inward" onclick="setMode('inward')">
+      📥 Inward — Client Issues to ETL
+    </button>
+  </div>
+  <p class="mode-hint" id="mode-hint">Use Outward when ETL is purchasing goods or services from a supplier.</p>
+</div>
+
+<div style="background:#fdf3e0;border-bottom:2px solid #c8860a;padding:10px 5%;font-size:13px;font-weight:700;color:#c8860a;text-align:center;">
+  🔒 INTERNAL USE ONLY — Generate Purchase Orders from ETL to suppliers. Not for client use.
+</div>
+
+<!-- FORM -->
+<div class="form-container" id="form-section">
+
+  <!-- Card 1: Parties -->
+  <div class="form-card outward-card" id="card1">
+    <div class="form-card-header">
+      <div class="form-card-num-out" id="card1-num">01</div>
+      <div>
+        <h2 id="card1-title">Supplier / Vendor Details</h2>
+        <p class="card-sub" id="card1-sub">Details of the company supplying goods or services to ETL</p>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label id="entity-label">Supplier / Vendor Name *</label>
+        <input type="text" id="entity-name" placeholder="e.g. Kampala Steel Works Ltd">
+      </div>
+      <div class="field">
+        <label>Contact Person</label>
+        <input type="text" id="entity-contact" placeholder="e.g. Mr. Odongo Paul">
+      </div>
+      <div class="field">
+        <label>Phone / Email</label>
+        <input type="text" id="entity-contact2" placeholder="e.g. +256 700 000 000">
+      </div>
+      <div class="field">
+        <label id="entity-tin-label">Supplier TIN (if available)</label>
+        <input type="text" id="entity-tin" placeholder="e.g. 1000XXXXXX">
+      </div>
+      <div class="field full">
+        <label>Address / Location</label>
+        <input type="text" id="entity-address" placeholder="e.g. Plot 14, Kampala Industrial Area">
+      </div>
+    </div>
+  </div>
+
+  <!-- Card 2: LPO Reference -->
+  <div class="form-card outward-card" id="card2">
+    <div class="form-card-header">
+      <div class="form-card-num-out" id="card2-num">02</div>
+      <div>
+        <h2>LPO Reference & Dates</h2>
+        <p class="card-sub">Set the LPO number, issue date and expected delivery</p>
+      </div>
+    </div>
+    <div class="form-grid3">
+      <div class="field">
+        <label>LPO Reference Number</label>
+        <input type="text" id="lpo-ref" value="ETL/LPO/2026/001" oninput="document.getElementById('lpo-badge-display').innerText=decode(this.value)">
+      </div>
+      <div class="field">
+        <label>Date of Issue</label>
+        <input type="date" id="date-issue">
+      </div>
+      <div class="field">
+        <label>Expected Delivery Date</label>
+        <input type="date" id="date-delivery">
+      </div>
+    </div>
+    <div class="field">
+      <label>Project / Contract Title</label>
+      <input type="text" id="project-name" placeholder="e.g. Routine Road Maintenance — Goma Division">
+    </div>
+    <div class="field">
+      <label>Delivery Location / Site</label>
+      <input type="text" id="delivery-location" placeholder="e.g. ETL Yard, Plot 1353 Sonde, Mukono">
+    </div>
+  </div>
+
+  <!-- Card 3: Items -->
+  <div class="form-card outward-card" id="card3">
+    <div class="form-card-header">
+      <div class="form-card-num-out" id="card3-num">03</div>
+      <div>
+        <h2>Items / Services Ordered</h2>
+        <p class="card-sub">List all goods or services being procured</p>
+      </div>
+    </div>
+    <div class="items-wrap">
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th style="width:38%">Description of Supply / Service</th>
+            <th style="width:14%">Unit</th>
+            <th style="width:9%">Qty</th>
+            <th style="width:17%">Unit Price (UGX)</th>
+            <th style="width:15%">Total (UGX)</th>
+            <th style="width:7%"></th>
+          </tr>
+        </thead>
+        <tbody id="items-list">
+          <tr>
+            <td><div class="desc-wrap"><input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
+            <td><input type="text" class="i-unit" placeholder="Tons"></td>
+            <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
+            <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
+            <td><span class="row-total">0</span></td>
+            <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="table-footer">
+      <button class="btn-add-row" onclick="addRow()">+ Add Item Row</button>
+    </div>
+    <div class="subtotal-panel">
+      <div class="subtotal-row"><span>Subtotal</span><span id="subtotal-display">UGX 0</span></div>
+      <div class="subtotal-row grand"><span>Grand Total</span><span id="grand-display">UGX 0</span></div>
+    </div>
+  </div>
+
+  <!-- Card 4: Authorization -->
+  <div class="form-card outward-card" id="card4">
+    <div class="form-card-header">
+      <div class="form-card-num-out" id="card4-num">04</div>
+      <div>
+        <h2>Authorization & Terms</h2>
+        <p class="card-sub">Set payment terms and authorization details</p>
+      </div>
+    </div>
+    <div class="form-grid">
+      <div class="field">
+        <label>Payment Terms</label>
+        <select id="pay-terms">
+          <option>On Delivery & Invoice</option>
+          <option>Net 30 Days from Invoice</option>
+          <option>50% Advance, 50% on Delivery</option>
+          <option>As per Contract Agreement</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Prepared By (ETL Staff)</label>
+        <input type="text" id="preparer" placeholder="e.g. Wafula Harry — Logistics Officer">
+      </div>
+      <div class="field full">
+        <label>Special Instructions / Notes</label>
+        <textarea id="special-notes" style="min-height:70px; resize:vertical;" placeholder="Any delivery instructions, quality standards or special conditions..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="form-actions">
+    <button class="btn-reset" onclick="if(confirm('Reset all fields?'))location.reload()">Reset</button>
+    <button class="btn-generate-out" id="btn-generate" onclick="generateLPO()">Generate Official LPO Document →</button>
+  </div>
+
+</div>
+
+<!-- PREVIEW -->
+<div id="preview-section">
+  <div class="preview-controls">
+    <button class="btn-ctrl btn-pdf" onclick="exportPDF()">⬇ Download PDF</button>
+    <button class="btn-ctrl btn-pdf" onclick="window.print()" style="background:var(--secondary);">🖨 Print LPO</button>
+    <button class="btn-ctrl btn-edit" onclick="document.getElementById('form-section').style.display='block'; document.getElementById('preview-section').style.display='none'; window.scrollTo(0,0);">← Edit LPO</button>
+  </div>
+
+  <div class="lpo-doc" id="lpo-document">
+    <div class="doc-header doc-header-out" id="doc-hdr">
+      <div class="doc-header-left">
+        <h1>Engineering Trade Links Co. Ltd</h1>
+        <p>
+          Plot 1353, Sonde – Seeta Road, Goma Division<br>
+          Mukono Municipality, P.O. Box 27555, Kampala, Uganda<br>
+          Tel: +256 776 566 522 &nbsp;|&nbsp; +256 704 545 163<br>
+          Email: tradelinks.ltd@gmail.com &nbsp;|&nbsp; TIN: 1000161539
+        </p>
+      </div>
+      <div class="doc-header-right">
+        <div class="doc-type-badge" id="p-direction-badge">OUTWARD LPO</div>
+        <h2>LOCAL PURCHASE ORDER</h2>
+        <p>
+          <strong style="color:rgba(255,255,255,0.9)">LPO No:</strong> <span id="p-lpo-ref"></span><br>
+          <strong style="color:rgba(255,255,255,0.9)">Date Issued:</strong> <span id="p-date-i"></span><br>
+          <strong style="color:rgba(255,255,255,0.9)">Delivery By:</strong> <span id="p-date-d"></span>
+        </p>
+      </div>
+    </div>
+
+    <div class="doc-ref-bar">
+      <div class="doc-ref-item"><label>Project</label><span id="p-project"></span></div>
+      <div class="doc-ref-item"><label>Delivery Location</label><span id="p-delivery-loc"></span></div>
+      <div class="doc-ref-item"><label>Payment Terms</label><span id="p-pay-terms"></span></div>
+    </div>
+
+    <div class="doc-body">
+      <div class="doc-parties">
+        <div>
+          <span class="doc-party-label label-out" id="p-entity-label">VENDOR / SUPPLIER DETAILS:</span>
+          <div class="doc-party-name" id="p-entity-name"></div>
+          <div class="doc-party-detail">
+            <span id="p-entity-contact"></span><br>
+            <span id="p-entity-address"></span><br>
+            <span id="p-entity-contact2"></span>
+            <span id="p-entity-tin"></span>
+          </div>
+        </div>
+        <div>
+          <span class="doc-party-label label-out">ISSUED BY:</span>
+          <div class="doc-party-name">Engineering Trade Links Co. Ltd</div>
+          <div class="doc-party-detail">
+            Plot 1353, Sonde – Seeta Road, Mukono<br>
+            Tel: +256 776 566 522<br>
+            TIN: 1000161539 &nbsp;|&nbsp; VAT: 49481-L
+          </div>
+        </div>
+      </div>
+
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th style="width:5%">#</th>
+            <th style="width:38%">Description of Supply / Service</th>
+            <th style="width:9%">Unit</th>
+            <th style="width:8%">Qty</th>
+            <th style="width:18%">Unit Price (UGX)</th>
+            <th style="width:17%">Total (UGX)</th>
+          </tr>
+        </thead>
+        <tbody id="p-items-body"></tbody>
+        <tfoot>
+          <tr class="doc-total-out doc-total-row" id="p-total-row">
+            <td colspan="5" style="text-align:right;">GRAND TOTAL (UGX)</td>
+            <td id="p-grand-total"></td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div id="p-notes-block" style="display:none; margin-bottom:24px; padding:14px 18px; background:var(--light-bg); border-radius:8px; border:1px solid var(--border);">
+        <strong style="font-size:12px; color:var(--primary); text-transform:uppercase; letter-spacing:0.5px;">Special Instructions:</strong>
+        <p id="p-notes-text" style="font-size:13px; color:var(--text-muted); margin-top:6px; line-height:1.7;"></p>
+      </div>
+
+      <div class="doc-sig-grid">
+        <div>
+          <div class="doc-sig-area"></div>
+          <div class="doc-sig-line" id="p-preparer-sig">Prepared By: ETL Logistics</div>
+        </div>
+        <div>
+          <div class="doc-sig-area"></div>
+          <div class="doc-sig-line">Authorized By: Managing Director / Finance</div>
+        </div>
+      </div>
+
+      <div class="doc-notice">
+        <strong>Official Notice:</strong> This document serves as an official authorization of purchase/service delivery by Engineering Trade Links Co. Ltd. All deliveries must be accompanied by an original Delivery Note and Invoice quoting the LPO number above. ETL reserves the right to reject goods/services not conforming to the specifications stated herein.
+      </div>
+    </div>
+
+    <div class="doc-brand-footer">
+      <span>© 2026 Engineering Trade Links Company Limited &nbsp;|&nbsp; PPDA Reg: PRV/WKRS/25051515/MAY/25</span>
+      <strong>www.engineeringtradelinks.com</strong>
+    </div>
+  </div>
+</div>
+
+<script>
+  let currentMode = 'outward';
+
+  const today = new Date();
+  document.getElementById('date-issue').value = today.toISOString().split('T')[0];
+  const del = new Date(today); del.setDate(del.getDate() + 14);
+  document.getElementById('date-delivery').value = del.toISOString().split('T')[0];
+
+  function fmt(n) { return Math.round(n).toLocaleString(); }
+
+  function setMode(mode) {
+    currentMode = mode;
+    const isOut = mode === 'outward';
+
+    // Toggle buttons
+    document.getElementById('btn-outward').className = 'mode-btn ' + (isOut ? 'active-outward' : '');
+    document.getElementById('btn-inward').className  = 'mode-btn ' + (!isOut ? 'active-inward'  : '');
+
+    // Page header
+    const hdr = document.getElementById('page-header');
+    hdr.className = isOut ? 'page-header outward-header' : 'page-header inward-header';
+    document.getElementById('header-title').innerText = isOut ? 'Outward LPO — ETL to Supplier' : 'Inward LPO — Client to ETL';
+    document.getElementById('header-sub').innerText   = isOut ? 'Issue a Local Purchase Order to a supplier or vendor' : 'Record an LPO received from a client awarding ETL a contract';
+
+    // LPO ref prefix
+    const refInput = document.getElementById('lpo-ref');
+    refInput.value = 'ETL-LPO-2026-001';
+    document.getElementById('lpo-badge-display').innerText = decode(refInput.value);
+
+    // Card styling
+    ['card1','card2','card3','card4'].forEach(id => {
+      const c = document.getElementById(id);
+      c.className = 'form-card ' + (isOut ? 'outward-card' : 'inward-card');
+    });
+    ['card1-num','card2-num','card3-num','card4-num'].forEach(id => {
+      document.getElementById(id).className = isOut ? 'form-card-num-out' : 'form-card-num-in';
+    });
+
+    // Labels
+    document.getElementById('card1-title').innerText  = isOut ? 'Supplier / Vendor Details' : 'Client / Issuer Details';
+    document.getElementById('card1-sub').innerText    = isOut ? 'Details of the company supplying goods or services to ETL' : 'Details of the client issuing ETL this purchase order';
+    document.getElementById('entity-label').innerText = isOut ? 'Supplier / Vendor Name *' : 'Client Name *';
+    document.getElementById('entity-tin-label').innerText = isOut ? 'Supplier TIN (if available)' : 'Client TIN Number';
+
+    // Generate button
+    document.getElementById('btn-generate').className = isOut ? 'btn-generate-out' : 'btn-generate-in';
+
+    // Mode hint
+    document.getElementById('mode-hint').innerText = isOut
+      ? 'Use Outward when ETL is purchasing goods or services from a supplier.'
+      : 'Use Inward when a client has awarded ETL a contract and issued an LPO to ETL.';
+  }
+
+  function recalc(el) {
+    const row   = el.closest('tr');
+    const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
+    const price = parseFloat(row.querySelector('.i-price').value) || 0;
+    row.querySelector('.row-total').innerText = fmt(qty * price);
+    updateTotals();
+  }
+
+  function updateTotals() {
+    let sub = 0;
+    document.querySelectorAll('#items-list tr').forEach(row => {
+      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
+      const price = parseFloat(row.querySelector('.i-price').value) || 0;
+      sub += qty * price;
+    });
+    document.getElementById('subtotal-display').innerText = 'UGX ' + fmt(sub);
+    document.getElementById('grand-display').innerText    = 'UGX ' + fmt(sub);
+  }
+
+  function addRow() {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><div class="desc-wrap"><input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
+      <td><input type="text" class="i-unit" placeholder="Unit"></td>
+      <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
+      <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
+      <td><span class="row-total">0</span></td>
+      <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>
+    `;
+    document.getElementById('items-list').appendChild(tr);
+  }
+
+  function removeRow(btn) {
+    if(document.querySelectorAll('#items-list tr').length > 1) {
+      btn.closest('tr').remove(); updateTotals();
+    }
+  }
+
+  function fmtDate(val) {
+    if(!val) return '—';
+    try { return new Date(val).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}); }
+    catch(e) { return val; }
+  }
+
+  function generateLPO() {
+    const eName = document.getElementById('entity-name').value.trim();
+    if(!eName) { alert('Please enter a supplier/client name before generating.'); return; }
+
+    const isOut = currentMode === 'outward';
+
+    // Header
+    document.getElementById('doc-hdr').className      = 'doc-header ' + (isOut ? 'doc-header-out' : 'doc-header-in');
+    document.getElementById('p-direction-badge').innerText = isOut ? 'OUTWARD LPO' : 'INWARD LPO';
+
+    document.getElementById('p-lpo-ref').innerText   = decode(document.getElementById('lpo-ref').value);
+    document.getElementById('p-date-i').innerText    = fmtDate(document.getElementById('date-issue').value);
+    document.getElementById('p-date-d').innerText    = fmtDate(document.getElementById('date-delivery').value);
+    document.getElementById('p-project').innerText   = document.getElementById('project-name').value || '—';
+    document.getElementById('p-delivery-loc').innerText = document.getElementById('delivery-location').value || '—';
+    document.getElementById('p-pay-terms').innerText = document.getElementById('pay-terms').value;
+
+    // Parties
+    document.getElementById('p-entity-label').innerText   = isOut ? 'VENDOR / SUPPLIER DETAILS:' : 'CLIENT / ISSUER DETAILS:';
+    document.getElementById('p-entity-label').className   = 'doc-party-label ' + (isOut ? 'label-out' : 'label-in');
+    document.getElementById('p-entity-name').innerText    = eName;
+    document.getElementById('p-entity-contact').innerText = document.getElementById('entity-contact').value;
+    document.getElementById('p-entity-address').innerText = document.getElementById('entity-address').value;
+    document.getElementById('p-entity-contact2').innerText= document.getElementById('entity-contact2').value;
+    const tin = document.getElementById('entity-tin').value;
+    document.getElementById('p-entity-tin').innerText = tin ? 'TIN: ' + tin : '';
+
+    document.getElementById('p-preparer-sig').innerText = 'Prepared By: ' + (document.getElementById('preparer').value || 'ETL Logistics');
+
+    // Total row color
+    const totalRow = document.getElementById('p-total-row');
+    totalRow.className = 'doc-total-row ' + (isOut ? 'doc-total-out' : 'doc-total-in');
+
+    // Notes
+    const notes = document.getElementById('special-notes').value.trim();
+    if(notes) {
+      document.getElementById('p-notes-block').style.display = 'block';
+      document.getElementById('p-notes-text').innerText = notes;
+    }
+
+    // Items
+    const rows  = document.querySelectorAll('#items-list tr');
+    const tbody = document.getElementById('p-items-body');
+    tbody.innerHTML = '';
+    let grand = 0, n = 1;
+
+    rows.forEach(row => {
+      const desc  = row.querySelector('.i-desc').value.trim();
+      const unit  = row.querySelector('.i-unit').value;
+      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
+      const price = parseFloat(row.querySelector('.i-price').value) || 0;
+      const total = qty * price;
+      grand += total;
+      if(desc) {
+        tbody.innerHTML += `
+          <tr>
+            <td>${n++}</td>
+            <td>${desc}</td>
+            <td>${unit}</td>
+            <td>${qty}</td>
+            <td style="text-align:right;">${fmt(price)}</td>
+            <td>${fmt(total)}</td>
+          </tr>`;
+      }
+    });
+
+    document.getElementById('p-grand-total').innerText = fmt(grand);
+
+    document.getElementById('form-section').style.display    = 'none';
+    document.getElementById('preview-section').style.display = 'block';
+    window.scrollTo(0, 0);
+    // Save to Supabase
+    saveLPOToSupabase();
+  }
+
+
+  // ── SUPABASE CONFIG ──
+  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'").replace(/&quot;/g,'"'); }
+
+  
+  // ─── Brevo Email Helper ───
+  async function sendEmail(to, subject, body) {
+    if(!to || !to.includes('@')) return;
+    try {
+      const safe = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const linked = safe.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#1a3c6e;font-weight:bold;">$1</a>');
+      const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#1e293b;max-width:600px;">' + linked.replace(/\n/g,'<br>') + '<br><br><hr style="border:none;border-top:1px solid #cfe3f0;"><p style="font-size:11px;color:#64748b;">Engineering Trade Links Co. Ltd | Plot 1353, Sonde-Seeta Road, Mukono | +256 776 566 522</p></div>';
+      await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'api-key': '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' },
+        body: JSON.stringify({
+          sender: { name: 'Engineering Trade Links Co. Ltd', email: 'timookui@gmail.com' },
+          to: [{ email: to }],
+          subject: subject,
+          htmlContent: html
+        })
+      });
+    } catch(e) { console.warn('Email error:', e); }
+  }
+
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+
+  async function saveLPOToSupabase() {
+    const rows = document.querySelectorAll('#items-list tr');
+    const items = [];
+    let grand = 0;
+    rows.forEach(row => {
+      const desc  = row.querySelector('.i-desc').value.trim();
+      const unit  = row.querySelector('.i-unit').value;
+      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
+      const price = parseFloat(row.querySelector('.i-price').value) || 0;
+      const total = qty * price;
+      grand += total;
+      if(desc) items.push({ desc, unit, qty, price, total });
+    });
+
+    const uniqueLink = crypto.randomUUID();
+
+    const payload = {
+      lpo_number:      decode(document.getElementById('lpo-ref').value),
+      direction:       currentMode,
+      entity_name:     document.getElementById('entity-name').value.trim(),
+      entity_contact:  document.getElementById('entity-contact').value.trim(),
+      entity_email:    document.getElementById('entity-email').value.trim(),
+      entity_phone:    document.getElementById('entity-contact').value.trim(),
+      entity_address:  document.getElementById('entity-address').value.trim(),
+      issue_date:      document.getElementById('date-issue').value,
+      delivery_date:   document.getElementById('date-delivery').value,
+      items:           items,
+      total:           grand,
+      notes:           document.getElementById('special-notes').value.trim(),
+      project_name:    document.getElementById('project-name').value.trim(),
+      delivery_location: document.getElementById('delivery-location').value.trim(),
+      status:          'pending_approval',
+      unique_link:     uniqueLink
+    };
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if(res.ok) {
+        const base = 'https://engineeringtradelinks.pages.dev/';
+        const link = base + 'ETL-LPO-View.html?lpo=' + uniqueLink;
+        const isOut = currentMode === 'outward';
+
+        // Send email notification
+        // Send notification to MD/DF with LPO link
+        const cleanLpoNum = payload.lpo_number.replace(/&#x2F;/g, '/').replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+        // Notify ETL staff - DISABLED
+        /* sendEmail('tokui@usiu.ac.ke', `🔔 New ${isOut ? 'Outward' : 'Inward'} LPO Submitted — ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and is pending approval.
+
+LPO Number: ${cleanLpoNum}
+Direction: ${isOut ? 'OUTWARD (ETL → Supplier)' : 'INWARD (Client → ETL)'}
+Entity: ${payload.entity_name}
+Email: ${payload.entity_email}
+Phone: ${payload.entity_phone}
+Issue Date: ${payload.issue_date}
+Delivery Date: ${payload.delivery_date}
+Total: UGX ${payload.total.toLocaleString()}
+Notes: ${payload.notes || 'None'}
+
+LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\nhttps://engineeringtradelinks.pages.dev/ETL-Dashboard.html'); */
+
+        // Notify MD - ACTION REQUIRED (kept enabled)
+        sendEmail('timookui@gmail.com', `🔔 New ${isOut ? 'Outward' : 'Inward'} LPO Pending Approval — ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and requires your approval.
+
+LPO Number: ${cleanLpoNum}
+Direction: ${isOut ? 'OUTWARD (ETL → Supplier)' : 'INWARD (Client → ETL)'}
+Entity: ${payload.entity_name}
+Email: ${payload.entity_email}
+Phone: ${payload.entity_phone}
+Issue Date: ${payload.issue_date}
+Delivery Date: ${payload.delivery_date}
+Total: UGX ${payload.total.toLocaleString()}
+Notes: ${payload.notes || 'None'}
+
+LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\nhttps://engineeringtradelinks.pages.dev/ETL-Dashboard.html');
+
+        setTimeout(() => {
+          if(isOut) {
+            prompt('✅ LPO saved successfully!\n\nShare this link with the supplier so they can view their LPO:', link);
+          } else {
+            prompt('✅ Inward LPO recorded successfully!\n\nLPO Reference: ' + cleanLpoNum + '\n\nClient view link:', link);
+          }
+        }, 500);
+      } else {
+        alert('Could not save LPO to database. Please check your connection.');
+      }
+    } catch(e) {
+      alert('Network error saving LPO: ' + e.message);
+    }
+  }
+
+  function exportPDF() {
+    const btns = document.querySelectorAll('.preview-controls button');
+    btns.forEach(b => b.style.display = 'none');
+
+    const opt = {
+      margin: 0.3,
+      filename: `ETL_LPO_${decode(document.getElementById('lpo-ref').value)}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 3 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(document.getElementById('lpo-document')).save().then(() => {
+      btns.forEach(b => b.style.display = '');
+    });
+  }
+
+  setMode('outward'); // ETL internal — always outward
+
+  let inventoryItems = [];
+  (async function loadInventoryItems() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/inventory_items?select=name,unit,unit_cost,category&order=name.asc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      inventoryItems = await res.json();
+    } catch(e) { console.warn('Could not load inventory:', e); }
+  })();
+
+  document.addEventListener('mousedown', function(e) {
+    if(!e.target.closest('.desc-wrap')) {
+      document.querySelectorAll('.autocomplete-list.show').forEach(l => l.classList.remove('show'));
+    }
+  });
+
+  function showAC(input) {
+    const wrap = input.closest('.desc-wrap');
+    const list = wrap.querySelector('.autocomplete-list');
+    const val = input.value.trim().toLowerCase();
+    if(!val) { list.classList.remove('show'); return; }
+    const matches = inventoryItems.filter(i => i.name.toLowerCase().includes(val));
+    if(!matches.length) {
+      list.innerHTML = '<div class="ac-no-results">No items found</div>';
+      list.classList.add('show');
+      return;
+    }
+    list.innerHTML = matches.map(i =>
+      `<div class="ac-item" tabindex="0"
+        data-name="${i.name.replace(/"/g,'&quot;')}"
+        data-unit="${i.unit}"
+        data-cost="${i.unit_cost||0}">${i.name}</div>`
+    ).join('');
+    // Attach events to each item
+    list.querySelectorAll('.ac-item').forEach(item => {
+      item.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        fillRow(input, wrap, list, this.dataset.name, this.dataset.unit, this.dataset.cost);
+      });
+      item.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        fillRow(input, wrap, list, this.dataset.name, this.dataset.unit, this.dataset.cost);
+      });
+    });
+    list.classList.add('show');
+  }
+
+  function fillRow(input, wrap, list, name, unit, cost) {
+    const row = wrap.closest('tr');
+    input.value = name;
+    const unitEl = row.querySelector('.i-unit');
+    const priceEl = row.querySelector('.i-price');
+    if(unitEl) unitEl.value = unit;
+    if(priceEl) {
+      priceEl.value = cost;
+      recalc(priceEl);
+    }
+    list.classList.remove('show');
+    list.innerHTML = '';
+  }
+
+  function hideAC(input) {
+    const wrap = input.closest('.desc-wrap');
+    if(wrap) setTimeout(() => {
+      wrap.querySelector('.autocomplete-list').classList.remove('show');
+    }, 200);
+  }
+
+  function handleACKey(e, input) {
+    const wrap = input.closest('.desc-wrap');
+    const list = wrap.querySelector('.autocomplete-list');
+    const items = list.querySelectorAll('.ac-item');
+    const current = list.querySelector('.highlighted');
+    if(e.key === 'ArrowDown') {
+      e.preventDefault();
+      if(!current) { items[0] && items[0].classList.add('highlighted'); }
+      else { current.classList.remove('highlighted'); (current.nextElementSibling || items[0]).classList.add('highlighted'); }
+    } else if(e.key === 'ArrowUp') {
+      e.preventDefault();
+      if(current) { current.classList.remove('highlighted'); (current.previousElementSibling || items[items.length-1]).classList.add('highlighted'); }
+    } else if(e.key === 'Enter') {
+      e.preventDefault();
+      const hi = list.querySelector('.highlighted');
+      if(hi) hi.dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
+    } else if(e.key === 'Escape') {
+      list.classList.remove('show');
+    }
+  }
+</script>
+
+</body>
+</html>

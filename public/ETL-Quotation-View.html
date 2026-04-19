@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ETL | Your Quotation</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+  :root {
+    --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
+    --lighter-bg: #f5f9fd; --white: #ffffff; --text: #1e293b;
+    --text-muted: #64748b; --border: #cfe3f0; --success: #0f7a4a;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--lighter-bg); color: var(--text); min-height: 100vh; }
+
+  .top-nav { background: var(--white); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 5%; border-bottom: 3px solid var(--secondary); box-shadow: 0 2px 12px rgba(79,163,209,0.1); position: sticky; top: 0; z-index: 100; }
+  .top-nav-brand { display: flex; align-items: center; gap: 10px; }
+  .top-nav-sq { background: transparent; width: 34px; height: 34px; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .top-nav-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; color: var(--primary); text-transform: uppercase; }
+  .top-nav-sub { font-size: 9px; color: var(--secondary); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; display: block; }
+
+  .state-box { max-width: 480px; margin: 80px auto; text-align: center; padding: 0 5%; }
+  .state-icon { font-size: 52px; margin-bottom: 16px; }
+  .state-box h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; color: var(--primary); text-transform: uppercase; margin-bottom: 10px; }
+  .state-box p { color: var(--text-muted); font-size: 14px; line-height: 1.7; }
+  .spinner-wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 80px; }
+  .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .preview-controls { background: var(--white); border-bottom: 1px solid var(--border); padding: 14px 5%; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .btn-ctrl { padding: 9px 20px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-pdf { background: var(--primary); color: var(--white); }
+  .btn-pdf:hover { background: var(--secondary); }
+  .btn-print { background: var(--lighter-bg); color: var(--primary); border: 1.5px solid var(--border); }
+  .ctrl-info { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+
+  .doc-wrap { max-width: 860px; margin: 32px auto; padding: 0 5% 60px; }
+  .quotation-doc { background: var(--white); border-radius: 12px; box-shadow: 0 4px 32px rgba(26,60,110,0.10); overflow: hidden; }
+
+  .doc-header { background: var(--primary); padding: 32px 36px; display: flex; justify-content: space-between; align-items: flex-start; color: var(--white); }
+  .doc-header h1 { font-family: 'Barlow Condensed', sans-serif; font-size: 26px; font-weight: 900; margin-bottom: 6px; }
+  .doc-header p { font-size: 12px; opacity: 0.75; line-height: 1.6; }
+  .doc-header-right { text-align: right; }
+  .doc-header-right h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 2px; margin-bottom: 10px; }
+  .doc-header-right p { font-size: 12px; opacity: 0.8; line-height: 1.8; }
+
+  .doc-ref-bar { display: grid; grid-template-columns: repeat(4,1fr); border-bottom: 1px solid var(--border); }
+  .doc-ref-item { padding: 14px 20px; border-right: 1px solid var(--border); }
+  .doc-ref-item:last-child { border-right: none; }
+  .doc-ref-item label { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); display: block; margin-bottom: 3px; }
+  .doc-ref-item span { font-size: 13px; font-weight: 600; color: var(--text); }
+
+  .doc-body { padding: 28px 36px; }
+  .doc-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 28px; padding-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .party-label { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 10px; border-radius: 4px; background: var(--light-bg); color: var(--primary); display: inline-block; margin-bottom: 8px; }
+  .party-name { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; color: var(--primary); margin-bottom: 6px; }
+  .party-detail { font-size: 12px; color: var(--text-muted); line-height: 1.7; }
+
+  .doc-table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+  .doc-table th { background: var(--lighter-bg); padding: 10px 14px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); border: 1px solid var(--border); }
+  .doc-table td { padding: 11px 14px; font-size: 13px; border: 1px solid var(--border); }
+  .doc-total-row td { background: var(--primary); color: var(--white); font-weight: 800; font-size: 14px; }
+
+  .doc-footer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .doc-terms h4 { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-bottom: 10px; }
+  .doc-terms ul { padding-left: 16px; }
+  .doc-terms li { font-size: 12px; color: var(--text-muted); margin-bottom: 4px; line-height: 1.5; }
+  .sig-area { height: 56px; border-bottom: 1.5px solid var(--text); margin-bottom: 6px; margin-top: 16px; }
+  .sig-label { font-size: 11px; color: var(--text-muted); }
+
+  .doc-stamp { background: var(--primary); color: rgba(255,255,255,0.7); text-align: center; padding: 14px; font-size: 10px; letter-spacing: 0.5px; }
+
+  @media print {
+    .top-nav, .preview-controls { display: none !important; }
+    .doc-wrap { margin: 0; padding: 0; }
+    .quotation-doc { box-shadow: none; border-radius: 0; }
+  }
+  @media(max-width:600px){
+    .doc-ref-bar { grid-template-columns: 1fr 1fr; }
+    .doc-parties, .doc-footer-grid { grid-template-columns: 1fr; }
+    .doc-wrap { padding: 0; margin: 0; }
+    .quotation-doc { overflow: visible; border-radius: 0; }
+    .doc-header { padding: 20px 16px; flex-direction: column; }
+    .doc-header-right { text-align: left; margin-top: 12px; }
+    .doc-body { padding: 16px 12px; }
+    .doc-table { font-size: 11px; width: 100%; table-layout: auto; }
+    .doc-table th, .doc-table td { padding: 8px 8px; font-size: 10px; }
+    .doc-total-row td { padding: 8px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<nav class="top-nav">
+  <div class="top-nav-brand">
+    <img src="/etl-images/etl-logo.png" alt="ETL" class="top-nav-sq" style="width:36px;height:36px;object-fit:contain;;mix-blend-mode:multiply;">
+    <div>
+      <span class="top-nav-title">Engineering Trade Links</span>
+      <span class="top-nav-sub">Official Quotation</span>
+    </div>
+  </div>
+</nav>
+
+<!-- LOADING -->
+<div class="spinner-wrap" id="loading-state">
+  <div class="spinner"></div>
+  <p style="color:var(--text-muted);font-size:14px;">Loading your quotation...</p>
+</div>
+
+<!-- ERROR -->
+<div class="state-box" id="error-state" style="display:none;">
+  <div class="state-icon">❌</div>
+  <h2>Quotation Not Found</h2>
+  <p>This link is invalid or has expired. Please contact Engineering Trade Links for assistance.<br><br>
+  📞 +256 776 566 522<br>✉️ tradelinks.ltd@gmail.com</p>
+</div>
+
+<!-- CONTROLS -->
+<div class="preview-controls" id="controls" style="display:none;">
+  <button class="btn-ctrl btn-pdf" onclick="exportPDF()">⬇ Download PDF</button>
+  <button class="btn-ctrl btn-print" onclick="window.print()">🖨 Print</button>
+  <span class="ctrl-info">Official Quotation from Engineering Trade Links Co. Ltd</span>
+</div>
+
+<!-- QUOTATION DOCUMENT -->
+<div class="doc-wrap" id="quot-wrap" style="display:none;">
+  <div class="quotation-doc" id="quotation-doc">
+
+    <div class="doc-header">
+      <div>
+        <h1>Engineering Trade Links Co. Ltd</h1>
+        <p>Plot 1353, Sonde – Seeta Road, Goma Division<br>
+        Mukono Municipality, P.O. Box 27555, Kampala, Uganda<br>
+        Tel: +256 776 566 522 &nbsp;|&nbsp; +256 704 545 163<br>
+        Email: tradelinks.ltd@gmail.com &nbsp;|&nbsp; TIN: 1000161539</p>
+      </div>
+      <div class="doc-header-right">
+        <h2>QUOTATION</h2>
+        <p>
+          <strong>Ref:</strong> <span id="p-qnum">—</span><br>
+          <strong>Date:</strong> <span id="p-date">—</span><br>
+          <strong>Valid Until:</strong> <span id="p-expiry">—</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="doc-ref-bar">
+      <div class="doc-ref-item"><label>Project</label><span id="p-project">—</span></div>
+      <div class="doc-ref-item"><label>Location</label><span id="p-location">—</span></div>
+      <div class="doc-ref-item"><label>Status</label><span id="p-status">—</span></div>
+      <div class="doc-ref-item"><label>Reference</label><span id="p-ref">—</span></div>
+    </div>
+
+    <div class="doc-body">
+      <div class="doc-parties">
+        <div>
+          <span class="party-label">Quote Prepared For</span>
+          <div class="party-name" id="p-client-name">—</div>
+          <div class="party-detail" id="p-client-detail">—</div>
+        </div>
+        <div>
+          <span class="party-label">Scope of Works</span>
+          <div class="party-name" id="p-proj-title">—</div>
+          <div class="party-detail" id="p-scope">—</div>
+        </div>
+      </div>
+
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th style="width:5%">#</th>
+            <th style="width:40%">Description of Service / Material</th>
+            <th style="width:8%">Unit</th>
+            <th style="width:8%">Qty</th>
+            <th style="width:18%">Unit Price (UGX)</th>
+            <th style="width:18%">Total (UGX)</th>
+          </tr>
+        </thead>
+        <tbody id="p-items-body"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5" style="text-align:right;padding:12px 14px;font-size:12px;color:var(--text-muted);">Subtotal</td>
+            <td style="text-align:right;padding:12px 14px;font-weight:700;" id="p-subtotal">—</td>
+          </tr>
+          <tr id="p-vat-row" style="display:none;">
+            <td colspan="5" style="text-align:right;padding:8px 14px;font-size:12px;color:var(--text-muted);">VAT (18%)</td>
+            <td style="text-align:right;padding:8px 14px;font-weight:700;" id="p-vat">—</td>
+          </tr>
+          <tr class="doc-total-row">
+            <td colspan="5" style="text-align:right;">GRAND TOTAL (UGX)</td>
+            <td id="p-total" style="text-align:right;">—</td>
+          </tr>
+        </tfoot>
+      </table>
+
+      <div class="doc-footer-grid">
+        <div class="doc-terms">
+          <h4>Terms &amp; Conditions</h4>
+          <ul>
+            <li>Subject to site inspection where applicable.</li>
+            <li>Prices inclusive of all applicable local taxes unless stated.</li>
+            <li>Quotation valid for 30 days from date of issue.</li>
+            <li id="p-notes-li" style="display:none;"><span id="p-notes"></span></li>
+          </ul>
+        </div>
+        <div>
+          <div class="sig-area"></div>
+          <div class="sig-label" id="p-preparer">Authorised By: ETL Management</div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ACCEPT & SUBMIT LPO SECTION -->
+    <div style="background:var(--light-bg);border:2px solid var(--secondary);border-radius:12px;padding:20px 24px;margin:24px 0;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--primary);margin-bottom:6px;">Ready to proceed with this quotation?</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">If you accept this quotation, submit your Local Purchase Order (LPO) to Engineering Trade Links to begin your project.</p>
+      <p style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;" id="lpo-print-url">Submit your LPO online: <span style="font-weight:400;color:var(--text);">https://engineeringtradelinks.pages.dev/ETL-LPO-System.html</span></p>
+      <p style="font-size:13px;color:var(--text-muted);">Tel: +256 776 566 522 &nbsp;/&nbsp; +256 704 545 163 &nbsp;&nbsp;|&nbsp;&nbsp; Email: tradelinks.ltd@gmail.com &nbsp;&nbsp;|&nbsp;&nbsp; www.engineeringtradelinks.com</p>
+      <a id="lpo-submit-btn" href="/ETL-LPO-System.html" class="no-print" style="display:inline-block;margin-top:14px;background:var(--primary);color:white;padding:12px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;text-decoration:none;">📦 Submit Your LPO to ETL →</a>
+    </div>
+
+    <div class="doc-stamp">
+      Engineering Trade Links Company Limited &nbsp;|&nbsp; VAT Reg: 49481-L &nbsp;|&nbsp; PPDA Reg: PRV/WKRS/25051515/MAY/25 &nbsp;|&nbsp; Reg No: 82786 &nbsp;|&nbsp; Quality at Service Since 2006
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+
+  function fmtDate(d) {
+    if(!d) return '—';
+    try { return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric'}); }
+    catch(e) { return d; }
+  }
+  function fmt(n) { return 'UGX ' + Math.round(n||0).toLocaleString(); }
+
+  async function loadQuotation() {
+    const params = new URLSearchParams(window.location.search);
+    const qLink  = params.get('q');
+
+    if(!qLink) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').style.display   = 'block';
+      return;
+    }
+
+    try {
+      const res  = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?unique_link=eq.${qLink}&limit=1`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      });
+      const data = await res.json();
+
+      if(!data || !data.length) {
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('error-state').style.display   = 'block';
+        return;
+      }
+
+      renderQuotation(data[0]);
+    } catch(e) {
+      document.getElementById('loading-state').style.display = 'none';
+      document.getElementById('error-state').innerHTML = `
+        <div class="state-icon">⚠️</div><h2>Connection Error</h2>
+        <p>Could not load your quotation. Please check your connection and try again.<br><br>
+        Contact ETL at +256 776 566 522</p>`;
+      document.getElementById('error-state').style.display = 'block';
+    }
+  }
+
+  function renderQuotation(q) {
+    window._quotationData = q; // store for LPO pre-fill
+    document.getElementById('p-qnum').innerText    = q.reference || '—';
+    document.getElementById('p-ref').innerText     = q.reference || '—';
+    document.getElementById('p-date').innerText    = fmtDate(q.created_at);
+    document.getElementById('p-project').innerText = q.project_title || '—';
+    document.getElementById('p-location').innerText= q.project_location || '—';
+    document.getElementById('p-status').innerText  = q.status || '—';
+
+    document.getElementById('p-client-name').innerText  = q.client_name || '—';
+    document.getElementById('p-client-detail').innerHTML =
+      (q.contact_person  ? q.contact_person + '<br>' : '') +
+      (q.client_address  ? q.client_address + '<br>' : '') +
+      (q.client_email    ? q.client_email + ' &nbsp; ' : '') +
+      (q.client_phone    ? q.client_phone : '');
+
+    document.getElementById('p-proj-title').innerText = q.project_title || '—';
+    document.getElementById('p-scope').innerText      = q.project_description || '—';
+
+    // Update Submit LPO button with quotation reference
+    const lpoBtn = document.getElementById('lpo-submit-btn');
+    if(lpoBtn && q.unique_link) {
+      lpoBtn.href = `ETL-LPO-System.html?from_quotation=${q.unique_link}`;
+    }
+    const printUrl = document.getElementById('lpo-print-url');
+    if(printUrl && q.unique_link) {
+      printUrl.innerHTML = `Submit your LPO online: <span style="font-weight:400;color:var(--text);">https://engineeringtradelinks.pages.dev/ETL-LPO-System.html?from_quotation=${q.unique_link}</span>`;
+    }
+
+    // Items
+    const items = q.items || [];
+    const tbody = document.getElementById('p-items-body');
+    tbody.innerHTML = '';
+    items.forEach((item, i) => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${i+1}</td>
+          <td>${item.desc||'—'}</td>
+          <td>${item.unit||'—'}</td>
+          <td>${item.qty||0}</td>
+          <td style="text-align:right;">${Math.round(item.price||0).toLocaleString()}</td>
+          <td style="text-align:right;">${Math.round(item.total||0).toLocaleString()}</td>
+        </tr>`;
+    });
+
+    // Totals
+    document.getElementById('p-subtotal').innerText = fmt(q.subtotal);
+    document.getElementById('p-total').innerText    = fmt(q.total);
+    if(q.vat && q.vat > 0) {
+      document.getElementById('p-vat-row').style.display = '';
+      document.getElementById('p-vat').innerText = fmt(q.vat);
+    }
+
+    if(q.notes) {
+      document.getElementById('p-notes-li').style.display = 'list-item';
+      document.getElementById('p-notes').innerText = q.notes;
+    }
+
+    document.getElementById('loading-state').style.display = 'none';
+    document.getElementById('controls').style.display      = 'flex';
+    document.getElementById('quot-wrap').style.display     = 'block';
+    document.title = `Quotation ${q.reference||''} — Engineering Trade Links`;
+  }
+
+  function exportPDF() {
+    const btns = document.querySelectorAll('.preview-controls button');
+    btns.forEach(b => b.style.display = 'none');
+    const ref = document.getElementById('p-qnum').innerText;
+    const opt = {
+      margin: 0.3,
+      filename: `ETL_Quotation_${ref}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 3 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    html2pdf().set(opt).from(document.getElementById('quotation-doc')).save().then(() => {
+      btns.forEach(b => b.style.display = '');
+    });
+  }
+
+  loadQuotation();
+</script>
+</body>
+</html>
