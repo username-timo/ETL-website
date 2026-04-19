@@ -222,14 +222,6 @@ const rawProjects: Project[] = [
     imgs: ["/images/etl/svc-concrete-products.jpg"], ...DONE,
   },
   {
-    title: "Rural Electrification — Rwakai-Isingiro & Buganago (REA)",
-    cat: "Electrical", role: "Main Contractor",
-    client: "LTL Projects (Pvt) Limited / REA",
-    location: "Rwakai-Isingiro, Uganda", year: "2015", value: "USD 298,000",
-    desc: "Construction of 84km MV lines, 31km LV lines and installation of 13 MV/LV transformers under the Government Rural Electrification programme.",
-    imgs: ["/images/etl/svc-05-electro-mechanical.jpg"], ...DONE,
-  },
-  {
     title: "UNHCR Iraji Bridge — Ayilo I, Adjumani",
     cat: "Civil & Building", role: "Main Contractor",
     client: "Danish Refugee Council",
