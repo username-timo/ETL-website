@@ -384,14 +384,14 @@ export default function Features() {
     g === "All" ? services.length : services.filter(s => s.group === g).length;
 
   return (
-    <section id="services" className="pt-12 pb-10 dark:bg-darkmode"
-      style={{ background: "linear-gradient(160deg,#f5f9fd 0%,#eaf2fb 100%)" }}>
+    <section id="services" className="pt-12 pb-10"
+      style={{ background: "var(--etl-section-gradient)" }}>
       <div className="container px-4 lg:max-w-screen-xl md:max-w-screen-md mx-auto">
 
         {/* ── Header ── */}
         <div className="flex flex-col items-center text-center mb-10" data-aos="fade-up">
           <span className="inline-block text-xs font-bold uppercase tracking-widest mb-3 px-4 py-1.5 rounded-full border"
-            style={{ color: "#4fa3d1", borderColor: "#cfe3f0", background: "#fff" }}>
+            style={{ color: "#4fa3d1", borderColor: "var(--etl-pill-border)", background: "var(--etl-pill-bg)" }}>
             Expertise
           </span>
           <h2 className="font-black text-midnight_text dark:text-white mb-4"

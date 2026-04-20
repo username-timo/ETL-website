@@ -23,14 +23,14 @@ const ppdaCategories = [
 
 export default function Turnover() {
   return (
-    <section className="pt-10 pb-8 dark:bg-darkmode"
-      style={{ background: "linear-gradient(160deg,#f5f9fd 0%,#eaf2fb 100%)" }}>
+    <section className="pt-10 pb-8"
+      style={{ background: "var(--etl-section-gradient)" }}>
       <div className="container lg:max-w-screen-xl md:max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
 
         {/* Header */}
         <div className="flex flex-col items-center text-center mb-16" data-aos="fade-up">
           <span className="inline-block text-xs font-bold uppercase tracking-widest mb-3 px-4 py-1.5 rounded-full border"
-            style={{ color: "#4fa3d1", borderColor: "#cfe3f0", background: "#fff" }}>
+            style={{ color: "#4fa3d1", borderColor: "var(--etl-pill-border)", background: "var(--etl-pill-bg)" }}>
             Financial Capacity
           </span>
           <h2 className="font-black text-midnight_text dark:text-white mb-4"
@@ -71,7 +71,7 @@ export default function Turnover() {
                       </div>
                     </div>
                     <p className="text-xs text-gray mb-2 font-mono">{t.full}</p>
-                    <div className="h-3 rounded-full overflow-hidden" style={{ background: "#e2eaf3" }}>
+                    <div className="h-3 rounded-full overflow-hidden" style={{ background: "var(--etl-progress-track)" }}>
                       <div className="h-full rounded-full"
                         style={{
                           width: `${t.width}%`,
@@ -118,7 +118,7 @@ export default function Turnover() {
                 {ppdaCategories.map((cat, i) => (
                   <span key={i}
                     className="inline-flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full border"
-                    style={{ color: "#1a3c6e", borderColor: "#cfe3f0", background: "#f0f6fb" }}>
+                    style={{ color: "var(--etl-ppda-chip-text)", borderColor: "var(--etl-ppda-chip-border)", background: "var(--etl-ppda-chip-bg)" }}>
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={3}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                     </svg>
@@ -139,7 +139,7 @@ export default function Turnover() {
               <div className="space-y-3">
                 {capacities.map((c, i) => (
                   <div key={i} className="flex items-center gap-4 p-4 rounded-xl"
-                    style={{ background: i % 2 === 0 ? "#f5f9fd" : "#fff" }}>
+                    style={{ background: i % 2 === 0 ? "var(--etl-capacity-card-alt)" : "var(--etl-capacity-card)" }}>
                     <span className="text-xl flex-shrink-0">{c.icon}</span>
                     <div>
                       <p className="text-xs text-gray font-semibold uppercase tracking-wide mb-0.5">{c.label}</p>

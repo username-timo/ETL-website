@@ -1,7 +1,7 @@
 export default function Portal() {
   return (
-    <section id="portal" className="py-8 dark:bg-darkmode"
-      style={{ background: "linear-gradient(135deg,#1a3c6e 0%,#2d5fa3 60%,#1a3c6e 100%)" }}>
+    <section id="portal" className="py-8"
+      style={{ background: "var(--etl-portal-gradient)" }}>
 
       {/* Top accent */}
       <div className="h-1 w-full -mt-8 mb-6" style={{ background: "linear-gradient(90deg,#4fa3d1,#c8860a,#4fa3d1)" }} />

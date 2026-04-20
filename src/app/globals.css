@@ -6,6 +6,35 @@ html {
     scroll-behavior: smooth;
 }
 
+/* ── ETL theme-aware section tokens ──
+   Components with inline gradients can't use Tailwind's dark: variant,
+   so read these CSS vars from `style={{ background: "var(--etl-...)" }}`.
+*/
+:root {
+    --etl-section-gradient: linear-gradient(160deg, #f5f9fd 0%, #eaf2fb 100%);
+    --etl-portal-gradient: linear-gradient(135deg, #1a3c6e 0%, #2d5fa3 60%, #1a3c6e 100%);
+    --etl-capacity-card-alt: #f5f9fd;
+    --etl-capacity-card: #ffffff;
+    --etl-ppda-chip-bg: #f0f6fb;
+    --etl-ppda-chip-border: #cfe3f0;
+    --etl-ppda-chip-text: #1a3c6e;
+    --etl-progress-track: #e2eaf3;
+    --etl-pill-bg: #ffffff;
+    --etl-pill-border: #cfe3f0;
+}
+.dark {
+    --etl-section-gradient: linear-gradient(160deg, #0c121e 0%, #111a2b 100%);
+    --etl-portal-gradient: linear-gradient(135deg, #0c121e 0%, #15304d 60%, #0c121e 100%);
+    --etl-capacity-card-alt: #1F2A37;
+    --etl-capacity-card: #182230;
+    --etl-ppda-chip-bg: rgba(79,163,209,0.08);
+    --etl-ppda-chip-border: #224767;
+    --etl-ppda-chip-text: #9ec6e6;
+    --etl-progress-track: #1F2A37;
+    --etl-pill-bg: rgba(255,255,255,0.04);
+    --etl-pill-border: #224767;
+}
+
 /* Prevent AOS from leaving blank white boxes before initialisation */
 [data-aos] {
     visibility: visible !important;

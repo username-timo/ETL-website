@@ -16,15 +16,15 @@ const highlights = [
 
 export default function History() {
   return (
-    <section className="py-24 dark:bg-darkmode overflow-hidden"
-      style={{ background: "linear-gradient(160deg, #f5f9fd 0%, #eaf2fb 100%)" }}>
+    <section className="py-24 overflow-hidden"
+      style={{ background: "var(--etl-section-gradient)" }}>
       <div className="container lg:max-w-screen-xl md:max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
 
           {/* ── LEFT: Content + highlights ── */}
           <div data-aos="fade-right" data-aos-duration="800">
             <span className="inline-block text-xs font-bold uppercase tracking-widest mb-4 px-4 py-1.5 rounded-full border"
-              style={{ color: "#4fa3d1", borderColor: "#cfe3f0", background: "#fff" }}>
+              style={{ color: "#4fa3d1", borderColor: "var(--etl-pill-border)", background: "var(--etl-pill-bg)" }}>
               Our Story
             </span>
             <h2 className="font-black text-midnight_text dark:text-white mb-2"
