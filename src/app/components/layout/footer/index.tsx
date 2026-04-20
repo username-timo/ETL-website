@@ -46,10 +46,14 @@ const Footer = () => {
               <p className="mb-1 text-gray text-sm">Goma Division, Mukono, Uganda</p>
               <p className="mb-4 text-gray text-sm">P.O. Box 27555, Kampala</p>
               <p className="text-gray text-sm mb-1">
-                <span className="text-white">Phone: </span>+256 776 566 522 / +256 704 545 163
+                <span className="text-white">Phone: </span>
+                <a href="tel:+256776566522" className="underline hover:text-white transition-colors">+256 776 566 522</a>
+                {" / "}
+                <a href="tel:+256704545163" className="underline hover:text-white transition-colors">+256 704 545 163</a>
               </p>
               <p className="text-gray text-sm">
-                <span className="text-white">Email: </span>tradelinksltd@gmail.com
+                <span className="text-white">Email: </span>
+                <a href="mailto:tradelinksltd@gmail.com" className="underline hover:text-white transition-colors break-all">tradelinksltd@gmail.com</a>
               </p>
             </div>
 

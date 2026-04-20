@@ -28,14 +28,6 @@ const team = [
     accent: "#0d9488",
   },
   {
-    name: "Eng. Nalubega Sharifa",
-    role: "Site Engineer",
-    qual: "Civil Engineering, Makerere University",
-    exp: "10 Years",
-    photo: PLACEHOLDER,
-    accent: "#10b981",
-  },
-  {
     name: "Miss Tamali Scovia",
     role: "Accountant",
     qual: "Bachelor of Commerce, Makerere University",
