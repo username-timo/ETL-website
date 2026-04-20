@@ -137,25 +137,35 @@
     return data;
   }
 
+  function promptForLogin(client, opts) {
+    return new Promise((resolve) => {
+      renderLoginOverlay(async () => {
+        const profile = await loadProfile();
+        if (opts.requireManagement && profile && profile.role !== 'management') {
+          alert('This page requires Management access. You are signed in as ' + profile.role + '.');
+          await client.auth.signOut();
+          cachedProfile = null;
+          window.location.reload();
+          return;
+        }
+        resolve();
+      });
+    });
+  }
+
   async function init(opts) {
     opts = opts || {};
     const client = ensureClient();
-    const { data: { session } } = await client.auth.getSession();
+    let { data: { session } } = await client.auth.getSession();
+
+    if (opts.forceLogin && session) {
+      await client.auth.signOut();
+      cachedProfile = null;
+      session = null;
+    }
 
     if (!session) {
-      return new Promise((resolve) => {
-        renderLoginOverlay(async () => {
-          const profile = await loadProfile();
-          if (opts.requireManagement && profile && profile.role !== 'management') {
-            alert('This page requires Management access. You are signed in as ' + profile.role + '.');
-            await client.auth.signOut();
-            cachedProfile = null;
-            window.location.reload();
-            return;
-          }
-          resolve();
-        });
-      });
+      return promptForLogin(client, opts);
     }
 
     const profile = await loadProfile();

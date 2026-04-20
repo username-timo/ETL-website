@@ -944,7 +944,7 @@ tradelinks.ltd@gmail.com`);
   }
 
   // ─── Bootstrap: Supabase Auth ───
-  etlAuth.init().then(async () => {
+  etlAuth.init({ forceLogin: true }).then(async () => {
     const profile = await etlAuth.getProfile();
     const user    = await etlAuth.getUser();
 
