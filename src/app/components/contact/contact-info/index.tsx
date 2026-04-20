@@ -16,7 +16,11 @@ const ContactInfo = () => {
                     Email Us
                   </span>
                   <p className="text-midnight_text/70 font-normal text-xl max-w-80 pt-3 pb-7 dark:text-gray">
-                    For quotations, tenders, and partnership opportunities, email us at tradelinksltd@gmail.com.
+                    For quotations, tenders, and partnership opportunities, email us at{" "}
+                    <a href="mailto:tradelinksltd@gmail.com"
+                      className="underline text-primary dark:text-secondary hover:text-secondary dark:hover:text-primary transition-colors break-all">
+                      tradelinksltd@gmail.com
+                    </a>.
                   </p>
                 </div>
               </div>
