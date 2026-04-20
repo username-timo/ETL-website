@@ -747,6 +747,8 @@
 
   // ── SUPABASE CONFIG ──
   const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const SITE_BASE_URL = window.location.origin;
+  const DASHBOARD_URL = `${window.location.origin}/ETL-Dashboard.html`;
   function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'").replace(/&quot;/g,'"'); }
 
   
@@ -821,8 +823,7 @@
       });
 
       if(res.ok) {
-        const base = 'https://engineeringtradelinks.pages.dev/';
-        const link = base + 'ETL-LPO-View.html?lpo=' + uniqueLink;
+        const link = SITE_BASE_URL + '/ETL-LPO-View.html?lpo=' + uniqueLink;
         const isOut = currentMode === 'outward';
 
         // Send email notification
@@ -841,7 +842,7 @@ Delivery Date: ${payload.delivery_date}
 Total: UGX ${payload.total.toLocaleString()}
 Notes: ${payload.notes || 'None'}
 
-LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\nhttps://engineeringtradelinks.pages.dev/ETL-Dashboard.html'); */
+LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\n' + DASHBOARD_URL); */
 
         // Notify MD - ACTION REQUIRED (kept enabled)
         sendEmail('timookui@gmail.com', `🔔 New ${isOut ? 'Outward' : 'Inward'} LPO Pending Approval — ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and requires your approval.
@@ -856,7 +857,7 @@ Delivery Date: ${payload.delivery_date}
 Total: UGX ${payload.total.toLocaleString()}
 Notes: ${payload.notes || 'None'}
 
-LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\nhttps://engineeringtradelinks.pages.dev/ETL-Dashboard.html');
+LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\n' + DASHBOARD_URL);
 
         setTimeout(() => {
           if(isOut) {

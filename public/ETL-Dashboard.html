@@ -348,6 +348,8 @@
 
 <script>
   const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const SITE_BASE_URL = window.location.origin;
+  const DASHBOARD_URL = `${window.location.origin}/ETL-Dashboard.html`;
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body) {
@@ -535,8 +537,7 @@ ${(()=>{
 
 
   function copyLink(uniqueLink) {
-    const base = 'https://engineeringtradelinks.pages.dev/';
-    const url = base + 'ETL-LPO-View.html?lpo=' + uniqueLink;
+    const url = SITE_BASE_URL + '/ETL-LPO-View.html?lpo=' + uniqueLink;
     prompt('✅ LPO link ready!\n\nShare this link with the supplier so they can view their LPO:', url);
   }
 
@@ -599,7 +600,7 @@ ${(()=>{
           const email   = r ? r.client_email   : '';
           const project = r ? r.project_title  : 'Project';
           // Notify ETL staff
-          sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved and is ready for you to generate.\n\nCLIENT DETAILS:\nName: ${name}\nEmail: ${email}\nProject: ${project}\n\nLog in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: https://engineeringtradelinks.pages.dev/ETL-Dashboard.html`);
+          sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved and is ready for you to generate.\n\nCLIENT DETAILS:\nName: ${name}\nEmail: ${email}\nProject: ${project}\n\nLog in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: ${DASHBOARD_URL}`);
 
         }
         // Reload to reflect new button states
@@ -792,7 +793,7 @@ Name: ${name}
 Email: ${email}
 Project: ${project}
 
-Please log in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: https://engineeringtradelinks.pages.dev/ETL-Dashboard.html`);
+Please log in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: ${DASHBOARD_URL}`);
 
       alert('✅ Request approved! ETL staff have been notified to generate the quotation.');
       loadApprovals();

@@ -285,6 +285,7 @@
 
 <script>
   const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const DASHBOARD_URL = `${window.location.origin}/ETL-Dashboard.html`;
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body) {
@@ -382,7 +383,7 @@ Client: ${cName}
 Email: ${cEmail}
 Project: ${pTitle}
 
-Dashboard: https://engineeringtradelinks.pages.dev/ETL-Dashboard.html`);
+Dashboard: ${DASHBOARD_URL}`);
 
         document.getElementById('request-form').style.display = 'none';
         document.getElementById('success-box').style.display = 'block';

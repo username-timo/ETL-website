@@ -218,7 +218,7 @@
     <div style="background:var(--light-bg);border:2px solid var(--secondary);border-radius:12px;padding:20px 24px;margin:24px 0;">
       <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:900;color:var(--primary);margin-bottom:6px;">Ready to proceed with this quotation?</div>
       <p style="font-size:13px;color:var(--text-muted);margin-bottom:14px;">If you accept this quotation, submit your Local Purchase Order (LPO) to Engineering Trade Links to begin your project.</p>
-      <p style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;" id="lpo-print-url">Submit your LPO online: <span style="font-weight:400;color:var(--text);">https://engineeringtradelinks.pages.dev/ETL-LPO-System.html</span></p>
+      <p style="font-size:13px;font-weight:700;color:var(--primary);margin-bottom:8px;" id="lpo-print-url">Submit your LPO online: <span style="font-weight:400;color:var(--text);">/ETL-LPO-System.html</span></p>
       <p style="font-size:13px;color:var(--text-muted);">Tel: +256 776 566 522 &nbsp;/&nbsp; +256 704 545 163 &nbsp;&nbsp;|&nbsp;&nbsp; Email: tradelinks.ltd@gmail.com &nbsp;&nbsp;|&nbsp;&nbsp; www.engineeringtradelinks.com</p>
       <a id="lpo-submit-btn" href="/ETL-LPO-System.html" class="no-print" style="display:inline-block;margin-top:14px;background:var(--primary);color:white;padding:12px 28px;border-radius:10px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;text-decoration:none;">📦 Submit Your LPO to ETL →</a>
     </div>
@@ -232,6 +232,7 @@
 <script>
   const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+  const SITE_BASE_URL = window.location.origin;
 
   function fmtDate(d) {
     if(!d) return '—';
@@ -299,7 +300,7 @@
     }
     const printUrl = document.getElementById('lpo-print-url');
     if(printUrl && q.unique_link) {
-      printUrl.innerHTML = `Submit your LPO online: <span style="font-weight:400;color:var(--text);">https://engineeringtradelinks.pages.dev/ETL-LPO-System.html?from_quotation=${q.unique_link}</span>`;
+      printUrl.innerHTML = `Submit your LPO online: <span style="font-weight:400;color:var(--text);">${SITE_BASE_URL}/ETL-LPO-System.html?from_quotation=${q.unique_link}</span>`;
     }
 
     // Items

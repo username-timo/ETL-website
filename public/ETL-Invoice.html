@@ -531,6 +531,8 @@
 
 <script>
   const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const SITE_BASE_URL = window.location.origin;
+  const DASHBOARD_URL = `${window.location.origin}/ETL-Dashboard.html`;
   function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'"); }
 
   
@@ -894,7 +896,7 @@ Engineering Trade Links Co. Ltd`;
         })
       });
       if(saveRes.ok) {
-        invoiceViewLink = 'https://engineeringtradelinks.pages.dev/ETL-Invoice-View.html?inv=' + invoiceLink;
+        invoiceViewLink = SITE_BASE_URL + '/ETL-Invoice-View.html?inv=' + invoiceLink;
       } else {
         const errText = await saveRes.text();
         console.warn('Invoice save failed:', errText);
@@ -913,11 +915,11 @@ Engineering Trade Links Co. Ltd`;
 
     // Notify ETL staff with invoice link + dashboard link only
     // DISABLED: Email notifications disabled for now
-    // sendEmail('tokui@usiu.ac.ke', `🧾 Invoice Generated — ${invNum} | ${clientName}`, 'A new invoice has been generated and sent to the client.\n\nClient: ' + clientName + '\nAmount: UGX ' + fmtNum(grand) + '\n\nInvoice View Link:\n' + (invoiceViewLink || 'Not saved') + '\n\nDashboard:\nhttps://engineeringtradelinks.pages.dev/ETL-Dashboard.html');
+    // sendEmail('tokui@usiu.ac.ke', `🧾 Invoice Generated — ${invNum} | ${clientName}`, 'A new invoice has been generated and sent to the client.\n\nClient: ' + clientName + '\nAmount: UGX ' + fmtNum(grand) + '\n\nInvoice View Link:\n' + (invoiceViewLink || 'Not saved') + '\n\nDashboard:\n' + DASHBOARD_URL);
 
     // Copy to MD / Director Finance
     // DISABLED: Email notifications disabled for now
-    // sendEmail('timookui@gmail.com', `[COPY] Invoice ${invNum} sent to ${clientName} — UGX ${fmtNum(grand)}`, 'Copy of invoice sent to ' + clientName + ' (' + (clientEmail || 'no email') + ').\n\nAmount: UGX ' + fmtNum(grand) + '\nInvoice: ' + invNum + '\n\nInvoice View Link:\n' + (invoiceViewLink || 'Not saved - check Supabase') + '\n\nDashboard:\nhttps://engineeringtradelinks.pages.dev/ETL-Dashboard.html');
+    // sendEmail('timookui@gmail.com', `[COPY] Invoice ${invNum} sent to ${clientName} — UGX ${fmtNum(grand)}`, 'Copy of invoice sent to ' + clientName + ' (' + (clientEmail || 'no email') + ').\n\nAmount: UGX ' + fmtNum(grand) + '\nInvoice: ' + invNum + '\n\nInvoice View Link:\n' + (invoiceViewLink || 'Not saved - check Supabase') + '\n\nDashboard:\n' + DASHBOARD_URL);
 
     // Success notification
     setTimeout(() => {
