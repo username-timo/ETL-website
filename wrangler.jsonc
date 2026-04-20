@@ -16,4 +16,8 @@
   //   wrangler secret put GOOGLE_CLIENT_ID
   //   wrangler secret put GOOGLE_CLIENT_SECRET
   //   wrangler secret put NEXTAUTH_URL
+  //   wrangler secret put BREVO_API_KEY
+  // Optional plain-text vars:
+  //   BREVO_SENDER_NAME
+  //   BREVO_SENDER_EMAIL
 }

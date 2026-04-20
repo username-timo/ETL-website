@@ -756,19 +756,12 @@
   async function sendEmail(to, subject, body) {
     if(!to || !to.includes('@')) return;
     try {
-      const safe = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      const linked = safe.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#1a3c6e;font-weight:bold;">$1</a>');
-      const html = '<div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#1e293b;max-width:600px;">' + linked.replace(/\n/g,'<br>') + '<br><br><hr style="border:none;border-top:1px solid #cfe3f0;"><p style="font-size:11px;color:#64748b;">Engineering Trade Links Co. Ltd | Plot 1353, Sonde-Seeta Road, Mukono | +256 776 566 522</p></div>';
-      await fetch('https://api.brevo.com/v3/smtp/email', {
+      const res = await fetch('/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'api-key': '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' },
-        body: JSON.stringify({
-          sender: { name: 'Engineering Trade Links Co. Ltd', email: 'timookui@gmail.com' },
-          to: [{ email: to }],
-          subject: subject,
-          htmlContent: html
-        })
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, body })
       });
+      if(!res.ok) throw new Error(await res.text());
     } catch(e) { console.warn('Email error:', e); }
   }
 
