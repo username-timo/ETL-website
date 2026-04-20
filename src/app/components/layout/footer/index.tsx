@@ -72,10 +72,10 @@ const Footer = () => {
                 Our Services
               </h4>
               <ul>
-                <li><a href="/ETL-Quotation-Request.html" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Electrical Works</a></li>
-                <li><a href="/ETL-Quotation-Request.html" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Mechanical & Plumbing</a></li>
-                <li><a href="/ETL-Quotation-Request.html" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Civil Works</a></li>
-                <li><a href="/ETL-Quotation-Request.html" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Supply & Procurement</a></li>
+                <li><Link href="/#services" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Electrical Works</Link></li>
+                <li><Link href="/#services" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Mechanical & Plumbing</Link></li>
+                <li><Link href="/#services" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Civil Works</Link></li>
+                <li><Link href="/#services" className="mb-3 inline-block text-sm text-gray hover:text-white transition-colors">Supply & Procurement</Link></li>
               </ul>
             </div>
           </div>
