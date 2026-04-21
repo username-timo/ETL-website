@@ -165,6 +165,13 @@
     }
 
     if (!session) {
+      // If the page prefers sending unauthenticated users to the Dashboard
+      // (so they always land there first), redirect instead of showing
+      // a local login overlay on every tool page.
+      if (opts.redirectIfNoSession) {
+        window.location.replace(opts.redirectIfNoSession);
+        return new Promise(() => {}); // never resolves — navigating away
+      }
       return promptForLogin(client, opts);
     }
 

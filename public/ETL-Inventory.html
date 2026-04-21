@@ -861,7 +861,7 @@ async function submitAdjust() {
 }
 
 // Initial load — gated behind Supabase Auth
-etlAuth.init().then(async () => {
+etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
   const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data: { session } } = await sbClient.auth.getSession();
   SESSION_TOKEN = session ? session.access_token : '';

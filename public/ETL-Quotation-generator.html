@@ -942,7 +942,7 @@ The client quotation link is below. You can also view it on the dashboard.` + (l
   })();
 
   // Gate data loading on Supabase Auth
-  etlAuth.init().then(async () => {
+  etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = session ? session.access_token : '';
