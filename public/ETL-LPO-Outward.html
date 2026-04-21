@@ -817,7 +817,7 @@
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body })
+        body: JSON.stringify({ to, subject, body, flow: 'internal_ops', context: 'lpo-outward' })
       });
       if(!res.ok) throw new Error(await res.text());
     } catch(e) { console.warn('Email error:', e); }

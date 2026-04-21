@@ -17,7 +17,11 @@
   //   wrangler secret put GOOGLE_CLIENT_SECRET
   //   wrangler secret put NEXTAUTH_URL
   //   wrangler secret put BREVO_API_KEY
+  //   wrangler secret put TURNSTILE_SECRET_KEY
   // Optional plain-text vars:
   //   BREVO_SENDER_NAME
   //   BREVO_SENDER_EMAIL
+  //   TURNSTILE_SITE_KEY
+  //   EMAIL_ALLOWED_ORIGINS
+  //   PUBLIC_QUOTE_NOTIFICATION_EMAILS
 }
