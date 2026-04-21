@@ -141,8 +141,11 @@
     return new Promise((resolve) => {
       renderLoginOverlay(async () => {
         const profile = await loadProfile();
-        if (opts.requireManagement && profile && profile.role !== 'management') {
-          alert('This page requires Management access. You are signed in as ' + profile.role + '.');
+        const allowedRoles = opts.allowedRoles
+          || (opts.requireManagement ? ['management'] : null);
+        if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+          alert('This page is restricted to ' + allowedRoles.join(' or ')
+            + '. You are signed in as ' + profile.role + '.');
           await client.auth.signOut();
           cachedProfile = null;
           window.location.reload();
@@ -176,8 +179,24 @@
     }
 
     const profile = await loadProfile();
-    if (opts.requireManagement && profile && profile.role !== 'management') {
-      alert('This page requires Management access. You are signed in as ' + profile.role + '.');
+
+    // Unified role check:
+    //   allowedRoles: ['management']                    → only those roles pass
+    //   requireManagement: true (legacy)                → same as allowedRoles: ['management']
+    const allowedRoles = opts.allowedRoles
+      || (opts.requireManagement ? ['management'] : null);
+
+    if (allowedRoles && profile && !allowedRoles.includes(profile.role)) {
+      const msg = 'This page is restricted to ' + allowedRoles.join(' or ')
+        + '. You are signed in as ' + profile.role + '.';
+      // If we have a fallback destination, keep the session and bounce there
+      // rather than forcing a re-login (friendlier UX).
+      if (opts.redirectIfNoSession) {
+        alert(msg);
+        window.location.replace(opts.redirectIfNoSession);
+        return new Promise(() => {});
+      }
+      alert(msg);
       await client.auth.signOut();
       cachedProfile = null;
       renderLoginOverlay(() => init(opts));

@@ -216,6 +216,7 @@
     </div>
   </div>
   <div class="nav-actions">
+    <a href="/ETL-Dashboard.html" class="nav-btn" style="text-decoration:none;display:inline-flex;align-items:center;">🏠 Dashboard</a>
     <button class="nav-btn green" onclick="openStockIn()">+ Stock In</button>
     <button class="nav-btn gold" onclick="openStockOut()">- Stock Out</button>
     <button class="nav-btn" onclick="openTransfer()">🚛 Transfer to Site</button>
@@ -861,7 +862,12 @@ async function submitAdjust() {
 }
 
 // Initial load — gated behind Supabase Auth
-etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
+etlAuth.init({
+  redirectIfNoSession: '/ETL-Dashboard.html',
+  // TODO: when the warehouse_manager role exists in Supabase profiles,
+  //       add it here: ['management', 'warehouse_manager']
+  allowedRoles: ['management']
+}).then(async () => {
   const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const { data: { session } } = await sbClient.auth.getSession();
   SESSION_TOKEN = session ? session.access_token : '';
