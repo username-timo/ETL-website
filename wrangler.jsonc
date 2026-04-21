@@ -10,18 +10,21 @@
   },
   "observability": {
     "enabled": true
-  }
-  // Add environment variables via Cloudflare dashboard or with:
-  //   wrangler secret put NEXTAUTH_SECRET
-  //   wrangler secret put GOOGLE_CLIENT_ID
-  //   wrangler secret put GOOGLE_CLIENT_SECRET
-  //   wrangler secret put NEXTAUTH_URL
+  },
+  // Non-secret environment variables. These get baked into the Worker at
+  // build time and are safe to commit — the Turnstile site key is public
+  // (it ends up in HTML), and the rest are not sensitive.
+  //
+  // SECRETS still live in the Cloudflare dashboard (Settings → Variables
+  // and Secrets). Current secrets: BREVO_API_KEY, TURNSTILE_SECRET_KEY,
+  // NEXTAUTH_SECRET. Add them via dashboard or:
   //   wrangler secret put BREVO_API_KEY
   //   wrangler secret put TURNSTILE_SECRET_KEY
-  // Optional plain-text vars:
-  //   BREVO_SENDER_NAME
-  //   BREVO_SENDER_EMAIL
-  //   TURNSTILE_SITE_KEY
-  //   EMAIL_ALLOWED_ORIGINS
-  //   PUBLIC_QUOTE_NOTIFICATION_EMAILS
+  "vars": {
+    "TURNSTILE_SITE_KEY": "0x4AAAAAADAc5GBnZt-ycRmS",
+    "BREVO_SENDER_NAME": "Engineering Trade Links Co. Ltd",
+    "BREVO_SENDER_EMAIL": "timookui@gmail.com",
+    "EMAIL_ALLOWED_ORIGINS": "https://engineeringtradelinks.timookui.workers.dev",
+    "PUBLIC_QUOTE_NOTIFICATION_EMAILS": "timookui@gmail.com"
+  }
 }
