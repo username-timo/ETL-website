@@ -272,6 +272,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/etl-auth.js"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
 
@@ -286,7 +287,7 @@
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <a href="/" class="top-nav-back">← Back to Website</a>
-    <button class="top-nav-back" onclick="etlAuth.signOut()" style="cursor:pointer;">🔓 Log Out</button>
+    <button id="top-nav-logout" class="top-nav-back" onclick="etlAuth.signOut()" style="cursor:pointer;display:none;">🔓 Log Out</button>
   </div>
 </div>
 
@@ -456,6 +457,13 @@
         <textarea id="special-notes" style="min-height:70px; resize:vertical;" placeholder="Any delivery instructions, quality standards or special conditions..."></textarea>
       </div>
     </div>
+  </div>
+
+  <!-- Turnstile (only shown for anonymous public submitters) -->
+  <div id="turnstile-wrap" style="display:none;margin:0 0 18px;padding:16px;background:#f1f7fd;border:1px solid #cfe3f0;border-radius:10px;">
+    <div style="font-size:13px;font-weight:700;color:#1a3c6e;margin-bottom:10px;">Security check</div>
+    <div id="turnstile-widget"></div>
+    <p style="font-size:11px;color:#64748b;margin:8px 0 0;">Please complete the check above before submitting your LPO.</p>
   </div>
 
   <div class="form-actions">
@@ -673,6 +681,16 @@
     const eName = document.getElementById('entity-name').value.trim();
     if(!eName) { alert('Please enter a supplier/client name before generating.'); return; }
 
+    // Public submitters must pass Turnstile before we save + notify
+    if(IS_ANON) {
+      const tsToken = (window.turnstile && TURNSTILE_WIDGET_ID !== null)
+        ? window.turnstile.getResponse(TURNSTILE_WIDGET_ID) : '';
+      if(!tsToken) {
+        alert('Please complete the security check before submitting your LPO.');
+        return;
+      }
+    }
+
     const isOut = currentMode === 'outward';
 
     // Header
@@ -753,13 +771,20 @@
 
   
   // ─── Brevo Email Helper ───
-  async function sendEmail(to, subject, body) {
+  async function sendEmail(to, subject, body, opts) {
     if(!to || !to.includes('@')) return;
+    opts = opts || {};
+    const payload = {
+      to, subject, body,
+      flow: opts.flow || 'internal_ops',
+      context: opts.context || 'lpo-system'
+    };
+    if(opts.turnstileToken) payload.turnstileToken = opts.turnstileToken;
     try {
       const res = await fetch('/api/send-email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body, flow: 'internal_ops', context: 'lpo-system' })
+        body: JSON.stringify(payload)
       });
       if(!res.ok) throw new Error(await res.text());
     } catch(e) { console.warn('Email error:', e); }
@@ -767,6 +792,8 @@
 
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
   let SESSION_TOKEN = '';
+  let IS_ANON = false;
+  let TURNSTILE_WIDGET_ID = null;
 
   async function saveLPOToSupabase() {
     const rows = document.querySelectorAll('#items-list tr');
@@ -803,13 +830,20 @@
       unique_link:     uniqueLink
     };
 
+    // When anonymous (public client), we pass the Turnstile token through to the
+    // email endpoint. The /rest/v1/lpos call uses the anon key — an RLS policy
+    // on the lpos table restricts anon INSERT to inward + pending_approval.
+    const bearer = SESSION_TOKEN || SUPABASE_KEY;
+    const tsToken = (IS_ANON && window.turnstile && TURNSTILE_WIDGET_ID !== null)
+      ? window.turnstile.getResponse(TURNSTILE_WIDGET_ID) : '';
+
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SESSION_TOKEN}`,
+          'Authorization': `Bearer ${bearer}`,
           'Prefer': 'return=minimal'
         },
         body: JSON.stringify(payload)
@@ -838,6 +872,11 @@ Notes: ${payload.notes || 'None'}
 LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\n' + DASHBOARD_URL); */
 
         // Notify MD - ACTION REQUIRED (kept enabled)
+        // Anonymous public clients go through the public_lpo_submit flow (Turnstile + rate limited).
+        // Authenticated staff go through internal_ops.
+        const emailOpts = IS_ANON
+          ? { flow: 'public_lpo_submit', context: 'public-lpo-submit', turnstileToken: tsToken }
+          : { flow: 'internal_ops', context: 'lpo-system' };
         sendEmail('timookui@gmail.com', `🔔 New ${isOut ? 'Outward' : 'Inward'} LPO Pending Approval — ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and requires your approval.
 
 LPO Number: ${cleanLpoNum}
@@ -850,7 +889,7 @@ Delivery Date: ${payload.delivery_date}
 Total: UGX ${payload.total.toLocaleString()}
 Notes: ${payload.notes || 'None'}
 
-LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\n' + DASHBOARD_URL);
+LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\n' + DASHBOARD_URL, emailOpts);
 
         setTimeout(() => {
           if(isOut) {
@@ -894,7 +933,7 @@ LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\
 
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?unique_link=eq.${qLink}&limit=1`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN || SUPABASE_KEY}` }
       });
       const data = await res.json();
       if(!data || !data.length) return;
@@ -965,14 +1004,44 @@ LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\
     } catch(e) { console.warn('Could not load inventory:', e); }
   }
 
-  // Gate page on Supabase Auth
-  etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
+  // Page access model:
+  //   • Authenticated staff  → full features (inventory autocomplete, quote prefill, internal notify email)
+  //   • Anonymous public     → inward-only submit + Turnstile + rate-limited public email flow
+  // We do NOT use etlAuth.init() here because this page is deliberately public.
+  (async function bootstrap() {
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = session ? session.access_token : '';
+    IS_ANON = !session;
+
+    // Show Log Out only when signed in
+    const logoutBtn = document.getElementById('top-nav-logout');
+    if(logoutBtn) logoutBtn.style.display = IS_ANON ? 'none' : '';
+
+    if(IS_ANON) {
+      // Render Turnstile for the public submitter
+      try {
+        const cfg = await fetch('/api/send-email').then(r => r.json());
+        if(cfg && cfg.turnstileEnabled && cfg.turnstileSiteKey) {
+          document.getElementById('turnstile-wrap').style.display = 'block';
+          const renderWidget = () => {
+            TURNSTILE_WIDGET_ID = window.turnstile.render('#turnstile-widget', {
+              sitekey: cfg.turnstileSiteKey,
+              theme: 'light'
+            });
+          };
+          if(window.turnstile && window.turnstile.render) renderWidget();
+          else window.onloadTurnstileCallback = renderWidget;
+        }
+      } catch(e) { console.warn('Turnstile config fetch failed:', e); }
+    } else {
+      // Staff-only features
+      loadInventoryItems();
+    }
+
+    // Quote prefill works for both (quote link is unguessable UUID via anon SELECT)
     prefillFromQuotation();
-    loadInventoryItems();
-  });
+  })();
 
   // Close dropdowns when clicking outside
   document.addEventListener('mousedown', function(e) {

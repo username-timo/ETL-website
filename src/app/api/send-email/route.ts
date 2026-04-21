@@ -9,11 +9,19 @@ const FLOW_CONFIG = {
     rateLimit: { max: 20, windowMs: 5 * 60 * 1000 },
     requiresTurnstile: false,
     allowedOrigins: [] as string[],
+    isPublic: false,
   },
   public_quote_request: {
     rateLimit: { max: 3, windowMs: 15 * 60 * 1000 },
     requiresTurnstile: true,
     allowedOrigins: [] as string[],
+    isPublic: true,
+  },
+  public_lpo_submit: {
+    rateLimit: { max: 3, windowMs: 15 * 60 * 1000 },
+    requiresTurnstile: true,
+    allowedOrigins: [] as string[],
+    isPublic: true,
   },
 } as const;
 
@@ -131,20 +139,20 @@ function validatePayload(payload: EmailPayload) {
     return { error: "Invalid email flow." };
   }
 
-  if (!to || !EMAIL_RE.test(to)) {
+  if (!to || to.length > 254 || !EMAIL_RE.test(to)) {
     return { error: "A valid recipient email is required." };
   }
 
-  if (!subject) {
-    return { error: "Email subject is required." };
+  if (!subject || subject.length < 3) {
+    return { error: "Email subject is required (min 3 chars)." };
   }
 
   if (subject.length > 180) {
     return { error: "Email subject is too long." };
   }
 
-  if (!body) {
-    return { error: "Email body is required." };
+  if (!body || body.length < 10) {
+    return { error: "Email body is required (min 10 chars)." };
   }
 
   if (body.length > 12000) {
@@ -270,7 +278,7 @@ export const POST = async (request: NextRequest) => {
   }
 
   if (
-    flow === "public_quote_request" &&
+    flowConfig.isPublic &&
     !publicFlowRecipients.includes(to.toLowerCase())
   ) {
     console.warn("[email] Rejected public recipient", { ip, flow, to, context });
