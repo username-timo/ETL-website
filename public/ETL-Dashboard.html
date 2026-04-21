@@ -302,6 +302,29 @@
     </div>
   </div>
 
+  <!-- LAST 30 DAYS -->
+  <div class="section-title" style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);margin:0 0 12px 2px;">
+    Last 30 Days Activity
+  </div>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-30-req">—</div>
+      <div class="stat-label">New Requests</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-num" id="stat-30-lpo">—</div>
+      <div class="stat-label">New LPOs</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-30-inv">—</div>
+      <div class="stat-label">New Invoices</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-num" id="stat-30-amount" style="font-size:28px;">—</div>
+      <div class="stat-label">Invoiced (UGX)</div>
+    </div>
+  </div>
+
   <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('requests', this)">📋 Quotation Requests</button>
@@ -937,6 +960,52 @@ tradelinks.ltd@gmail.com`);
   }
 
   // ─── Bootstrap: Supabase Auth ───
+  async function load30DayStats() {
+    // ISO cutoff 30 days ago (UTC midnight-ish is fine for PostgREST gte)
+    const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` };
+    const fmtShort = n => {
+      if (n >= 1_000_000_000) return (n/1_000_000_000).toFixed(1) + 'B';
+      if (n >= 1_000_000)     return (n/1_000_000).toFixed(1) + 'M';
+      if (n >= 1_000)         return (n/1_000).toFixed(1) + 'K';
+      return Math.round(n).toString();
+    };
+    const countFetch = async (table, extra='') => {
+      try {
+        const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?select=id&created_at=gte.${since}${extra}`, { headers });
+        if (!r.ok) return null;
+        const rows = await r.json();
+        return rows.length;
+      } catch { return null; }
+    };
+
+    // Requests & LPOs: simple counts
+    const [reqCount, lpoCount] = await Promise.all([
+      countFetch('quotation_requests'),
+      countFetch('lpos'),
+    ]);
+    document.getElementById('stat-30-req').innerText = reqCount ?? '—';
+    document.getElementById('stat-30-lpo').innerText = lpoCount ?? '—';
+
+    // Invoices: need the `total` column too, so do a full fetch for 30 days
+    try {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/invoices?select=id,total&created_at=gte.${since}`, { headers });
+      if (r.ok) {
+        const rows = await r.json();
+        const count = rows.length;
+        const sum   = rows.reduce((s,row) => s + (Number(row.total) || 0), 0);
+        document.getElementById('stat-30-inv').innerText = count;
+        document.getElementById('stat-30-amount').innerText = fmtShort(sum);
+      } else {
+        document.getElementById('stat-30-inv').innerText = '—';
+        document.getElementById('stat-30-amount').innerText = '—';
+      }
+    } catch {
+      document.getElementById('stat-30-inv').innerText = '—';
+      document.getElementById('stat-30-amount').innerText = '—';
+    }
+  }
+
   etlAuth.init({ forceLogin: true }).then(async () => {
     const profile = await etlAuth.getProfile();
     const user    = await etlAuth.getUser();
@@ -961,6 +1030,7 @@ tradelinks.ltd@gmail.com`);
 
     loadRequests();
     loadLPOs();
+    load30DayStats();
     if (currentRole === 'management') loadApprovals();
   });
 </script>
