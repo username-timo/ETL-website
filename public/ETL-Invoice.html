@@ -261,52 +261,6 @@
     .ac-item { padding: 8px 10px; font-size: 12px; }
   }
 
-  /* EXISTING INVOICES LIST */
-  .inv-list-wrap { margin-bottom: 20px; }
-  .inv-list-card { background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
-  .inv-list-header { background:var(--primary); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
-  .inv-list-title { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.5px; }
-  .inv-list-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .inv-list-controls select, .inv-list-controls input[type=text] { padding:6px 10px; border-radius:6px; border:1.5px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1); color:#fff; font-size:12px; outline:none; font-family:inherit; }
-  .inv-list-controls select option { color:#000; }
-  .inv-list-controls input::placeholder { color:rgba(255,255,255,0.7); }
-  .inv-list-controls .btn-refresh { background:#fff; color:var(--primary); border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:800; font-size:12px; }
-  .inv-list-table-wrap { overflow-x:auto; }
-  .inv-list-table { width:100%; border-collapse:collapse; font-size:13px; min-width:720px; }
-  .inv-list-table th { background:var(--lighter-bg); padding:10px 12px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; }
-  .inv-list-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
-  .inv-list-table td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
-  .inv-list-table tr:hover td { background:var(--lighter-bg); }
-  .badge { display:inline-block; padding:3px 10px; border-radius:100px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; }
-  .badge-paid { background:var(--success-bg); color:var(--success); }
-  .badge-partial { background:var(--gold-bg); color:var(--gold); }
-  .badge-unpaid { background:var(--light-bg); color:var(--text-muted); }
-  .badge-overdue { background:var(--danger-bg); color:var(--danger); }
-  .btn-sm { padding:5px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer; border:none; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; }
-  .btn-sm-primary { background:var(--primary); color:#fff; }
-  .btn-sm-primary:hover { background:var(--secondary); }
-  .btn-sm-secondary { background:var(--light-bg); color:var(--primary); border:1.5px solid var(--border); }
-  .btn-sm-secondary:hover { border-color:var(--secondary); color:var(--secondary); }
-  .inv-list-empty { padding:30px 20px; text-align:center; color:var(--text-muted); font-size:13px; }
-
-  /* MODAL */
-  .modal-backdrop { position:fixed; inset:0; background:rgba(15,23,42,0.5); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; }
-  .modal-backdrop.show { display:flex; }
-  .modal { background:#fff; border-radius:12px; max-width:480px; width:100%; max-height:90vh; overflow:auto; }
-  .modal-header { background:var(--primary); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; border-radius:12px 12px 0 0; }
-  .modal-header h3 { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; }
-  .modal-close { background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer; padding:0 4px; line-height:1; }
-  .modal-body { padding:20px; }
-  .modal-body .field { margin-bottom:14px; }
-  .modal-footer { padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
-  .pm-summary { padding:10px 14px; background:var(--lighter-bg); border-radius:8px; margin-bottom:16px; font-size:12px; color:var(--text); line-height:1.6; }
-  .payment-history { list-style:none; padding:0; margin:0; }
-  .payment-history li { padding:12px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
-  .payment-history li:last-child { border-bottom:none; }
-  .ph-date { font-weight:700; color:var(--primary); font-size:13px; }
-  .ph-amount { font-weight:800; color:var(--success); white-space:nowrap; font-size:14px; }
-  .ph-meta { color:var(--text-muted); font-size:11px; margin-top:2px; }
-  .ph-note { font-size:12px; color:var(--text); margin-top:4px; font-style:italic; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/etl-auth.js"></script>
@@ -329,28 +283,6 @@
 
 <div id="form-section">
 <div class="page-wrap">
-
-  <!-- EXISTING INVOICES LIST -->
-  <div class="inv-list-wrap">
-    <div class="inv-list-card">
-      <div class="inv-list-header">
-        <div class="inv-list-title">Existing Invoices & Payments</div>
-        <div class="inv-list-controls">
-          <input type="text" id="inv-list-search" placeholder="Search invoice # or client…" oninput="renderInvoiceList()">
-          <select id="inv-list-filter" onchange="renderInvoiceList()">
-            <option value="90">Last 90 days</option>
-            <option value="30">Last 30 days</option>
-            <option value="365">Last 12 months</option>
-            <option value="all">Show all</option>
-          </select>
-          <button class="btn-refresh" onclick="loadInvoiceList()" title="Refresh">↻</button>
-        </div>
-      </div>
-      <div id="inv-list-body">
-        <div class="inv-list-empty">Loading invoices…</div>
-      </div>
-    </div>
-  </div>
 
   <div id="prefill-notice" class="notice" style="display:none;">
     ✅ Invoice pre-filled from LPO. Review and generate when ready.
@@ -1010,6 +942,7 @@ Engineering Trade Links Co. Ltd`;
   }
 
   // ──────────── INVOICE LIST & PAYMENT TRACKING ────────────
+  /*
   let INVOICES_CACHE = [];
   let PAYMENT_MODAL_INVOICE_ID = null;
 
@@ -1214,17 +1147,18 @@ Engineering Trade Links Co. Ltd`;
     }
   });
 
+  */
   etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = session ? session.access_token : '';
     await loadInventoryItems();
-    await loadInvoiceList();
     await prefillFromLPO();
   });
 </script>
 
-<!-- RECORD PAYMENT MODAL -->
+<!-- Invoice dashboard payment modals retained only as legacy reference:
+RECORD PAYMENT MODAL
 <div class="modal-backdrop" id="payment-modal">
   <div class="modal">
     <div class="modal-header">
@@ -1253,7 +1187,7 @@ Engineering Trade Links Co. Ltd`;
   </div>
 </div>
 
-<!-- PAYMENT HISTORY MODAL -->
+PAYMENT HISTORY MODAL
 <div class="modal-backdrop" id="history-modal">
   <div class="modal">
     <div class="modal-header">
@@ -1266,6 +1200,7 @@ Engineering Trade Links Co. Ltd`;
     </div>
   </div>
 </div>
+-->
 
 </body>
 </html>

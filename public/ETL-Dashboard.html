@@ -260,6 +260,55 @@
     tr.row-pending td:first-child { border-left-width: 3px !important; }
   }
 
+  /* CLICKABLE KPI CARDS */
+  .stat-card.clickable { cursor: pointer; transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s; }
+  .stat-card.clickable:hover { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(26,60,110,0.12); border-color: var(--secondary); }
+
+  /* INVOICE LIST */
+  .inv-list-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .inv-list-table th { background: var(--lighter-bg); padding: 11px 16px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .inv-list-table td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .inv-list-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .inv-list-table tr.inv-row { cursor: pointer; }
+  .inv-list-table tr.inv-row:hover td { background: var(--lighter-bg); }
+  .inv-list-empty { padding: 30px 20px; text-align: center; color: var(--text-muted); font-size: 13px; }
+
+  /* INVOICE STATUS BADGES (extend existing badge set) */
+  .badge-partial { background: var(--gold-bg); color: var(--gold); }
+  .badge-unpaid  { background: var(--light-bg); color: var(--text-muted); }
+  .badge-overdue { background: var(--danger-bg); color: var(--danger); }
+
+  /* SMALL BUTTONS inside invoice row */
+  .btn-sm { padding: 5px 10px; font-size: 11px; font-weight: 700; border-radius: 6px; cursor: pointer; border: none; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .btn-sm-primary { background: var(--primary); color: #fff; }
+  .btn-sm-primary:hover { background: var(--secondary); }
+  .btn-sm-secondary { background: var(--light-bg); color: var(--primary); border: 1.5px solid var(--border); }
+  .btn-sm-secondary:hover { border-color: var(--secondary); color: var(--secondary); }
+
+  /* PAYMENT MODALS (scoped to .modal-backdrop so they don't collide with .modal-overlay/.modal) */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: none; align-items: center; justify-content: center; z-index: 1100; padding: 20px; }
+  .modal-backdrop.show { display: flex; }
+  .modal-backdrop .pay-modal { background: #fff; border-radius: 12px; max-width: 480px; width: 100%; max-height: 90vh; overflow: auto; }
+  .modal-backdrop .pay-modal-header { background: var(--primary); color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
+  .modal-backdrop .pay-modal-header h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+  .modal-backdrop .pay-modal-close { background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; }
+  .modal-backdrop .pay-modal-body { padding: 20px; }
+  .modal-backdrop .pay-modal-body .field { margin-bottom: 14px; }
+  .modal-backdrop .pay-modal-body .field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); display: block; margin-bottom: 4px; }
+  .modal-backdrop .pay-modal-body .field input,
+  .modal-backdrop .pay-modal-body .field textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; }
+  .modal-backdrop .pay-modal-body .field input:focus,
+  .modal-backdrop .pay-modal-body .field textarea:focus { border-color: var(--secondary); }
+  .modal-backdrop .pay-modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
+  .modal-backdrop .pm-summary { padding: 10px 14px; background: var(--lighter-bg); border-radius: 8px; margin-bottom: 16px; font-size: 12px; color: var(--text); line-height: 1.6; }
+  .modal-backdrop .payment-history { list-style: none; padding: 0; margin: 0; }
+  .modal-backdrop .payment-history li { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+  .modal-backdrop .payment-history li:last-child { border-bottom: none; }
+  .modal-backdrop .ph-date { font-weight: 700; color: var(--primary); font-size: 13px; }
+  .modal-backdrop .ph-amount { font-weight: 800; color: var(--success); white-space: nowrap; font-size: 14px; }
+  .modal-backdrop .ph-meta { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+  .modal-backdrop .ph-note { font-size: 12px; color: var(--text); margin-top: 4px; font-style: italic; }
+
 </style>
 </head>
 <body>
@@ -284,19 +333,19 @@
 
   <!-- STATS -->
   <div class="stats-row">
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="switchTabByName('requests')" title="View all quotation requests">
       <div class="stat-num" id="stat-total-req">—</div>
       <div class="stat-label">Quotation Requests</div>
     </div>
-    <div class="stat-card gold">
+    <div class="stat-card gold clickable" onclick="switchTabByName('approvals')" title="View pending approvals">
       <div class="stat-num" id="stat-pending">—</div>
       <div class="stat-label">Pending Review</div>
     </div>
-    <div class="stat-card green">
+    <div class="stat-card green clickable" onclick="switchTabByName('lpos')" title="View all LPOs">
       <div class="stat-num" id="stat-total-lpo">—</div>
       <div class="stat-label">Total LPOs</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="switchTabByName('lpos','outward')" title="View outward LPOs">
       <div class="stat-num" id="stat-outward">—</div>
       <div class="stat-label">Outward LPOs</div>
     </div>
@@ -307,19 +356,19 @@
     Last 30 Days Activity
   </div>
   <div class="stats-row">
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="switchTabByName('requests','last30')" title="View requests from last 30 days">
       <div class="stat-num" id="stat-30-req">—</div>
       <div class="stat-label">New Requests</div>
     </div>
-    <div class="stat-card green">
+    <div class="stat-card green clickable" onclick="switchTabByName('lpos','last30')" title="View LPOs from last 30 days">
       <div class="stat-num" id="stat-30-lpo">—</div>
       <div class="stat-label">New LPOs</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="switchTabByName('invoices','last30')" title="View invoices from last 30 days">
       <div class="stat-num" id="stat-30-inv">—</div>
       <div class="stat-label">New Invoices</div>
     </div>
-    <div class="stat-card gold">
+    <div class="stat-card gold clickable" onclick="switchTabByName('invoices','last30')" title="View invoices from last 30 days">
       <div class="stat-num" id="stat-30-amount" style="font-size:28px;">—</div>
       <div class="stat-label">Invoiced (UGX)</div>
     </div>
@@ -330,19 +379,19 @@
     Receivables
   </div>
   <div class="stats-row">
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="switchTabByName('invoices','outstanding')" title="View invoices with an outstanding balance">
       <div class="stat-num" id="stat-outstanding" style="font-size:28px;">—</div>
       <div class="stat-label">Outstanding (UGX)</div>
     </div>
-    <div class="stat-card gold">
+    <div class="stat-card gold clickable" onclick="switchTabByName('invoices','overdue')" title="View overdue invoices">
       <div class="stat-num" id="stat-overdue-count">—</div>
       <div class="stat-label">Overdue Invoices</div>
     </div>
-    <div class="stat-card gold">
+    <div class="stat-card gold clickable" onclick="switchTabByName('invoices','overdue')" title="View overdue invoices">
       <div class="stat-num" id="stat-overdue-amount" style="font-size:28px;">—</div>
       <div class="stat-label">Overdue (UGX)</div>
     </div>
-    <div class="stat-card">
+    <div class="stat-card clickable" onclick="switchTabByName('invoices','aged90')" title="View invoices overdue by 90+ days">
       <div class="stat-num" id="stat-aging-90" style="font-size:28px;">—</div>
       <div class="stat-label">Aged 90+ Days (UGX)</div>
     </div>
@@ -350,16 +399,17 @@
 
   <!-- TABS -->
   <div class="tabs">
-    <button class="tab-btn active" onclick="switchTab('requests', this)">📋 Quotation Requests</button>
-    <button class="tab-btn" onclick="switchTab('lpos', this)">📦 LPO Records</button>
-    <button class="tab-btn mgmt-only" id="approvals-tab-btn" onclick="switchTab('approvals', this)" style="display:none;">✅ Approvals <span id="approval-count-badge" style="background:var(--danger);color:white;border-radius:100px;padding:1px 7px;font-size:10px;margin-left:4px;display:none;"></span></button>
+    <button class="tab-btn active" data-tab="requests" onclick="switchTab('requests', this)">📋 Quotation Requests</button>
+    <button class="tab-btn" data-tab="lpos" onclick="switchTab('lpos', this)">📦 LPO Records</button>
+    <button class="tab-btn" data-tab="invoices" onclick="switchTab('invoices', this)">💰 Invoices</button>
+    <button class="tab-btn mgmt-only" id="approvals-tab-btn" data-tab="approvals" onclick="switchTab('approvals', this)" style="display:none;">✅ Approvals <span id="approval-count-badge" style="background:var(--danger);color:white;border-radius:100px;padding:1px 7px;font-size:10px;margin-left:4px;display:none;"></span></button>
   </div>
 
   <!-- QUOTATION REQUESTS TABLE -->
   <div id="tab-requests">
     <div class="table-card">
       <div class="table-header">
-        <h3>Incoming Quotation Requests</h3>
+        <h3>Incoming Quotation Requests <span id="req-filter-label" style="font-size:12px;font-weight:700;color:var(--gold);margin-left:10px;display:none;"></span></h3>
         <button class="refresh-btn" onclick="loadRequests()">↻ Refresh</button>
       </div>
       <div id="requests-body">
@@ -372,11 +422,36 @@
   <div id="tab-lpos" style="display:none;">
     <div class="table-card">
       <div class="table-header">
-        <h3>LPO Records</h3>
+        <h3>LPO Records <span id="lpo-filter-label" style="font-size:12px;font-weight:700;color:var(--gold);margin-left:10px;display:none;"></span></h3>
         <button class="refresh-btn" onclick="loadLPOs()">↻ Refresh</button>
       </div>
       <div id="lpos-body">
         <div class="loading-state">Loading LPOs...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INVOICES TABLE -->
+  <div id="tab-invoices" style="display:none;">
+    <div class="table-card">
+      <div class="table-header">
+        <h3>Invoices & Payments <span id="inv-filter-label" style="font-size:12px;font-weight:700;color:var(--gold);margin-left:10px;display:none;"></span></h3>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="inv-list-search" placeholder="Search invoice # or client…" oninput="renderInvoiceList()" style="padding:7px 12px;border-radius:6px;border:1px solid var(--border);font-size:12px;outline:none;font-family:inherit;">
+          <select id="inv-list-filter" onchange="onInvFilterChange()" style="padding:7px 12px;border-radius:6px;border:1px solid var(--border);font-size:12px;outline:none;font-family:inherit;">
+            <option value="all">All invoices</option>
+            <option value="outstanding">Outstanding only</option>
+            <option value="overdue">Overdue only</option>
+            <option value="aged90">Aged 90+ days</option>
+            <option value="last30">Last 30 days</option>
+            <option value="last90">Last 90 days</option>
+            <option value="last365">Last 12 months</option>
+          </select>
+          <button class="refresh-btn" onclick="loadInvoiceList()">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="inv-list-body">
+        <div class="loading-state">Loading invoices...</div>
       </div>
     </div>
   </div>
@@ -390,6 +465,49 @@
 <!-- DETAIL MODAL v1775123758 -->
 <div class="modal-overlay" id="detail-modal" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="modal-content"></div>
+</div>
+
+<!-- RECORD PAYMENT MODAL -->
+<div class="modal-backdrop" id="payment-modal">
+  <div class="pay-modal">
+    <div class="pay-modal-header">
+      <h3>Record Payment</h3>
+      <button class="pay-modal-close" onclick="closePaymentModal()">×</button>
+    </div>
+    <div class="pay-modal-body">
+      <div id="pm-summary" class="pm-summary"></div>
+      <div class="field">
+        <label>Amount (UGX) *</label>
+        <input type="number" id="pm-amount" min="1" step="0.01" placeholder="e.g. 500000">
+      </div>
+      <div class="field">
+        <label>Payment Date *</label>
+        <input type="date" id="pm-date">
+      </div>
+      <div class="field">
+        <label>Note (optional)</label>
+        <textarea id="pm-note" rows="2" placeholder="e.g. Cash received at office / Bank ref 12345"></textarea>
+      </div>
+    </div>
+    <div class="pay-modal-footer">
+      <button class="modal-btn secondary" onclick="closePaymentModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="recordPayment()">Save Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT HISTORY MODAL -->
+<div class="modal-backdrop" id="history-modal">
+  <div class="pay-modal">
+    <div class="pay-modal-header">
+      <h3 id="hm-title">Payment History</h3>
+      <button class="pay-modal-close" onclick="closeHistoryModal()">×</button>
+    </div>
+    <div class="pay-modal-body" id="hm-body"></div>
+    <div class="pay-modal-footer">
+      <button class="modal-btn secondary" onclick="closeHistoryModal()">Close</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -419,12 +537,158 @@
     return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
   }
 
-  function switchTab(tab, btn) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-requests').style.display = tab === 'requests' ? '' : 'none';
-    document.getElementById('tab-lpos').style.display = tab === 'lpos' ? '' : 'none';
-    if(tab === 'lpos') loadLPOs();
+
+  function escapeHtml(value) {
+    return String(value || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  function isWithinDays(dateValue, days) {
+    if (!dateValue) return false;
+    return new Date(dateValue).getTime() >= Date.now() - (days * 86400000);
+  }
+
+  function updateFilterLabel(elId, text) {
+    const el = document.getElementById(elId);
+    if (!el) return;
+    if (text) {
+      el.style.display = '';
+      el.innerText = '• ' + text;
+    } else {
+      el.style.display = 'none';
+      el.innerText = '';
+    }
+  }
+
+  window._reqFilter = 'all';
+  window._lpoFilter = 'all';
+
+  function filterRequests(data) {
+    const filter = window._reqFilter || 'all';
+    if (filter === 'last30') return data.filter(r => isWithinDays(r.created_at, 30));
+    return data;
+  }
+
+  function renderReqFilterBanner() {
+    const labels = { all: '', last30: 'Last 30 days' };
+    updateFilterLabel('req-filter-label', labels[window._reqFilter || 'all'] || '');
+  }
+
+  function renderRequestsTable(data) {
+    const body = document.getElementById('requests-body');
+    const filtered = filterRequests(data || []);
+    window._reqViewData = filtered;
+    renderReqFilterBanner();
+
+    if (!(data || []).length) {
+      body.innerHTML = '<div class="empty-state"><div class="icon">ðŸ“­</div><p>No quotation requests yet. Share the request form link with clients!</p></div>';
+      return;
+    }
+
+    if (!filtered.length) {
+      body.innerHTML = '<div class="empty-state"><div class="icon">ðŸ”—</div><p>No quotation requests match the current dashboard filter.</p></div>';
+      return;
+    }
+
+    let rows = filtered.map((r,i) => `
+      <tr data-id="${r.id}" class="${r.status==='approved'?'row-approved':r.status==='pending_approval'||r.status==='pending'?'row-pending':''}">
+        <td><strong>${escapeHtml(r.client_name || 'â€”')}</strong></td>
+        <td>${escapeHtml(r.contact_person || 'â€”')}</td>
+        <td>${escapeHtml(r.project_title || 'â€”')}</td>
+        <td>${escapeHtml(r.client_email || 'â€”')}</td>
+        <td>${fmtDate(r.created_at)}</td>
+        <td><span class="badge badge-${r.status}" id="req-badge-${r.id}">${r.status}</span></td>
+        <td>
+          <button class="action-btn" onclick="showRequest(${i})">View</button>
+          ${r.status === 'approved' ? '<button class="action-btn gold" onclick="openGenerator(' + i + ')">ðŸ“‹ Generate Quotation</button>' : r.status === 'pending_approval' ? '<span style="font-size:11px;color:var(--warning);font-weight:700;">â³ Awaiting Approval</span>' : r.status === 'rejected' ? '<span style="font-size:11px;color:var(--danger);font-weight:700;">âŒ Rejected</span>' : '<button class="action-btn gold" onclick="openGenerator(' + i + ')">ðŸ“‹ Generate Quotation</button>'}
+${(()=>{
+            const mg = currentRole==='management';
+            return `<select class="status-select" onchange="updateStatus('${r.id}', this.value)">
+              ${mg?`<option value="pending_approval" ${r.status==='pending_approval'?'selected':''}>â³ Pending Approval</option><option value="approved" ${r.status==='approved'?'selected':''}>âœ… Approved</option>`:''}
+              <option value="in_progress" ${r.status==='in_progress'?'selected':''}>ðŸ”„ In Progress</option>
+              <option value="responded" ${r.status==='responded'?'selected':''}>ðŸ“¤ Responded</option>
+              ${mg?`<option value="rejected" ${r.status==='rejected'?'selected':''}>âŒ Rejected</option>`:''}
+              <option value="closed" ${r.status==='closed'?'selected':''}>ðŸ”’ Closed</option>
+            </select>`;
+          })()}
+        </td>
+      </tr>`).join('');
+
+    body.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Organisation</th><th>Contact</th><th>Project</th>
+          <th>Email</th><th>Date</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function filterLPOs(data) {
+    const filter = window._lpoFilter || 'all';
+    if (filter === 'outward') return data.filter(l => l.direction === 'outward');
+    if (filter === 'last30') return data.filter(l => isWithinDays(l.created_at, 30));
+    return data;
+  }
+
+  function renderLPOFilterBanner() {
+    const labels = { all: '', outward: 'Outward only', last30: 'Last 30 days' };
+    updateFilterLabel('lpo-filter-label', labels[window._lpoFilter || 'all'] || '');
+  }
+
+  function renderLPOTable(data) {
+    const body = document.getElementById('lpos-body');
+    const filtered = filterLPOs(data || []);
+    window._lpoViewData = filtered;
+    renderLPOFilterBanner();
+
+    if (!(data || []).length) {
+      body.innerHTML = '<div class="empty-state"><div class="icon">ðŸ“¦</div><p>No LPOs recorded yet.</p></div>';
+      return;
+    }
+
+    if (!filtered.length) {
+      body.innerHTML = '<div class="empty-state"><div class="icon">ðŸ”—</div><p>No LPO records match the current dashboard filter.</p></div>';
+      return;
+    }
+
+    let rows = filtered.map((l,i) => `
+      <tr data-lpo-id="${l.id}" class="${l.status==='approved'?'row-approved':l.status==='pending_approval'?'row-pending':''}">
+        <td><strong>${escapeHtml(l.lpo_number || 'â€”')}</strong></td>
+        <td>${escapeHtml(l.entity_name || 'â€”')}</td>
+        <td><span class="badge badge-${l.direction}">${l.direction}</span></td>
+        <td>${escapeHtml(l.entity_email || 'â€”')}</td>
+        <td>UGX ${(l.total||0).toLocaleString()}</td>
+        <td>${fmtDate(l.created_at)}</td>
+        <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
+        <td>
+          <button class="action-btn" onclick="showLPO(${i})">View</button>
+          ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">â³ Awaiting Approval</span>`}
+          ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
+          ${l.status === 'approved' && l.direction === 'inward' ? `<button class="action-btn" onclick="checkStock(${i})" style="background:var(--light-bg);color:var(--secondary);border-color:var(--secondary)">ðŸ“¦ Check Stock</button>` : ''}
+${(()=>{
+            const mg = currentRole==='management';
+            const isApproved = l.status === 'approved';
+            return `<select class="status-select" onchange="updateLPOStatus('${l.id}', this.value)" ${!isApproved && !mg ? 'disabled' : ''} style="${!isApproved && !mg ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+              ${mg?`<option value="pending_approval" ${l.status==='pending_approval'?'selected':''}>â³ Pending Approval</option><option value="approved" ${l.status==='approved'?'selected':''}>âœ… Approved</option>`:''}
+              ${isApproved ? `<option value="active" ${l.status==='active'?'selected':''}>ðŸ“‹ Active</option>` : `<option value="active" disabled>ðŸ“‹ Active</option>`}
+              ${isApproved ? `<option value="issued" ${l.status==='issued'?'selected':''}>ðŸ“¤ Issued</option>` : `<option value="issued" disabled>ðŸ“¤ Issued</option>`}
+              ${isApproved ? `<option value="delivered" ${l.status==='delivered'?'selected':''}>âœ… Delivered</option>` : `<option value="delivered" disabled>âœ… Delivered</option>`}
+              ${isApproved ? `<option value="paid" ${l.status==='paid'?'selected':''}>ðŸ’° Paid</option>` : `<option value="paid" disabled>ðŸ’° Paid</option>`}
+              ${isApproved ? `<option value="disputed" ${l.status==='disputed'?'selected':''}>âš ï¸ Disputed</option>` : `<option value="disputed" disabled>âš ï¸ Disputed</option>`}
+              ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>ðŸ”’ Closed</option>` : `<option value="closed" disabled>ðŸ”’ Closed</option>`}
+            </select>`;
+          })()}
+        </td>
+      </tr>`).join('');
+
+    body.innerHTML = `
+      <table>
+        <thead><tr>
+          <th>LPO Number</th><th>Entity</th><th>Direction</th>
+          <th>Email</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
   }
 
   async function loadRequests() {
@@ -550,8 +814,8 @@ ${(()=>{
     }
   }
 
-  function showLPO(i) {
-    const l = window._lpoData[i];
+  function showLPO(i, directRecord) {
+    const l = directRecord || window._lpoData[i];
     const items = (l.items || []).map((i,n) => `<tr><td>${n+1}</td><td>${i.desc}</td><td>${i.unit}</td><td>${i.qty}</td><td>UGX ${(i.price||0).toLocaleString()}</td><td>UGX ${(i.total||0).toLocaleString()}</td></tr>`).join('');
     document.getElementById('modal-content').innerHTML = `
       <h2>📦 LPO Details</h2>
@@ -753,7 +1017,7 @@ ${(()=>{
             <td data-label="Total">UGX ${(l.total||0).toLocaleString()}</td>
             <td data-label="Date">${fmtDate(l.created_at)}</td>
             <td data-label="Actions">
-              <button class="action-btn" onclick="showLPO(${i})">View</button>
+              <button class="action-btn" onclick="showLPOById('${l.id}')">View</button>
               <button class="action-btn approve" onclick="approveLPO('${l.id}')">✅ Approve</button>
               <button class="action-btn reject" onclick="rejectLPO('${l.id}')">❌ Reject</button>
             </td>
@@ -871,8 +1135,8 @@ tradelinks.ltd@gmail.com`);
   }
 
   // ─── STOCK CHECK ───
-  async function checkStock(i) {
-    const l = window._lpoData[i];
+  async function checkStock(i, directRecord) {
+    const l = directRecord || window._lpoData[i];
     if(!l.items || !l.items.length) { alert('No items found in this LPO to check against inventory.'); return; }
 
     // Load inventory
@@ -939,21 +1203,448 @@ tradelinks.ltd@gmail.com`);
     document.getElementById('detail-modal').classList.add('open');
   }
 
-  // ─── OVERRIDE switchTab to include approvals ───
+  // ─── OVERRIDE switchTab to include approvals + invoices ───
   function switchTab(tab, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
+    if (btn) {
+      btn.classList.add('active');
+    } else {
+      const t = document.querySelector(`.tab-btn[data-tab="${tab}"]`);
+      if (t) t.classList.add('active');
+    }
     document.getElementById('tab-requests').style.display  = tab === 'requests'  ? '' : 'none';
     document.getElementById('tab-lpos').style.display      = tab === 'lpos'      ? '' : 'none';
+    document.getElementById('tab-invoices').style.display  = tab === 'invoices'  ? '' : 'none';
     document.getElementById('tab-approvals').style.display = tab === 'approvals' ? '' : 'none';
     if(tab === 'lpos')      loadLPOs();
+    if(tab === 'invoices')  loadInvoiceList();
     if(tab === 'approvals') loadApprovals();
   }
 
+  // ─── KPI card click-through: switch tab with optional filter preset ───
+  function switchTabByName(tab, filter) {
+    switchTab(tab);
+    setTimeout(() => {
+      if (tab === 'requests') {
+        window._reqFilter = filter || 'all';
+        loadRequests();
+      }
+      if (tab === 'lpos') {
+        window._lpoFilter = filter || 'all';
+        loadLPOs();
+      }
+      if (tab === 'invoices') {
+        const sel = document.getElementById('inv-list-filter');
+        if (sel) {
+          sel.value = filter || 'all';
+          onInvFilterChange();
+        }
+      }
+      const el = document.getElementById('tab-' + tab);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 0);
+  }
+
+  function showRequestById(id) {
+    const record = (window._reqData || []).find(r => r.id === id);
+    if (record) showRequest(null, null, record);
+  }
+
+  function openGeneratorById(id) {
+    const record = (window._reqData || []).find(r => r.id === id);
+    if (record) openGenerator(null, record);
+  }
+
+  function showLPOById(id) {
+    const record = (window._lpoData || []).find(l => l.id === id);
+    if (record) showLPO(null, record);
+  }
+
+  function checkStockById(id) {
+    const record = (window._lpoData || []).find(l => l.id === id);
+    if (record) checkStock(null, record);
+  }
+
+  async function loadRequests() {
+    document.getElementById('requests-body').innerHTML = '<div class="loading-state">Loading...</div>';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?order=created_at.desc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
+      });
+      const data = await res.json();
+
+      document.getElementById('stat-total-req').innerText = data.length;
+      fetch(`${SUPABASE_URL}/rest/v1/lpos?status=eq.pending_approval&select=id`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
+      }).then(r => r.json()).then(lpoPending => {
+        const qPending = data.filter(r => r.status === 'pending_approval' || r.status === 'pending').length;
+        document.getElementById('stat-pending').innerText = qPending + (lpoPending.length || 0);
+      }).catch(() => {
+        document.getElementById('stat-pending').innerText = data.filter(r => r.status === 'pending_approval' || r.status === 'pending').length;
+      });
+
+      window._reqData = data;
+      const filtered = filterRequests(data);
+      window._reqViewData = filtered;
+      renderReqFilterBanner();
+
+      if (!data.length) {
+        document.getElementById('requests-body').innerHTML = '<div class="empty-state"><div class="icon">ðŸ“­</div><p>No quotation requests yet. Share the request form link with clients!</p></div>';
+        return;
+      }
+
+      if (!filtered.length) {
+        document.getElementById('requests-body').innerHTML = '<div class="empty-state"><div class="icon">ðŸ”—</div><p>No quotation requests match the current dashboard filter.</p></div>';
+        return;
+      }
+
+      const rows = filtered.map((r) => `
+        <tr data-id="${r.id}" class="${r.status==='approved'?'row-approved':r.status==='pending_approval'||r.status==='pending'?'row-pending':''}">
+          <td><strong>${escapeHtml(r.client_name || 'â€”')}</strong></td>
+          <td>${escapeHtml(r.contact_person || 'â€”')}</td>
+          <td>${escapeHtml(r.project_title || 'â€”')}</td>
+          <td>${escapeHtml(r.client_email || 'â€”')}</td>
+          <td>${fmtDate(r.created_at)}</td>
+          <td><span class="badge badge-${r.status}" id="req-badge-${r.id}">${r.status}</span></td>
+          <td>
+            <button class="action-btn" onclick="showRequestById('${r.id}')">View</button>
+            ${r.status === 'approved' ? '<button class="action-btn gold" onclick="openGeneratorById(\'' + r.id + '\')">ðŸ“‹ Generate Quotation</button>' : r.status === 'pending_approval' ? '<span style="font-size:11px;color:var(--warning);font-weight:700;">â³ Awaiting Approval</span>' : r.status === 'rejected' ? '<span style="font-size:11px;color:var(--danger);font-weight:700;">âŒ Rejected</span>' : '<button class="action-btn gold" onclick="openGeneratorById(\'' + r.id + '\')">ðŸ“‹ Generate Quotation</button>'}
+${(()=>{
+              const mg = currentRole==='management';
+              return `<select class="status-select" onchange="updateStatus('${r.id}', this.value)">
+                ${mg?`<option value="pending_approval" ${r.status==='pending_approval'?'selected':''}>â³ Pending Approval</option><option value="approved" ${r.status==='approved'?'selected':''}>âœ… Approved</option>`:''}
+                <option value="in_progress" ${r.status==='in_progress'?'selected':''}>ðŸ”„ In Progress</option>
+                <option value="responded" ${r.status==='responded'?'selected':''}>ðŸ“¤ Responded</option>
+                ${mg?`<option value="rejected" ${r.status==='rejected'?'selected':''}>âŒ Rejected</option>`:''}
+                <option value="closed" ${r.status==='closed'?'selected':''}>ðŸ”’ Closed</option>
+              </select>`;
+            })()}
+          </td>
+        </tr>`).join('');
+
+      document.getElementById('requests-body').innerHTML = `
+        <table>
+          <thead><tr>
+            <th>Organisation</th><th>Contact</th><th>Project</th>
+            <th>Email</th><th>Date</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch (e) {
+      document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
+    }
+  }
+
+  async function loadLPOs() {
+    document.getElementById('lpos-body').innerHTML = '<div class="loading-state">Loading...</div>';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos?order=created_at.desc`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
+      });
+      const data = await res.json();
+
+      document.getElementById('stat-total-lpo').innerText = data.length;
+      document.getElementById('stat-outward').innerText = data.filter(l => l.direction === 'outward').length;
+
+      window._lpoData = data;
+      const filtered = filterLPOs(data);
+      window._lpoViewData = filtered;
+      renderLPOFilterBanner();
+
+      if (!data.length) {
+        document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><div class="icon">ðŸ“¦</div><p>No LPOs recorded yet.</p></div>';
+        return;
+      }
+
+      if (!filtered.length) {
+        document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><div class="icon">ðŸ”—</div><p>No LPO records match the current dashboard filter.</p></div>';
+        return;
+      }
+
+      const rows = filtered.map((l) => `
+        <tr data-lpo-id="${l.id}" class="${l.status==='approved'?'row-approved':l.status==='pending_approval'?'row-pending':''}">
+          <td><strong>${escapeHtml(l.lpo_number || 'â€”')}</strong></td>
+          <td>${escapeHtml(l.entity_name || 'â€”')}</td>
+          <td><span class="badge badge-${l.direction}">${l.direction}</span></td>
+          <td>${escapeHtml(l.entity_email || 'â€”')}</td>
+          <td>UGX ${(l.total||0).toLocaleString()}</td>
+          <td>${fmtDate(l.created_at)}</td>
+          <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
+          <td>
+            <button class="action-btn" onclick="showLPOById('${l.id}')">View</button>
+            ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">â³ Awaiting Approval</span>`}
+            ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
+            ${l.status === 'approved' && l.direction === 'inward' ? `<button class="action-btn" onclick="checkStockById('${l.id}')" style="background:var(--light-bg);color:var(--secondary);border-color:var(--secondary)">ðŸ“¦ Check Stock</button>` : ''}
+${(()=>{
+              const mg = currentRole==='management';
+              const isApproved = l.status === 'approved';
+              return `<select class="status-select" onchange="updateLPOStatus('${l.id}', this.value)" ${!isApproved && !mg ? 'disabled' : ''} style="${!isApproved && !mg ? 'opacity:0.5;cursor:not-allowed;' : ''}">
+                ${mg?`<option value="pending_approval" ${l.status==='pending_approval'?'selected':''}>â³ Pending Approval</option><option value="approved" ${l.status==='approved'?'selected':''}>âœ… Approved</option>`:''}
+                ${isApproved ? `<option value="active" ${l.status==='active'?'selected':''}>ðŸ“‹ Active</option>` : `<option value="active" disabled>ðŸ“‹ Active</option>`}
+                ${isApproved ? `<option value="issued" ${l.status==='issued'?'selected':''}>ðŸ“¤ Issued</option>` : `<option value="issued" disabled>ðŸ“¤ Issued</option>`}
+                ${isApproved ? `<option value="delivered" ${l.status==='delivered'?'selected':''}>âœ… Delivered</option>` : `<option value="delivered" disabled>âœ… Delivered</option>`}
+                ${isApproved ? `<option value="paid" ${l.status==='paid'?'selected':''}>ðŸ’° Paid</option>` : `<option value="paid" disabled>ðŸ’° Paid</option>`}
+                ${isApproved ? `<option value="disputed" ${l.status==='disputed'?'selected':''}>âš ï¸ Disputed</option>` : `<option value="disputed" disabled>âš ï¸ Disputed</option>`}
+                ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>ðŸ”’ Closed</option>` : `<option value="closed" disabled>ðŸ”’ Closed</option>`}
+              </select>`;
+            })()}
+          </td>
+        </tr>`).join('');
+
+      document.getElementById('lpos-body').innerHTML = `
+        <table>
+          <thead><tr>
+            <th>LPO Number</th><th>Entity</th><th>Direction</th>
+            <th>Email</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+    } catch (e) {
+      document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
+    }
+  }
+
+  // ─── INVOICE LIST + PAYMENT TRACKING ───
+  let INVOICES_CACHE = [];
+  let INV_FILTER = 'all';
+  let PAYMENT_MODAL_INVOICE_ID = null;
+
+  function onInvFilterChange() {
+    INV_FILTER = document.getElementById('inv-list-filter').value;
+    const labels = {
+      all: '',
+      outstanding: 'Outstanding only',
+      overdue: 'Overdue only',
+      aged90: 'Aged 90+ days',
+      last30: 'Last 30 days',
+      last90: 'Last 90 days',
+      last365: 'Last 12 months'
+    };
+    const lab = document.getElementById('inv-filter-label');
+    if (lab) {
+      if (labels[INV_FILTER]) { lab.style.display = ''; lab.innerText = '• ' + labels[INV_FILTER]; }
+      else { lab.style.display = 'none'; lab.innerText = ''; }
+    }
+    renderInvoiceList();
+  }
+
+  async function loadInvoiceList() {
+    const body = document.getElementById('inv-list-body');
+    if (!body) return;
+    body.innerHTML = '<div class="loading-state">Loading invoices…</div>';
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/invoices?select=id,invoice_number,client_name,total,due_date,invoice_date,created_at,unique_link,invoice_payments(amount,payment_date,note,recorded_by,created_at)&order=created_at.desc`;
+      const res = await fetch(url, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      INVOICES_CACHE = await res.json();
+      renderInvoiceList();
+    } catch (e) {
+      body.innerHTML = `<div class="inv-list-empty">Could not load invoices: ${e.message}</div>`;
+    }
+  }
+
+  function invoiceStatus(inv) {
+    const paid = (inv.invoice_payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
+    const total = Number(inv.total) || 0;
+    const balance = Math.max(0, total - paid);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const due = inv.due_date ? new Date(inv.due_date) : null;
+    const daysOverdue = (due && due < today) ? Math.floor((today - due) / 86400000) : 0;
+    let state;
+    if (total - paid <= 0.009) state = 'paid';
+    else if (paid > 0) state = (due && due < today) ? 'overdue' : 'partial';
+    else state = (due && due < today) ? 'overdue' : 'unpaid';
+    return { paid, balance, state, daysOverdue };
+  }
+
+  function fmtShort(n) {
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+    if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000)         return (n / 1_000).toFixed(1) + 'K';
+    return Math.round(n).toLocaleString();
+  }
+
+  function renderInvoiceList() {
+    const body = document.getElementById('inv-list-body');
+    if (!body) return;
+    const q = (document.getElementById('inv-list-search').value || '').trim().toLowerCase();
+    INV_FILTER = document.getElementById('inv-list-filter').value;
+
+    const now = Date.now();
+    const rows = INVOICES_CACHE.filter(inv => {
+      // Date window filters
+      if (INV_FILTER === 'last30'  && new Date(inv.created_at).getTime() < now - 30  * 86400000) return false;
+      if (INV_FILTER === 'last90'  && new Date(inv.created_at).getTime() < now - 90  * 86400000) return false;
+      if (INV_FILTER === 'last365' && new Date(inv.created_at).getTime() < now - 365 * 86400000) return false;
+
+      const s = invoiceStatus(inv);
+      if (INV_FILTER === 'outstanding' && s.balance <= 0.009) return false;
+      if (INV_FILTER === 'overdue'     && s.state !== 'overdue') return false;
+      if (INV_FILTER === 'aged90'      && !(s.state === 'overdue' && s.daysOverdue > 90)) return false;
+
+      if (q) {
+        const hay = `${inv.invoice_number || ''} ${inv.client_name || ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    if (rows.length === 0) {
+      body.innerHTML = '<div class="empty-state"><div class="icon">🧾</div><p>No invoices match the current filter.</p></div>';
+      return;
+    }
+
+    const badgeMap = { paid: 'badge-paid', partial: 'badge-partial', unpaid: 'badge-unpaid', overdue: 'badge-overdue' };
+    const labelMap = { paid: 'Paid', partial: 'Partial', unpaid: 'Unpaid', overdue: 'Overdue' };
+
+    const html = `
+      <table class="inv-list-table">
+        <thead>
+          <tr>
+            <th>Invoice #</th>
+            <th>Client</th>
+            <th class="num">Total (UGX)</th>
+            <th class="num">Paid (UGX)</th>
+            <th class="num">Balance (UGX)</th>
+            <th>Due</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows.map(inv => {
+            const s = invoiceStatus(inv);
+            const dueStr = inv.due_date
+              ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })
+              : '—';
+            const payCount = (inv.invoice_payments || []).length;
+            const viewUrl = inv.unique_link ? `/ETL-Invoice-View.html?inv=${inv.unique_link}` : '';
+            const rowOnClick = viewUrl ? `onclick="window.open('${viewUrl}','_blank')"` : '';
+            return `
+              <tr class="inv-row" ${rowOnClick} title="${viewUrl ? 'Click to open invoice view' : ''}">
+                <td><strong>${(inv.invoice_number || '—').replace(/</g, '&lt;')}</strong></td>
+                <td>${(inv.client_name || '—').replace(/</g, '&lt;')}</td>
+                <td class="num">${fmtShort(Number(inv.total) || 0)}</td>
+                <td class="num">${fmtShort(s.paid)}</td>
+                <td class="num"><strong>${fmtShort(s.balance)}</strong></td>
+                <td>${dueStr}</td>
+                <td><span class="badge ${badgeMap[s.state]}">${labelMap[s.state]}</span></td>
+                <td style="white-space:nowrap;" onclick="event.stopPropagation()">
+                  ${s.state !== 'paid' ? `<button class="btn-sm btn-sm-primary" onclick="openPaymentModal('${inv.id}')">+ Pay</button>` : ''}
+                  ${payCount > 0 ? `<button class="btn-sm btn-sm-secondary" onclick="openHistoryModal('${inv.id}')" style="margin-left:4px;">${payCount} ${payCount === 1 ? 'Payment' : 'Payments'}</button>` : ''}
+                </td>
+              </tr>`;
+          }).join('')}
+        </tbody>
+      </table>`;
+    body.innerHTML = html;
+  }
+
+  function openPaymentModal(invoiceId) {
+    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
+    if (!inv) return;
+    const s = invoiceStatus(inv);
+    PAYMENT_MODAL_INVOICE_ID = invoiceId;
+    document.getElementById('pm-summary').innerHTML = `
+      <div><strong>${(inv.invoice_number || '').replace(/</g, '&lt;')}</strong> — ${(inv.client_name || '').replace(/</g, '&lt;')}</div>
+      <div>Total: UGX ${Math.round(Number(inv.total) || 0).toLocaleString()} · Paid: UGX ${Math.round(s.paid).toLocaleString()} · <strong>Balance: UGX ${Math.round(s.balance).toLocaleString()}</strong></div>
+    `;
+    document.getElementById('pm-amount').value = '';
+    document.getElementById('pm-amount').setAttribute('max', s.balance);
+    document.getElementById('pm-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('pm-note').value = '';
+    document.getElementById('payment-modal').classList.add('show');
+    setTimeout(() => document.getElementById('pm-amount').focus(), 50);
+  }
+
+  function closePaymentModal() {
+    document.getElementById('payment-modal').classList.remove('show');
+    PAYMENT_MODAL_INVOICE_ID = null;
+  }
+
+  async function recordPayment() {
+    if (!PAYMENT_MODAL_INVOICE_ID) return;
+    const amount = parseFloat(document.getElementById('pm-amount').value);
+    const payDate = document.getElementById('pm-date').value;
+    const note = document.getElementById('pm-note').value.trim();
+    if (!amount || amount <= 0) { alert('Enter a positive amount.'); return; }
+    if (!payDate) { alert('Enter a payment date.'); return; }
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoice_payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SESSION_TOKEN}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          invoice_id: PAYMENT_MODAL_INVOICE_ID,
+          amount,
+          payment_date: payDate,
+          note: note || null
+        })
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        alert('Could not save payment: ' + err);
+        return;
+      }
+      closePaymentModal();
+      await loadInvoiceList();
+      await loadReceivables();
+    } catch (e) {
+      alert('Network error: ' + e.message);
+    }
+  }
+
+  function openHistoryModal(invoiceId) {
+    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
+    if (!inv) return;
+    const payments = [...(inv.invoice_payments || [])].sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
+    document.getElementById('hm-title').innerText = `Payments — ${inv.invoice_number || ''}`;
+    const total = Number(inv.total) || 0;
+    const paid = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+    const bal = Math.max(0, total - paid);
+    const body = `
+      <div class="pm-summary">
+        <div><strong>${(inv.client_name || '').replace(/</g, '&lt;')}</strong></div>
+        <div>Total: UGX ${Math.round(total).toLocaleString()} · Paid: UGX ${Math.round(paid).toLocaleString()} · Balance: UGX ${Math.round(bal).toLocaleString()}</div>
+      </div>
+      ${payments.length === 0
+        ? '<div class="inv-list-empty">No payments recorded yet.</div>'
+        : `<ul class="payment-history">${payments.map(p => `
+          <li>
+            <div style="flex:1;">
+              <div class="ph-date">${new Date(p.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+              ${p.note ? `<div class="ph-note">${String(p.note).replace(/</g, '&lt;')}</div>` : ''}
+              <div class="ph-meta">Recorded ${new Date(p.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+            </div>
+            <div class="ph-amount">UGX ${Math.round(Number(p.amount)).toLocaleString()}</div>
+          </li>`).join('')}</ul>`
+      }
+    `;
+    document.getElementById('hm-body').innerHTML = body;
+    document.getElementById('history-modal').classList.add('show');
+  }
+
+  function closeHistoryModal() {
+    document.getElementById('history-modal').classList.remove('show');
+  }
+
+  // Close payment/history modals when clicking backdrop
+  document.addEventListener('click', (e) => {
+    if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
+      e.target.classList.remove('show');
+    }
+  });
+
   // ─── UPDATE showRequest to handle approval context ───
-  function showRequest(i, context) {
+  function showRequest(i, context, directRecord) {
     const data = context === 'approval' ? window._approvalData : window._reqData;
-    const r = data ? data[i] : window._reqData[i];
+    const r = directRecord || (data ? data[i] : window._reqData[i]);
     if(!r) return;
     window._currentRequest = r; // store for modal buttons
     document.getElementById('modal-content').innerHTML = `
