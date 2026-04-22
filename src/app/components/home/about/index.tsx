@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import Image from 'next/image';
 
 const registrations = [
@@ -31,7 +30,7 @@ const objectives = [
   },
   {
     title: "Disciplined Profitability",
-    desc: "Maximising daily profitability of individual projects and the company overall — focusing on bottom-line results by ensuring deliverables are executed correctly and accurately.",
+    desc: "Maximising daily profitability of individual projects and the company overall, focusing on bottom-line results by ensuring deliverables are executed correctly and accurately.",
   },
 ];
 
@@ -47,10 +46,7 @@ export default function About() {
     <section id="about" className="pt-24 pb-8 bg-white dark:bg-darkmode">
       <div className="container lg:max-w-screen-xl md:max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
 
-        {/* Section label */}
         <div className="relative flex flex-col items-start text-left mb-16">
-
-          {/* ETL Logo watermark */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
             <Image
               src="/etl-images/etl-logo.png"
@@ -74,8 +70,6 @@ export default function About() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-stretch">
-
-          {/* Left: description + vision/mission + buttons */}
           <div>
             <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#c8860a" }}>
               "Quality at Service"
@@ -91,7 +85,6 @@ export default function About() {
               electro-mechanical systems, and supply &amp; procurement.
             </p>
 
-            {/* Vision & Mission */}
             <div className="space-y-3 mb-7">
               <div className="rounded-xl p-4 border-l-4 bg-section dark:bg-darklight" style={{ borderColor: "#1a3c6e" }}>
                 <p className="text-xs font-bold uppercase tracking-widest mb-1 text-primary dark:text-secondary">Vision</p>
@@ -106,22 +99,8 @@ export default function About() {
                 </p>
               </div>
             </div>
-
-            <div className="flex flex-wrap gap-3">
-              <Link href="/ETL-Quotation-Request.html"
-                className="inline-flex items-center gap-2 px-6 py-3 font-bold text-white rounded-xl text-sm hover:-translate-y-0.5 transition-all shadow-lg"
-                style={{ background: "linear-gradient(135deg,#1a3c6e,#2d5fa3)" }}>
-                📋 Get a Quote
-              </Link>
-              <Link href="/ETL-LPO-System.html"
-                className="inline-flex items-center gap-2 px-6 py-3 font-bold text-white rounded-xl text-sm hover:-translate-y-0.5 transition-all shadow-lg"
-                style={{ background: "linear-gradient(135deg,#c8860a,#e6a830)" }}>
-                📄 Submit LPO
-              </Link>
-            </div>
           </div>
 
-          {/* Right: corporate identity table */}
           <div className="mt-10 flex flex-col">
             <div className="rounded-xl border border-border dark:border-dark_border overflow-hidden flex flex-col flex-1">
               <div className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-white"
@@ -142,7 +121,6 @@ export default function About() {
           </div>
         </div>
 
-        {/* ── Goals & Objectives ── */}
         <div className="mt-16">
           <div className="flex flex-col items-center text-center mb-10">
             <span className="inline-block text-xs font-bold uppercase tracking-widest mb-3 px-4 py-1.5 rounded-full border"
@@ -174,7 +152,6 @@ export default function About() {
           </div>
         </div>
 
-        {/* ── Stats row ── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-5 mt-16">
           {highlights.map((h, i) => (
             <div key={i}
