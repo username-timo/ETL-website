@@ -37,7 +37,7 @@ const objectives = [
 const highlights = [
   { icon: "🏗️", value: "19+", label: "Years in Operation" },
   { icon: "📋", value: "40+", label: "Projects Delivered" },
-  { icon: "📈", value: "UGX 18B+", label: "Annual Turnover" },
+  { icon: "🇺🇬", value: "UGX 18B+", label: "Annual Turnover" },
   { icon: "👷", value: "50+", label: "Skilled Staff" },
 ];
 
