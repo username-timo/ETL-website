@@ -571,7 +571,7 @@
     <div class="form-grid3">
       <div class="field">
         <label>Quotation Number</label>
-        <input type="text" id="q-num" id="q-num" oninput="document.getElementById('q-number-display').innerText=this.value">
+        <input type="text" id="q-num" oninput="document.getElementById('q-number-display').innerText=this.value">
       </div>
       <div class="field">
         <label>Quotation Date</label>
@@ -584,13 +584,6 @@
     </div>
 
   </div>
-
-  <div class="form-grid" style="padding:0 0 16px 0;">
-      <div class="field full">
-        <label>Payment Terms</label>
-        <input type="text" id="q-payment" value="As per Contract Agreement" placeholder="e.g. 50% Advance, 50% on Completion">
-      </div>
-    </div>
 
   <div class="form-grid" style="padding:0 0 16px 0;">
     <div class="field full">
@@ -641,8 +634,6 @@
       <div class="doc-ref-item"><label>Location</label><span id="p-location-ref"></span></div>
       <div class="doc-ref-item"><label>Duration</label><span id="p-duration-ref"></span></div>
       <div class="doc-ref-item"><label>Payment Terms</label><span id="p-payment-ref"></span></div>
-      <div class="doc-ref-item"><label>Payment Terms</label><span id="p-payment-ref"></span></div>
-      
     </div>
 
     <!-- Parties -->
@@ -698,7 +689,6 @@
         <div class="doc-terms">
           <h4>Terms & Conditions</h4>
           <ul>
-            <li>Payment: <span id="p-terms-payment"></span></li>
             <li>Payment: <span id="p-terms-payment"></span></li>
             <li>Quotation valid until <span id="p-terms-expiry"></span>.</li>
             <li>Subject to site inspection where applicable.</li>
@@ -824,6 +814,20 @@ Click the link below to view, download and print your quotation:`;
 
         // 1. Send to client
         if(cEmail) sendEmail(cEmail, subject, body + '\n\nYour quotation link:\n' + link);
+
+        // 2. Mark the source quotation request as responded
+        if(SOURCE_REQUEST_ID) {
+          fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?id=eq.${SOURCE_REQUEST_ID}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'apikey': SUPABASE_KEY,
+              'Authorization': `Bearer ${SESSION_TOKEN}`,
+              'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify({ status: 'responded', quotation_link: link, responded_at: new Date().toISOString() })
+          }).catch(e => console.warn('Could not update source request status:', e));
+        }
 
         // 2. DISABLED: Send copy to MD (email notifications disabled for now)
         /* sendEmail('timookui@gmail.com', `[COPY] Quotation Sent — ${cName} | ${pTitle}`, `A quotation has been generated and sent to the client.
@@ -956,9 +960,13 @@ The client quotation link is below. You can also view it on the dashboard.` + (l
     }
   });
 
+  // ref_id: the quotation_requests row this quotation was generated from
+  let SOURCE_REQUEST_ID = '';
+
   // Auto-fill from dashboard request if URL params present
   (function() {
     const params = new URLSearchParams(window.location.search);
+    SOURCE_REQUEST_ID = params.get('ref_id') || '';
     if(params.get('client_name')) {
       document.getElementById('c-name').value     = params.get('client_name') || '';
       document.getElementById('c-contact').value  = params.get('contact_person') || '';
