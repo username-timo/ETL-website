@@ -260,6 +260,53 @@
     .autocomplete-list { max-height: 160px; }
     .ac-item { padding: 8px 10px; font-size: 12px; }
   }
+
+  /* EXISTING INVOICES LIST */
+  .inv-list-wrap { margin-bottom: 20px; }
+  .inv-list-card { background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+  .inv-list-header { background:var(--primary); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; }
+  .inv-list-title { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.5px; }
+  .inv-list-controls { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .inv-list-controls select, .inv-list-controls input[type=text] { padding:6px 10px; border-radius:6px; border:1.5px solid rgba(255,255,255,0.3); background:rgba(255,255,255,0.1); color:#fff; font-size:12px; outline:none; font-family:inherit; }
+  .inv-list-controls select option { color:#000; }
+  .inv-list-controls input::placeholder { color:rgba(255,255,255,0.7); }
+  .inv-list-controls .btn-refresh { background:#fff; color:var(--primary); border:none; padding:6px 12px; border-radius:6px; cursor:pointer; font-weight:800; font-size:12px; }
+  .inv-list-table-wrap { overflow-x:auto; }
+  .inv-list-table { width:100%; border-collapse:collapse; font-size:13px; min-width:720px; }
+  .inv-list-table th { background:var(--lighter-bg); padding:10px 12px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); border-bottom:1px solid var(--border); white-space:nowrap; }
+  .inv-list-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:middle; }
+  .inv-list-table td.num { text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap; }
+  .inv-list-table tr:hover td { background:var(--lighter-bg); }
+  .badge { display:inline-block; padding:3px 10px; border-radius:100px; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.4px; white-space:nowrap; }
+  .badge-paid { background:var(--success-bg); color:var(--success); }
+  .badge-partial { background:var(--gold-bg); color:var(--gold); }
+  .badge-unpaid { background:var(--light-bg); color:var(--text-muted); }
+  .badge-overdue { background:var(--danger-bg); color:var(--danger); }
+  .btn-sm { padding:5px 10px; font-size:11px; font-weight:700; border-radius:6px; cursor:pointer; border:none; text-transform:uppercase; letter-spacing:0.3px; white-space:nowrap; }
+  .btn-sm-primary { background:var(--primary); color:#fff; }
+  .btn-sm-primary:hover { background:var(--secondary); }
+  .btn-sm-secondary { background:var(--light-bg); color:var(--primary); border:1.5px solid var(--border); }
+  .btn-sm-secondary:hover { border-color:var(--secondary); color:var(--secondary); }
+  .inv-list-empty { padding:30px 20px; text-align:center; color:var(--text-muted); font-size:13px; }
+
+  /* MODAL */
+  .modal-backdrop { position:fixed; inset:0; background:rgba(15,23,42,0.5); display:none; align-items:center; justify-content:center; z-index:1000; padding:20px; }
+  .modal-backdrop.show { display:flex; }
+  .modal { background:#fff; border-radius:12px; max-width:480px; width:100%; max-height:90vh; overflow:auto; }
+  .modal-header { background:var(--primary); color:#fff; padding:14px 20px; display:flex; justify-content:space-between; align-items:center; border-radius:12px 12px 0 0; }
+  .modal-header h3 { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; text-transform:uppercase; letter-spacing:0.5px; }
+  .modal-close { background:transparent; border:none; color:#fff; font-size:22px; cursor:pointer; padding:0 4px; line-height:1; }
+  .modal-body { padding:20px; }
+  .modal-body .field { margin-bottom:14px; }
+  .modal-footer { padding:14px 20px; border-top:1px solid var(--border); display:flex; justify-content:flex-end; gap:10px; }
+  .pm-summary { padding:10px 14px; background:var(--lighter-bg); border-radius:8px; margin-bottom:16px; font-size:12px; color:var(--text); line-height:1.6; }
+  .payment-history { list-style:none; padding:0; margin:0; }
+  .payment-history li { padding:12px 0; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .payment-history li:last-child { border-bottom:none; }
+  .ph-date { font-weight:700; color:var(--primary); font-size:13px; }
+  .ph-amount { font-weight:800; color:var(--success); white-space:nowrap; font-size:14px; }
+  .ph-meta { color:var(--text-muted); font-size:11px; margin-top:2px; }
+  .ph-note { font-size:12px; color:var(--text); margin-top:4px; font-style:italic; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/etl-auth.js"></script>
@@ -282,6 +329,28 @@
 
 <div id="form-section">
 <div class="page-wrap">
+
+  <!-- EXISTING INVOICES LIST -->
+  <div class="inv-list-wrap">
+    <div class="inv-list-card">
+      <div class="inv-list-header">
+        <div class="inv-list-title">Existing Invoices & Payments</div>
+        <div class="inv-list-controls">
+          <input type="text" id="inv-list-search" placeholder="Search invoice # or client…" oninput="renderInvoiceList()">
+          <select id="inv-list-filter" onchange="renderInvoiceList()">
+            <option value="90">Last 90 days</option>
+            <option value="30">Last 30 days</option>
+            <option value="365">Last 12 months</option>
+            <option value="all">Show all</option>
+          </select>
+          <button class="btn-refresh" onclick="loadInvoiceList()" title="Refresh">↻</button>
+        </div>
+      </div>
+      <div id="inv-list-body">
+        <div class="inv-list-empty">Loading invoices…</div>
+      </div>
+    </div>
+  </div>
 
   <div id="prefill-notice" class="notice" style="display:none;">
     ✅ Invoice pre-filled from LPO. Review and generate when ready.
@@ -940,13 +1009,263 @@ Engineering Trade Links Co. Ltd`;
     }).from(document.getElementById('inv-doc')).save();
   }
 
+  // ──────────── INVOICE LIST & PAYMENT TRACKING ────────────
+  let INVOICES_CACHE = [];
+  let PAYMENT_MODAL_INVOICE_ID = null;
+
+  async function loadInvoiceList() {
+    const body = document.getElementById('inv-list-body');
+    if (!body) return;
+    body.innerHTML = '<div class="inv-list-empty">Loading invoices…</div>';
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/invoices?select=id,invoice_number,client_name,total,due_date,invoice_date,created_at,invoice_payments(amount,payment_date,note,recorded_by,created_at)&order=created_at.desc`;
+      const res = await fetch(url, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
+      });
+      if (!res.ok) throw new Error(await res.text());
+      INVOICES_CACHE = await res.json();
+      renderInvoiceList();
+    } catch (e) {
+      body.innerHTML = `<div class="inv-list-empty">Could not load invoices: ${e.message}</div>`;
+    }
+  }
+
+  function invoiceStatus(inv) {
+    const paid = (inv.invoice_payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
+    const total = Number(inv.total) || 0;
+    const balance = Math.max(0, total - paid);
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const due = inv.due_date ? new Date(inv.due_date) : null;
+    let state;
+    if (total - paid <= 0.009) state = 'paid';
+    else if (paid > 0) state = (due && due < today) ? 'overdue' : 'partial';
+    else state = (due && due < today) ? 'overdue' : 'unpaid';
+    return { paid, balance, state };
+  }
+
+  function fmtShort(n) {
+    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+    if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M';
+    if (n >= 1_000)         return (n / 1_000).toFixed(1) + 'K';
+    return Math.round(n).toLocaleString();
+  }
+
+  function renderInvoiceList() {
+    const body = document.getElementById('inv-list-body');
+    const q = document.getElementById('inv-list-search').value.trim().toLowerCase();
+    const windowDays = document.getElementById('inv-list-filter').value;
+    const cutoff = windowDays === 'all' ? 0 : Date.now() - (parseInt(windowDays, 10) * 86400000);
+
+    const rows = INVOICES_CACHE.filter(inv => {
+      if (cutoff && new Date(inv.created_at).getTime() < cutoff) return false;
+      if (q) {
+        const hay = `${inv.invoice_number || ''} ${inv.client_name || ''}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+
+    if (rows.length === 0) {
+      body.innerHTML = '<div class="inv-list-empty">No invoices match.</div>';
+      return;
+    }
+
+    const badgeMap = { paid: 'badge-paid', partial: 'badge-partial', unpaid: 'badge-unpaid', overdue: 'badge-overdue' };
+    const labelMap = { paid: 'Paid', partial: 'Partial', unpaid: 'Unpaid', overdue: 'Overdue' };
+
+    const html = `
+      <div class="inv-list-table-wrap">
+        <table class="inv-list-table">
+          <thead>
+            <tr>
+              <th>Invoice #</th>
+              <th>Client</th>
+              <th class="num">Total</th>
+              <th class="num">Paid</th>
+              <th class="num">Balance</th>
+              <th>Due</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(inv => {
+              const s = invoiceStatus(inv);
+              const dueStr = inv.due_date
+                ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })
+                : '—';
+              const payCount = (inv.invoice_payments || []).length;
+              return `
+                <tr>
+                  <td><strong>${inv.invoice_number || '—'}</strong></td>
+                  <td>${(inv.client_name || '—').replace(/</g, '&lt;')}</td>
+                  <td class="num">${fmtShort(Number(inv.total) || 0)}</td>
+                  <td class="num">${fmtShort(s.paid)}</td>
+                  <td class="num"><strong>${fmtShort(s.balance)}</strong></td>
+                  <td>${dueStr}</td>
+                  <td><span class="badge ${badgeMap[s.state]}">${labelMap[s.state]}</span></td>
+                  <td style="white-space:nowrap;">
+                    ${s.state !== 'paid' ? `<button class="btn-sm btn-sm-primary" onclick="openPaymentModal('${inv.id}')">+ Pay</button>` : ''}
+                    ${payCount > 0 ? `<button class="btn-sm btn-sm-secondary" onclick="openHistoryModal('${inv.id}')" style="margin-left:4px;">${payCount} ${payCount === 1 ? 'Payment' : 'Payments'}</button>` : ''}
+                  </td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    body.innerHTML = html;
+  }
+
+  function openPaymentModal(invoiceId) {
+    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
+    if (!inv) return;
+    const s = invoiceStatus(inv);
+    PAYMENT_MODAL_INVOICE_ID = invoiceId;
+    document.getElementById('pm-summary').innerHTML = `
+      <div><strong>${inv.invoice_number}</strong> — ${(inv.client_name || '').replace(/</g, '&lt;')}</div>
+      <div>Total: UGX ${Math.round(Number(inv.total) || 0).toLocaleString()} · Paid: UGX ${Math.round(s.paid).toLocaleString()} · <strong>Balance: UGX ${Math.round(s.balance).toLocaleString()}</strong></div>
+    `;
+    document.getElementById('pm-amount').value = '';
+    document.getElementById('pm-amount').setAttribute('max', s.balance);
+    document.getElementById('pm-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('pm-note').value = '';
+    document.getElementById('payment-modal').classList.add('show');
+    setTimeout(() => document.getElementById('pm-amount').focus(), 50);
+  }
+
+  function closePaymentModal() {
+    document.getElementById('payment-modal').classList.remove('show');
+    PAYMENT_MODAL_INVOICE_ID = null;
+  }
+
+  async function recordPayment() {
+    if (!PAYMENT_MODAL_INVOICE_ID) return;
+    const amount = parseFloat(document.getElementById('pm-amount').value);
+    const payDate = document.getElementById('pm-date').value;
+    const note = document.getElementById('pm-note').value.trim();
+    if (!amount || amount <= 0) { alert('Enter a positive amount.'); return; }
+    if (!payDate) { alert('Enter a payment date.'); return; }
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoice_payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SESSION_TOKEN}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          invoice_id: PAYMENT_MODAL_INVOICE_ID,
+          amount,
+          payment_date: payDate,
+          note: note || null
+        })
+      });
+      if (!res.ok) {
+        const err = await res.text();
+        alert('Could not save payment: ' + err);
+        return;
+      }
+      closePaymentModal();
+      await loadInvoiceList();
+    } catch (e) {
+      alert('Network error: ' + e.message);
+    }
+  }
+
+  function openHistoryModal(invoiceId) {
+    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
+    if (!inv) return;
+    const payments = [...(inv.invoice_payments || [])].sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
+    document.getElementById('hm-title').innerText = `Payments — ${inv.invoice_number}`;
+    const total = Number(inv.total) || 0;
+    const paid = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
+    const bal = Math.max(0, total - paid);
+    const body = `
+      <div class="pm-summary">
+        <div><strong>${(inv.client_name || '').replace(/</g, '&lt;')}</strong></div>
+        <div>Total: UGX ${Math.round(total).toLocaleString()} · Paid: UGX ${Math.round(paid).toLocaleString()} · Balance: UGX ${Math.round(bal).toLocaleString()}</div>
+      </div>
+      ${payments.length === 0
+        ? '<div class="inv-list-empty">No payments recorded yet.</div>'
+        : `<ul class="payment-history">${payments.map(p => `
+          <li>
+            <div style="flex:1;">
+              <div class="ph-date">${new Date(p.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+              ${p.note ? `<div class="ph-note">${String(p.note).replace(/</g, '&lt;')}</div>` : ''}
+              <div class="ph-meta">Recorded ${new Date(p.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+            </div>
+            <div class="ph-amount">UGX ${Math.round(Number(p.amount)).toLocaleString()}</div>
+          </li>`).join('')}</ul>`
+      }
+    `;
+    document.getElementById('hm-body').innerHTML = body;
+    document.getElementById('history-modal').classList.add('show');
+  }
+
+  function closeHistoryModal() {
+    document.getElementById('history-modal').classList.remove('show');
+  }
+
+  // Close modals when clicking backdrop
+  document.addEventListener('click', (e) => {
+    if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
+      e.target.classList.remove('show');
+    }
+  });
+
   etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = session ? session.access_token : '';
     await loadInventoryItems();
+    await loadInvoiceList();
     await prefillFromLPO();
   });
 </script>
+
+<!-- RECORD PAYMENT MODAL -->
+<div class="modal-backdrop" id="payment-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Record Payment</h3>
+      <button class="modal-close" onclick="closePaymentModal()">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="pm-summary" class="pm-summary"></div>
+      <div class="field">
+        <label>Amount (UGX) *</label>
+        <input type="number" id="pm-amount" min="1" step="0.01" placeholder="e.g. 500000">
+      </div>
+      <div class="field">
+        <label>Payment Date *</label>
+        <input type="date" id="pm-date">
+      </div>
+      <div class="field">
+        <label>Note (optional)</label>
+        <textarea id="pm-note" rows="2" placeholder="e.g. Cash received at office / Bank ref 12345"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" style="padding:9px 18px;" onclick="closePaymentModal()">Cancel</button>
+      <button class="btn-primary" style="padding:9px 18px;" onclick="recordPayment()">Save Payment</button>
+    </div>
+  </div>
+</div>
+
+<!-- PAYMENT HISTORY MODAL -->
+<div class="modal-backdrop" id="history-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="hm-title">Payment History</h3>
+      <button class="modal-close" onclick="closeHistoryModal()">×</button>
+    </div>
+    <div class="modal-body" id="hm-body"></div>
+    <div class="modal-footer">
+      <button class="btn-secondary" style="padding:9px 18px;" onclick="closeHistoryModal()">Close</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

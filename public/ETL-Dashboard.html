@@ -325,6 +325,29 @@
     </div>
   </div>
 
+  <!-- RECEIVABLES -->
+  <div class="section-title" style="font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);margin:16px 0 12px 2px;">
+    Receivables
+  </div>
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="stat-outstanding" style="font-size:28px;">—</div>
+      <div class="stat-label">Outstanding (UGX)</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-num" id="stat-overdue-count">—</div>
+      <div class="stat-label">Overdue Invoices</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-num" id="stat-overdue-amount" style="font-size:28px;">—</div>
+      <div class="stat-label">Overdue (UGX)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="stat-aging-90" style="font-size:28px;">—</div>
+      <div class="stat-label">Aged 90+ Days (UGX)</div>
+    </div>
+  </div>
+
   <!-- TABS -->
   <div class="tabs">
     <button class="tab-btn active" onclick="switchTab('requests', this)">📋 Quotation Requests</button>
@@ -1006,6 +1029,49 @@ tradelinks.ltd@gmail.com`);
     }
   }
 
+  // ─── Receivables (outstanding + overdue + aging) ───
+  async function loadReceivables() {
+    const ids = ['stat-outstanding','stat-overdue-count','stat-overdue-amount','stat-aging-90'];
+    const setAll = v => ids.forEach(id => document.getElementById(id).innerText = v);
+    const fmtShort = n => {
+      if (n >= 1_000_000_000) return (n/1_000_000_000).toFixed(1) + 'B';
+      if (n >= 1_000_000)     return (n/1_000_000).toFixed(1) + 'M';
+      if (n >= 1_000)         return (n/1_000).toFixed(1) + 'K';
+      return Math.round(n).toString();
+    };
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/invoices?select=id,total,due_date,invoice_payments(amount)`;
+      const r = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` } });
+      if (!r.ok) { setAll('—'); return; }
+      const rows = await r.json();
+      const today = new Date(); today.setHours(0, 0, 0, 0);
+      let outstanding = 0, overdueCount = 0, overdueAmount = 0, aging90 = 0;
+      rows.forEach(inv => {
+        const total = Number(inv.total) || 0;
+        const paid = (inv.invoice_payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
+        const bal = total - paid;
+        if (bal > 0.009) {
+          outstanding += bal;
+          if (inv.due_date) {
+            const due = new Date(inv.due_date); due.setHours(0, 0, 0, 0);
+            if (due < today) {
+              overdueCount++;
+              overdueAmount += bal;
+              const daysOverdue = Math.floor((today - due) / 86400000);
+              if (daysOverdue > 90) aging90 += bal;
+            }
+          }
+        }
+      });
+      document.getElementById('stat-outstanding').innerText    = fmtShort(outstanding);
+      document.getElementById('stat-overdue-count').innerText  = overdueCount;
+      document.getElementById('stat-overdue-amount').innerText = fmtShort(overdueAmount);
+      document.getElementById('stat-aging-90').innerText       = fmtShort(aging90);
+    } catch {
+      setAll('—');
+    }
+  }
+
   etlAuth.init({ forceLogin: true }).then(async () => {
     const profile = await etlAuth.getProfile();
     const user    = await etlAuth.getUser();
@@ -1031,6 +1097,7 @@ tradelinks.ltd@gmail.com`);
     loadRequests();
     loadLPOs();
     load30DayStats();
+    loadReceivables();
     if (currentRole === 'management') loadApprovals();
   });
 </script>
