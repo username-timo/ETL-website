@@ -815,6 +815,27 @@ Click the link below to view, download and print your quotation:`;
         // 1. Send to client
         if(cEmail) sendEmail(cEmail, subject, body + '\n\nYour quotation link:\n' + link);
 
+        // Save to quotations table for cron reminders
+        const quotationPayload = {
+          quote_number:  ref,
+          request_id:    SOURCE_REQUEST_ID || null,
+          client_name:   document.getElementById('c-name').value.trim(),
+          client_email:  document.getElementById('c-email').value.trim(),
+          project_title: document.getElementById('p-title').value.trim(),
+          total:         grand,
+          valid_until:   document.getElementById('q-expiry').value,
+        };
+        fetch(`${SUPABASE_URL}/rest/v1/quotations`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${SESSION_TOKEN}`,
+            'Prefer': 'return=minimal'
+          },
+          body: JSON.stringify(quotationPayload)
+        }).catch(e => console.warn('Could not save to quotations table:', e));
+
         // 2. Mark the source quotation request as responded
         if(SOURCE_REQUEST_ID) {
           fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?id=eq.${SOURCE_REQUEST_ID}`, {
