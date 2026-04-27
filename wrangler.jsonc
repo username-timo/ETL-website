@@ -11,15 +11,9 @@
   "observability": {
     "enabled": true
   },
-  // Non-secret environment variables. These get baked into the Worker at
-  // build time and are safe to commit — the Turnstile site key is public
-  // (it ends up in HTML), and the rest are not sensitive.
-  //
-  // SECRETS still live in the Cloudflare dashboard (Settings → Variables
-  // and Secrets). Current secrets: BREVO_API_KEY, TURNSTILE_SECRET_KEY,
-  // NEXTAUTH_SECRET. Add them via dashboard or:
-  //   wrangler secret put BREVO_API_KEY
-  //   wrangler secret put TURNSTILE_SECRET_KEY
+  "triggers": {
+    "crons": ["0 21 * * *"]
+  },
   "vars": {
     "TURNSTILE_SITE_KEY": "0x4AAAAAADAc5GBnZt-ycRmS",
     "BREVO_SENDER_NAME": "Engineering Trade Links Co. Ltd",
