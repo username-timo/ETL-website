@@ -402,13 +402,20 @@
   .btn-share-close { padding:14px 20px; background:var(--lighter-bg); color:var(--text-muted); border:1.5px solid var(--border); border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; transition:all 0.2s; }
   .btn-share-close:hover { border-color:var(--secondary); color:var(--primary); }
 </style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
   // ── Share Panel ──
   let _shareLink = '';
 
-  function showSharePanel(link, clientName, clientPhone) {
+  function showSharePanel(link, clientName, clientPhone, options = {}) {
+    const title = options.title || 'Quotation Ready to Share';
+    const message = options.message || 'The client will receive the link by email. You can also share it directly via WhatsApp.';
+    const panel = document.querySelector('#share-overlay .share-panel');
+
     _shareLink = link;
     document.getElementById('share-link-input').value = link;
+    panel.querySelector('h3').textContent = title;
+    panel.querySelector('p').textContent = message;
 
     // Build WhatsApp URL
     const phone = (clientPhone || '').replace(/[^0-9+]/g, '');
@@ -835,6 +842,9 @@
       notes:            '',
       status:           'sent'
     };
+    const link = SITE_BASE_URL + '/ETL-Quotation-View.html?q=' + uniqueLink;
+    const clientName = document.getElementById('c-name').value.trim();
+    const clientPhone = document.getElementById('c-phone').value.trim();
 
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests`, {
@@ -847,24 +857,25 @@
         },
         body: JSON.stringify(payload)
       });
-      const link = SITE_BASE_URL + '/ETL-Quotation-View.html?q=' + uniqueLink;
+      let sharePanelOptions = {};
 
       if(!res.ok) {
         const err = await res.json();
         console.error('Supabase error:', err);
         // Still show share panel even if save failed — link is already generated
-        setTimeout(() => {
-          showSharePanel(link, document.getElementById('c-name').value.trim(), document.getElementById('c-phone').value.trim());
-        }, 400);
+        sharePanelOptions = {
+          title: 'Quotation Generated',
+          message: 'The quotation preview is ready, but saving to the shared database failed. You can still copy the link or open WhatsApp while you retry the save.'
+        };
+        alert('Could not save quotation: ' + (err.message || err.details || JSON.stringify(err)));
       } else {
 
         // Send quotation link to client and copy to MD/Director Finance
         const cEmail   = document.getElementById('c-email').value.trim();
-        const cName    = document.getElementById('c-name').value.trim();
         const pTitle   = document.getElementById('p-title').value.trim();
         const payTerms = document.getElementById('q-payment').value.trim();
         const subject  = `Your Quotation from Engineering Trade Links — ${pTitle}`;
-        const body     = `Dear ${cName},
+        const body     = `Dear ${clientName},
 
 Thank you for choosing Engineering Trade Links Co. Ltd.
 
@@ -907,10 +918,16 @@ The client quotation link is below. You can also view it on the dashboard.` + (l
 
       // Always show share panel — link is ready regardless of save status
       setTimeout(() => {
-        showSharePanel(link, document.getElementById('c-name').value.trim(), document.getElementById('c-phone').value.trim());
+        showSharePanel(link, clientName, clientPhone, sharePanelOptions);
       }, 400);
     } catch(e) {
       console.error('Network error:', e);
+      setTimeout(() => {
+        showSharePanel(link, clientName, clientPhone, {
+          title: 'Quotation Generated',
+          message: 'The quotation preview is ready, but the database request could not be completed. You can still copy the link or open WhatsApp while you retry the save.'
+        });
+      }, 400);
       alert('Network error saving quotation: ' + e.message);
     }
   }
