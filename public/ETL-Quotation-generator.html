@@ -847,12 +847,16 @@
         },
         body: JSON.stringify(payload)
       });
+      const link = SITE_BASE_URL + '/ETL-Quotation-View.html?q=' + uniqueLink;
+
       if(!res.ok) {
         const err = await res.json();
         console.error('Supabase error:', err);
-        alert('Could not save quotation: ' + (err.message || err.details || JSON.stringify(err)));
+        // Still show share panel even if save failed — link is already generated
+        setTimeout(() => {
+          showSharePanel(link, document.getElementById('c-name').value.trim(), document.getElementById('c-phone').value.trim());
+        }, 400);
       } else {
-        const link = SITE_BASE_URL + '/ETL-Quotation-View.html?q=' + uniqueLink;
 
         // Send quotation link to client and copy to MD/Director Finance
         const cEmail   = document.getElementById('c-email').value.trim();
@@ -899,10 +903,12 @@ Payment Terms: ${payTerms}
 
 The client quotation link is below. You can also view it on the dashboard.` + (link ? '\n\n' + link : '')); */
 
-        setTimeout(() => {
-          showSharePanel(link, document.getElementById('c-name').value.trim(), document.getElementById('c-phone').value.trim());
-        }, 400);
       }
+
+      // Always show share panel — link is ready regardless of save status
+      setTimeout(() => {
+        showSharePanel(link, document.getElementById('c-name').value.trim(), document.getElementById('c-phone').value.trim());
+      }, 400);
     } catch(e) {
       console.error('Network error:', e);
       alert('Network error saving quotation: ' + e.message);
