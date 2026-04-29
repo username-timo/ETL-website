@@ -102,7 +102,13 @@
   .action-btn:disabled, .action-btn.disabled { opacity: 0.4; cursor: not-allowed; }
 
   /* Actions column styling */
-  #lpos-body table td:last-child { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }
+  .lpo-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+  .lpo-actions .status-select { width: 100%; max-width: 170px; }
 
   table { width: 100%; border-collapse: collapse; }
 
@@ -660,7 +666,7 @@ ${(()=>{
         <td>UGX ${(l.total||0).toLocaleString()}</td>
         <td>${fmtDate(l.created_at)}</td>
         <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
-        <td>
+        <td><div class="lpo-actions">
           <button class="action-btn" onclick="showLPO(${i})">View</button>
           ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">⏳ Awaiting Approval</span>`}
           ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
@@ -678,7 +684,7 @@ ${(()=>{
               ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>🔒 Closed</option>` : `<option value="closed" disabled>🔒 Closed</option>`}
             </select>`;
           })()}
-        </td>
+        </div></td>
       </tr>`).join('');
 
     body.innerHTML = `
@@ -780,7 +786,7 @@ ${(()=>{
           <td>UGX ${(l.total||0).toLocaleString()}</td>
           <td>${fmtDate(l.created_at)}</td>
           <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
-          <td>
+          <td><div class="lpo-actions">
             <button class="action-btn" onclick="showLPO(${i})">View</button>
             ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">⏳ Awaiting Approval</span>`}
             ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
@@ -798,7 +804,7 @@ ${(()=>{
                 ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>🔒 Closed</option>` : `<option value="closed" disabled>🔒 Closed</option>`}
               </select>`;
             })()}
-          </td>
+          </div></td>
         </tr>`).join('');
 
       document.getElementById('lpos-body').innerHTML = `
@@ -1370,7 +1376,7 @@ ${(()=>{
           <td>UGX ${(l.total||0).toLocaleString()}</td>
           <td>${fmtDate(l.created_at)}</td>
           <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
-          <td>
+          <td><div class="lpo-actions">
             <button class="action-btn" onclick="showLPOById('${l.id}')">View</button>
             ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">⏳ Awaiting Approval</span>`}
             ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
@@ -1388,7 +1394,7 @@ ${(()=>{
                 ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>🔒 Closed</option>` : `<option value="closed" disabled>🔒 Closed</option>`}
               </select>`;
             })()}
-          </td>
+          </div></td>
         </tr>`).join('');
 
       document.getElementById('lpos-body').innerHTML = `
