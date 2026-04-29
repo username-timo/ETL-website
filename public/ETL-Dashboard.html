@@ -1236,7 +1236,8 @@ tradelinks.ltd@gmail.com`);
   }
 
   // ─── OVERRIDE switchTab to include approvals + invoices ───
-  function switchTab(tab, btn) {
+  function switchTab(tab, btn, options) {
+    options = options || {};
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     if (btn) {
       btn.classList.add('active');
@@ -1249,12 +1250,39 @@ tradelinks.ltd@gmail.com`);
     document.getElementById('tab-invoices').style.display  = tab === 'invoices'  ? '' : 'none';
     document.getElementById('tab-approvals').style.display = tab === 'approvals' ? '' : 'none';
     if(tab === 'lpos')      loadLPOs();
-    if(tab === 'invoices')  loadInvoiceList();
+    if(tab === 'invoices' && !options.skipInvoiceLoad)  loadInvoiceList();
     if(tab === 'approvals') loadApprovals();
   }
 
   // ─── KPI card click-through: switch tab with optional filter preset ───
-  function switchTabByName(tab, filter) {
+  async function switchTabByName(tab, filter) {
+    if (tab === 'invoices') {
+      switchTab(tab, null, { skipInvoiceLoad: true });
+      const sel = document.getElementById('inv-list-filter');
+      const lab = document.getElementById('inv-filter-label');
+      const labels = {
+        all: '',
+        outstanding: 'Outstanding only',
+        overdue: 'Overdue only',
+        aged90: 'Aged 90+ days',
+        last30: 'Last 30 days',
+        last90: 'Last 90 days',
+        last365: 'Last 12 months'
+      };
+      if (sel) {
+        sel.value = filter || 'all';
+        INV_FILTER = sel.value;
+      }
+      if (lab) {
+        if (labels[INV_FILTER]) { lab.style.display = ''; lab.innerText = '• ' + labels[INV_FILTER]; }
+        else { lab.style.display = 'none'; lab.innerText = ''; }
+      }
+      await loadInvoiceList();
+      const invoiceHeader = document.querySelector('#tab-invoices .table-header');
+      if (invoiceHeader) invoiceHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
     switchTab(tab);
     setTimeout(() => {
       if (tab === 'requests') {
@@ -1264,13 +1292,6 @@ tradelinks.ltd@gmail.com`);
       if (tab === 'lpos') {
         window._lpoFilter = filter || 'all';
         loadLPOs();
-      }
-      if (tab === 'invoices') {
-        const sel = document.getElementById('inv-list-filter');
-        if (sel) {
-          sel.value = filter || 'all';
-          onInvFilterChange();
-        }
       }
       const el = document.getElementById('tab-' + tab);
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
