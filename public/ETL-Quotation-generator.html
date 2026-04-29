@@ -847,7 +847,7 @@
     const clientPhone = document.getElementById('c-phone').value.trim();
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotations_generated`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -891,7 +891,7 @@ Click the link below to view, download and print your quotation:`;
 
         // 2. Mark the source quotation request as responded
         if(SOURCE_REQUEST_ID) {
-          fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?id=eq.${SOURCE_REQUEST_ID}`, {
+          fetch(`${SUPABASE_URL}/rest/v1/quotations?id=eq.${SOURCE_REQUEST_ID}`, {
             method: 'PATCH',
             headers: {
               'Content-Type': 'application/json',
@@ -1042,7 +1042,7 @@ The client quotation link is below. You can also view it on the dashboard.` + (l
     }
   });
 
-  // ref_id: the quotation_requests row this quotation was generated from
+  // ref_id: the quotations row this quotation was generated from
   let SOURCE_REQUEST_ID = '';
 
   // Auto-fill from dashboard request if URL params present

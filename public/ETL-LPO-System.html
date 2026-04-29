@@ -932,7 +932,7 @@ LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\
     if(!qLink) return;
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotation_requests?unique_link=eq.${qLink}&limit=1`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotations_generated?unique_link=eq.${qLink}&limit=1`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN || SUPABASE_KEY}` }
       });
       const data = await res.json();

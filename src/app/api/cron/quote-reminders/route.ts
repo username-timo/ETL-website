@@ -37,7 +37,7 @@ export const GET = async (request: NextRequest) => {
   let quotations: QuotationRow[] = [];
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/quotations?valid_until=eq.${targetDate}&select=id,quote_number,client_name,client_email,project_title,valid_until,total`,
+      `${SUPABASE_URL}/rest/v1/quotations_generated?valid_until=eq.${targetDate}&select=id,quote_number,client_name,client_email,project_title,valid_until,total`,
       {
         headers: {
           apikey: supabaseKey,
