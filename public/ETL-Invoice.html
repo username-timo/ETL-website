@@ -555,21 +555,7 @@
   let SESSION_TOKEN = '';
 
   // ── Inventory Autocomplete ──
-      });
-      const data = await res.json();
-      if(Array.isArray(data)) inventoryItems = data;
-    } catch(e) { console.warn('Could not load inventory:', e); }
-  }
 
-  document.addEventListener('mousedown', function(e) {
-    if(!e.target.closest('.desc-wrap'))
-      document.querySelectorAll('.autocomplete-list.show').forEach(l => l.classList.remove('show'));
-  });
-
-
-    list.classList.remove('show');
-    list.innerHTML = '';
-  }
 
   function fmt(n) { return 'UGX ' + Math.round(n||0).toLocaleString(); }
   function fmtNum(n) { return Math.round(n||0).toLocaleString(); }
