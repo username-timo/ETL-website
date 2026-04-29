@@ -10,9 +10,9 @@ begin
 end;
 $$;
 
-drop table if exists public.quotations_generated;
-drop table if exists public.quotation_requests;
-drop table if exists public.quotations;
+drop table if exists public.quotations_generated cascade;
+drop table if exists public.quotations cascade;
+drop table if exists public.quotation_requests cascade;
 
 create table public.quotations (
   id uuid primary key default gen_random_uuid(),
@@ -80,6 +80,60 @@ create index quotations_generated_ref_id_idx on public.quotations_generated(ref_
 create index quotations_generated_created_at_idx on public.quotations_generated(created_at desc);
 create index quotations_generated_valid_until_idx on public.quotations_generated(valid_until);
 create index quotations_generated_client_email_idx on public.quotations_generated(client_email);
+
+alter table public.quotations enable row level security;
+alter table public.quotations_generated enable row level security;
+
+drop policy if exists quotations_public_insert on public.quotations;
+create policy quotations_public_insert
+on public.quotations
+for insert
+to anon
+with check (true);
+
+drop policy if exists quotations_authenticated_select on public.quotations;
+create policy quotations_authenticated_select
+on public.quotations
+for select
+to authenticated
+using (true);
+
+drop policy if exists quotations_authenticated_update on public.quotations;
+create policy quotations_authenticated_update
+on public.quotations
+for update
+to authenticated
+using (true)
+with check (true);
+
+drop policy if exists quotations_generated_public_select on public.quotations_generated;
+create policy quotations_generated_public_select
+on public.quotations_generated
+for select
+to anon
+using (status in ('sent', 'approved'));
+
+drop policy if exists quotations_generated_authenticated_select on public.quotations_generated;
+create policy quotations_generated_authenticated_select
+on public.quotations_generated
+for select
+to authenticated
+using (true);
+
+drop policy if exists quotations_generated_authenticated_insert on public.quotations_generated;
+create policy quotations_generated_authenticated_insert
+on public.quotations_generated
+for insert
+to authenticated
+with check (true);
+
+drop policy if exists quotations_generated_authenticated_update on public.quotations_generated;
+create policy quotations_generated_authenticated_update
+on public.quotations_generated
+for update
+to authenticated
+using (true)
+with check (true);
 
 drop trigger if exists quotations_set_updated_at on public.quotations;
 create trigger quotations_set_updated_at
