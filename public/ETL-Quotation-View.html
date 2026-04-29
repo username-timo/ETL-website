@@ -278,7 +278,8 @@
     window._quotationData = q; // store for LPO pre-fill
     document.getElementById('p-qnum').innerText    = q.reference || '—';
     document.getElementById('p-ref').innerText     = q.reference || '—';
-    document.getElementById('p-date').innerText    = fmtDate(q.created_at);
+    document.getElementById('p-date').innerText    = fmtDate(q.quote_date || q.created_at);
+    document.getElementById('p-expiry').innerText  = fmtDate(q.valid_until);
     document.getElementById('p-project').innerText = q.project_title || '—';
     document.getElementById('p-location').innerText= q.project_location || '—';
     document.getElementById('p-status').innerText  = q.status || '—';

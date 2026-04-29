@@ -825,6 +825,7 @@
 
     const uniqueLink = crypto.randomUUID();
     const payload = {
+      ref_id:           SOURCE_REQUEST_ID || null,
       reference:        ref,
       unique_link:      uniqueLink,
       client_name:      document.getElementById('c-name').value.trim(),
@@ -834,7 +835,12 @@
       client_address:   document.getElementById('c-address').value.trim(),
       project_title:    document.getElementById('p-title').value.trim(),
       project_location: document.getElementById('p-location').value.trim(),
+      services_category: document.getElementById('p-cat').value.trim(),
+      project_duration: document.getElementById('p-duration').value.trim(),
       project_description: document.getElementById('p-scope').value.trim(),
+      quote_date:       document.getElementById('q-date').value || null,
+      valid_until:      document.getElementById('q-expiry').value || null,
+      payment_terms:    document.getElementById('q-payment').value.trim(),
       items:            items,
       subtotal:         sub,
       vat:              vat,

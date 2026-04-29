@@ -37,7 +37,7 @@ export const GET = async (request: NextRequest) => {
   let quotations: QuotationRow[] = [];
   try {
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/quotations_generated?valid_until=eq.${targetDate}&select=id,quote_number,client_name,client_email,project_title,valid_until,total`,
+      `${SUPABASE_URL}/rest/v1/quotations_generated?valid_until=eq.${targetDate}&select=id,reference,client_name,client_email,project_title,valid_until,total`,
       {
         headers: {
           apikey: supabaseKey,
@@ -87,7 +87,7 @@ export const GET = async (request: NextRequest) => {
 This is a friendly reminder that your quotation from Engineering Trade Links Co. Ltd is expiring in 3 days.
 
 QUOTATION DETAILS:
-Quote Reference: ${q.quote_number || q.id}
+Quote Reference: ${q.reference || q.id}
 Project: ${q.project_title || "—"}
 Amount: ${formattedTotal}
 Valid Until: ${formattedDate}
@@ -119,7 +119,7 @@ Plot 1353, Sonde-Seeta Road, Mukono
       });
 
       if (emailRes.ok) {
-        console.info(`[cron] Reminder sent to ${q.client_email} for quote ${q.quote_number}`);
+        console.info(`[cron] Reminder sent to ${q.client_email} for quote ${q.reference}`);
         results.push({ id: q.id, email: q.client_email, status: "sent" });
       } else {
         const errText = await emailRes.text();
@@ -146,6 +146,7 @@ Plot 1353, Sonde-Seeta Road, Mukono
 // ── Types ──────────────────────────────────────────────────────────────────
 type QuotationRow = {
   id: string;
+  reference?: string;
   quote_number?: string;
   client_name?: string;
   client_email?: string;
