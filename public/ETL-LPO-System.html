@@ -7,6 +7,7 @@
 <title>ETL | LPO Management System</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="/etl-utils.js"></script>
 <style>
   :root {
     --primary:    #1a3c6e;
@@ -677,9 +678,37 @@
     catch(e) { return val; }
   }
 
-  function generateLPO() {
-    const eName = document.getElementById('entity-name').value.trim();
-    if(!eName) { alert('Please enter a supplier/client name before generating.'); return; }
+  async function generateLPO() {
+    const isOut = currentMode === 'outward';
+    const missing = [];
+    const eName = ETLUtils.requireText('entity-name', isOut ? 'Supplier name' : 'Client name', missing);
+    ETLUtils.requireText('entity-email', 'Entity email', missing);
+    ETLUtils.requireText('lpo-ref', 'LPO number', missing);
+    const issueDate = ETLUtils.requireText('date-issue', 'Issue date', missing);
+    const deliveryDate = ETLUtils.requireText('date-delivery', 'Delivery date', missing);
+    ETLUtils.requireText('project-name', 'Project / contract title', missing);
+
+    if(missing.length) {
+      alert('Please complete these required fields before generating:\n\n- ' + missing.join('\n- '));
+      return;
+    }
+    if(new Date(deliveryDate) < new Date(issueDate)) {
+      alert('The delivery date cannot be earlier than the issue date.');
+      return;
+    }
+
+    const rows = document.querySelectorAll('#items-list tr');
+    const { items, subtotal: grand } = ETLUtils.sanitizeItems(rows, {
+      desc: '.i-desc',
+      unit: '.i-unit',
+      qty: '.i-qty',
+      price: '.i-price'
+    });
+    const invalidItem = items.find(item => item.qty <= 0 || item.price <= 0 || item.total <= 0);
+    if(!items.length || invalidItem) {
+      alert('Please add at least one valid line item with a description, positive quantity, and positive unit price.');
+      return;
+    }
 
     // Public submitters must pass Turnstile before we save + notify
     if(IS_ANON) {
@@ -691,17 +720,15 @@
       }
     }
 
-    const isOut = currentMode === 'outward';
-
     // Header
     document.getElementById('doc-hdr').className      = 'doc-header ' + (isOut ? 'doc-header-out' : 'doc-header-in');
     document.getElementById('p-direction-badge').innerText = isOut ? 'OUTWARD LPO' : 'INWARD LPO';
 
     document.getElementById('p-lpo-ref').innerText   = decode(document.getElementById('lpo-ref').value);
-    document.getElementById('p-date-i').innerText    = fmtDate(document.getElementById('date-issue').value);
-    document.getElementById('p-date-d').innerText    = fmtDate(document.getElementById('date-delivery').value);
-    document.getElementById('p-project').innerText   = document.getElementById('project-name').value || '—';
-    document.getElementById('p-delivery-loc').innerText = document.getElementById('delivery-location').value || '—';
+    document.getElementById('p-date-i').innerText    = fmtDate(issueDate);
+    document.getElementById('p-date-d').innerText    = fmtDate(deliveryDate);
+    document.getElementById('p-project').innerText   = document.getElementById('project-name').value || '-';
+    document.getElementById('p-delivery-loc').innerText = document.getElementById('delivery-location').value || '-';
     document.getElementById('p-pay-terms').innerText = document.getElementById('pay-terms').value;
 
     // Parties
@@ -716,50 +743,34 @@
 
     document.getElementById('p-preparer-sig').innerText = 'Prepared By: ' + (document.getElementById('preparer').value || 'ETL Logistics');
 
-    // Total row color
     const totalRow = document.getElementById('p-total-row');
     totalRow.className = 'doc-total-row ' + (isOut ? 'doc-total-out' : 'doc-total-in');
 
-    // Notes
     const notes = document.getElementById('special-notes').value.trim();
     if(notes) {
       document.getElementById('p-notes-block').style.display = 'block';
       document.getElementById('p-notes-text').innerText = notes;
+    } else {
+      document.getElementById('p-notes-block').style.display = 'none';
     }
 
-    // Items
-    const rows  = document.querySelectorAll('#items-list tr');
     const tbody = document.getElementById('p-items-body');
-    tbody.innerHTML = '';
-    let grand = 0, n = 1;
-
-    rows.forEach(row => {
-      const desc  = row.querySelector('.i-desc').value.trim();
-      const unit  = row.querySelector('.i-unit').value;
-      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
-      const price = parseFloat(row.querySelector('.i-price').value) || 0;
-      const total = qty * price;
-      grand += total;
-      if(desc) {
-        tbody.innerHTML += `
-          <tr>
-            <td>${n++}</td>
-            <td>${desc}</td>
-            <td>${unit}</td>
-            <td>${qty}</td>
-            <td style="text-align:right;">${fmt(price)}</td>
-            <td>${fmt(total)}</td>
-          </tr>`;
-      }
-    });
+    tbody.innerHTML = items.map((item, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${ETLUtils.escapeHtml(item.desc)}</td>
+        <td>${ETLUtils.escapeHtml(item.unit)}</td>
+        <td>${item.qty}</td>
+        <td style="text-align:right;">${fmt(item.price)}</td>
+        <td>${fmt(item.total)}</td>
+      </tr>`).join('');
 
     document.getElementById('p-grand-total').innerText = fmt(grand);
 
     document.getElementById('form-section').style.display    = 'none';
     document.getElementById('preview-section').style.display = 'block';
     window.scrollTo(0, 0);
-    // Save to Supabase
-    saveLPOToSupabase();
+    await saveLPOToSupabase(items, grand);
   }
 
 
@@ -795,20 +806,7 @@
   let IS_ANON = false;
   let TURNSTILE_WIDGET_ID = null;
 
-  async function saveLPOToSupabase() {
-    const rows = document.querySelectorAll('#items-list tr');
-    const items = [];
-    let grand = 0;
-    rows.forEach(row => {
-      const desc  = row.querySelector('.i-desc').value.trim();
-      const unit  = row.querySelector('.i-unit').value;
-      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
-      const price = parseFloat(row.querySelector('.i-price').value) || 0;
-      const total = qty * price;
-      grand += total;
-      if(desc) items.push({ desc, unit, qty, price, total });
-    });
-
+  async function saveLPOToSupabase(items, grand) {
     const uniqueLink = crypto.randomUUID();
 
     const payload = {
@@ -831,8 +829,8 @@
     };
 
     // When anonymous (public client), we pass the Turnstile token through to the
-    // email endpoint. The /rest/v1/lpos call uses the anon key — an RLS policy
-    // on the lpos table restricts anon INSERT to inward + pending_approval.
+    // email endpoint. The /rest/v1/lpos call uses the anon key. RLS restricts
+    // anonymous INSERT to inward + pending_approval.
     const bearer = SESSION_TOKEN || SUPABASE_KEY;
     const tsToken = (IS_ANON && window.turnstile && TURNSTILE_WIDGET_ID !== null)
       ? window.turnstile.getResponse(TURNSTILE_WIDGET_ID) : '';
@@ -849,60 +847,46 @@
         body: JSON.stringify(payload)
       });
 
-      if(res.ok) {
-        const link = SITE_BASE_URL + '/ETL-LPO-View.html?lpo=' + uniqueLink;
-        const isOut = currentMode === 'outward';
-
-        // Send email notification
-        // Send notification to MD/DF with LPO link
-        const cleanLpoNum = payload.lpo_number.replace(/&#x2F;/g, '/').replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
-        // Notify ETL staff - DISABLED
-        /* sendEmail('tokui@usiu.ac.ke', `🔔 New ${isOut ? 'Outward' : 'Inward'} LPO Submitted — ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and is pending approval.
-
-LPO Number: ${cleanLpoNum}
-Direction: ${isOut ? 'OUTWARD (ETL → Supplier)' : 'INWARD (Client → ETL)'}
-Entity: ${payload.entity_name}
-Email: ${payload.entity_email}
-Phone: ${payload.entity_phone}
-Issue Date: ${payload.issue_date}
-Delivery Date: ${payload.delivery_date}
-Total: UGX ${payload.total.toLocaleString()}
-Notes: ${payload.notes || 'None'}
-
-LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\n' + DASHBOARD_URL); */
-
-        // Notify MD - ACTION REQUIRED (kept enabled)
-        // Anonymous public clients go through the public_lpo_submit flow (Turnstile + rate limited).
-        // Authenticated staff go through internal_ops.
-        const emailOpts = IS_ANON
-          ? { flow: 'public_lpo_submit', context: 'public-lpo-submit', turnstileToken: tsToken }
-          : { flow: 'internal_ops', context: 'lpo-system' };
-        sendEmail('timookui@gmail.com', `🔔 New ${isOut ? 'Outward' : 'Inward'} LPO Pending Approval — ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and requires your approval.
-
-LPO Number: ${cleanLpoNum}
-Direction: ${isOut ? 'OUTWARD (ETL → Supplier)' : 'INWARD (Client → ETL)'}
-Entity: ${payload.entity_name}
-Email: ${payload.entity_email}
-Phone: ${payload.entity_phone}
-Issue Date: ${payload.issue_date}
-Delivery Date: ${payload.delivery_date}
-Total: UGX ${payload.total.toLocaleString()}
-Notes: ${payload.notes || 'None'}
-
-LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\n' + DASHBOARD_URL, emailOpts);
-
-        setTimeout(() => {
-          if(isOut) {
-            prompt('✅ LPO saved successfully!\n\nShare this link with the supplier so they can view their LPO:', link);
-          } else {
-            prompt('✅ Inward LPO recorded successfully!\n\nLPO Reference: ' + cleanLpoNum + '\n\nClient view link:', link);
-          }
-        }, 500);
-      } else {
-        alert('Could not save LPO to database. Please check your connection.');
+      if(!res.ok) {
+        alert('Could not save LPO: ' + await ETLUtils.readResponseError(res));
+        return false;
       }
+
+      const link = SITE_BASE_URL + '/ETL-LPO-View.html?lpo=' + uniqueLink;
+      const isOut = currentMode === 'outward';
+      const cleanLpoNum = payload.lpo_number.replace(/&#x2F;/g, '/').replace(/&amp;/g, '&').replace(/&#x27;/g, "'");
+      const emailOpts = IS_ANON
+        ? { flow: 'public_lpo_submit', context: 'public-lpo-submit', turnstileToken: tsToken }
+        : { flow: 'internal_ops', context: 'lpo-system' };
+      sendEmail('timookui@gmail.com', `New ${isOut ? 'Outward' : 'Inward'} LPO Pending Approval - ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and requires your approval.
+
+LPO Number: ${cleanLpoNum}
+Direction: ${isOut ? 'OUTWARD (ETL -> Supplier)' : 'INWARD (Client -> ETL)'}
+Entity: ${payload.entity_name}
+Email: ${payload.entity_email}
+Phone: ${payload.entity_phone}
+Issue Date: ${payload.issue_date}
+Delivery Date: ${payload.delivery_date}
+Total: UGX ${payload.total.toLocaleString()}
+Notes: ${payload.notes || 'None'}
+
+LPO View Link:
+${link}
+
+Dashboard:
+${DASHBOARD_URL}`, emailOpts);
+
+      setTimeout(() => {
+        if(isOut) {
+          prompt('LPO saved successfully!\n\nShare this link with the supplier so they can view their LPO:', link);
+        } else {
+          prompt('Inward LPO recorded successfully!\n\nLPO Reference: ' + cleanLpoNum + '\n\nClient view link:', link);
+        }
+      }, 500);
+      return true;
     } catch(e) {
       alert('Network error saving LPO: ' + e.message);
+      return false;
     }
   }
 

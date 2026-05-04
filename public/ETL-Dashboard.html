@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/etl-auth.js"></script>
+<script src="/etl-utils.js"></script>
 <style>
   :root {
     --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
@@ -854,27 +855,30 @@ ${(()=>{
 
   function showLPO(i, directRecord) {
     const l = directRecord || window._lpoData[i];
-    const items = (l.items || []).map((i,n) => `<tr><td>${n+1}</td><td>${i.desc}</td><td>${i.unit}</td><td>${i.qty}</td><td>UGX ${(i.price||0).toLocaleString()}</td><td>UGX ${(i.total||0).toLocaleString()}</td></tr>`).join('');
+    const esc = ETLUtils.escapeHtml;
+    const direction = esc(l.direction || '');
+    const status = esc(l.status || '');
+    const items = (l.items || []).map((item,n) => `<tr><td>${n+1}</td><td>${esc(item.desc || '')}</td><td>${esc(item.unit || '')}</td><td>${esc(item.qty ?? 0)}</td><td>${ETLUtils.fmtMoney(item.price || 0)}</td><td>${ETLUtils.fmtMoney(item.total || 0)}</td></tr>`).join('');
     document.getElementById('modal-content').innerHTML = `
-      <h2>📦 LPO Details</h2>
+      <h2>LPO Details</h2>
       <div class="modal-grid">
-        <div class="modal-field"><label>LPO Number</label><p>${l.lpo_number || '—'}</p></div>
-        <div class="modal-field"><label>Direction</label><p><span class="badge badge-${l.direction}">${l.direction}</span></p></div>
-        <div class="modal-field"><label>Entity Name</label><p>${l.entity_name || '—'}</p></div>
-        <div class="modal-field"><label>Email</label><p>${l.entity_email || '—'}</p></div>
+        <div class="modal-field"><label>LPO Number</label><p>${esc(l.lpo_number || '-')}</p></div>
+        <div class="modal-field"><label>Direction</label><p><span class="badge badge-${direction}">${direction}</span></p></div>
+        <div class="modal-field"><label>Entity Name</label><p>${esc(l.entity_name || '-')}</p></div>
+        <div class="modal-field"><label>Email</label><p>${esc(l.entity_email || '-')}</p></div>
         <div class="modal-field"><label>Issue Date</label><p>${fmtDate(l.issue_date)}</p></div>
         <div class="modal-field"><label>Delivery Date</label><p>${fmtDate(l.delivery_date)}</p></div>
-        <div class="modal-field"><label>Total Amount</label><p><strong>UGX ${(l.total||0).toLocaleString()}</strong></p></div>
-        <div class="modal-field"><label>Status</label><p><span class="badge badge-${l.status}">${l.status}</span></p></div>
-        ${l.project_name ? `<div class="modal-field full"><label>Project / Contract Title</label><p>${l.project_name}</p></div>` : ''}${l.delivery_location ? `<div class="modal-field"><label>Delivery Location</label><p>${l.delivery_location}</p></div>` : ''}${l.notes ? `<div class="modal-field full"><label>Notes</label><p>${l.notes}</p></div>` : ''}
+        <div class="modal-field"><label>Total Amount</label><p><strong>${ETLUtils.fmtMoney(l.total || 0)}</strong></p></div>
+        <div class="modal-field"><label>Status</label><p><span class="badge badge-${status}">${status}</span></p></div>
+        ${l.project_name ? `<div class="modal-field full"><label>Project / Contract Title</label><p>${esc(l.project_name)}</p></div>` : ''}${l.delivery_location ? `<div class="modal-field"><label>Delivery Location</label><p>${esc(l.delivery_location)}</p></div>` : ''}${l.notes ? `<div class="modal-field full"><label>Notes</label><p>${esc(l.notes)}</p></div>` : ''}
       </div>
       ${items ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:var(--lighter-bg)"><th style="padding:8px;text-align:left">#</th><th style="padding:8px;text-align:left">Description</th><th style="padding:8px">Unit</th><th style="padding:8px">Qty</th><th style="padding:8px">Price</th><th style="padding:8px">Total</th></tr></thead><tbody>${items}</tbody></table>` : ''}
       <div class="modal-actions">
         <button class="modal-btn secondary" onclick="closeModal()">Close</button>
-        ${l.direction === 'outward' && l.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${l.unique_link}')">📋 Copy Supplier Link</button>` : ''}
+        ${l.direction === 'outward' && l.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${esc(l.unique_link)}')">Copy Supplier Link</button>` : ''}
         ${l.status === 'pending_approval' && currentRole === 'management'
-          ? `<button class="modal-btn green" onclick="approveLPO('${l.id}');closeModal()">✅ Approve</button>
-             <button class="modal-btn danger" onclick="rejectLPO('${l.id}');closeModal()">❌ Reject</button>`
+          ? `<button class="modal-btn green" onclick="approveLPO('${esc(l.id)}');closeModal()">Approve</button>
+             <button class="modal-btn danger" onclick="rejectLPO('${esc(l.id)}');closeModal()">Reject</button>`
           : ''}
       </div>`;
     document.getElementById('detail-modal').classList.add('open');
@@ -1078,11 +1082,15 @@ ${(()=>{
     const reason = prompt('Enter rejection reason (optional):');
     if(reason === null) return;
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${id}`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}`, 'Prefer': 'return=minimal' },
         body: JSON.stringify({ status: 'rejected', notes: reason || 'Rejected by management' })
       });
+      if(!res.ok) {
+        alert('Could not reject LPO: ' + await ETLUtils.readResponseError(res));
+        return;
+      }
       alert('LPO has been rejected.');
       loadApprovals();
       loadLPOs();
@@ -1092,12 +1100,16 @@ ${(()=>{
   async function approveLPO(id) {
     if(!confirm('Approve this LPO?')) return;
     try {
-      await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${id}`, {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}`, 'Prefer': 'return=minimal' },
         body: JSON.stringify({ status: 'approved' })
       });
-      alert('✅ LPO approved successfully!');
+      if(!res.ok) {
+        alert('Could not approve LPO: ' + await ETLUtils.readResponseError(res));
+        return;
+      }
+      alert('LPO approved successfully!');
       loadApprovals();
       loadLPOs();
     } catch(e) { alert('Error: ' + e.message); }
@@ -1650,6 +1662,14 @@ ${(()=>{
     const note = document.getElementById('pm-note').value.trim();
     if (!amount || amount <= 0) { alert('Enter a positive amount.'); return; }
     if (!payDate) { alert('Enter a payment date.'); return; }
+    const invoice = INVOICES_CACHE.find(inv => inv.id === PAYMENT_MODAL_INVOICE_ID);
+    if (invoice) {
+      const status = invoiceStatus(invoice);
+      if (amount > status.balance + 0.009) {
+        alert('Payment exceeds the remaining balance of ' + ETLUtils.fmtMoney(status.balance) + '.');
+        return;
+      }
+    }
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/invoice_payments`, {
         method: 'POST',
@@ -1667,8 +1687,7 @@ ${(()=>{
         })
       });
       if (!res.ok) {
-        const err = await res.text();
-        alert('Could not save payment: ' + err);
+        alert('Could not save payment: ' + await ETLUtils.readResponseError(res));
         return;
       }
       closePaymentModal();

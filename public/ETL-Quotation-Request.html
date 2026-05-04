@@ -7,6 +7,7 @@
 <title>ETL | Request a Quotation</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script src="/etl-utils.js"></script>
 <style>
   :root {
     --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
@@ -345,46 +346,20 @@
     }
   }
 
-  function parseMissingColumnMessage(detail) {
-    const text = String(detail || '');
-    const match = text.match(/Could not find the '([^']+)' column of 'quotations'/i);
-    return match ? match[1] : '';
-  }
-
   async function submitQuotationPayload(payload) {
-    const workingPayload = { ...payload };
-    const headers = {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Prefer': 'return=minimal'
-    };
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/quotations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_KEY,
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+        'Prefer': 'return=minimal'
+      },
+      body: JSON.stringify(payload)
+    });
 
-    for(let attempt = 0; attempt < 8; attempt++) {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotations`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify(workingPayload)
-      });
-
-      if(res.ok) return { ok: true };
-
-      let err;
-      try {
-        err = await res.json();
-      } catch {
-        err = { message: await res.text() };
-      }
-
-      const missingColumn = parseMissingColumnMessage(err?.message) || parseMissingColumnMessage(err?.details);
-      if(!missingColumn || !Object.prototype.hasOwnProperty.call(workingPayload, missingColumn)) {
-        return { ok: false, error: err };
-      }
-
-      delete workingPayload[missingColumn];
-    }
-
-    return { ok: false, error: { message: 'The quotation request payload could not be matched to the quotations table schema.' } };
+    if(res.ok) return { ok: true };
+    return { ok: false, error: { message: await ETLUtils.readResponseError(res) } };
   }
 
   function renderTurnstileWidget() {

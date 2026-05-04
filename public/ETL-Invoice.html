@@ -9,6 +9,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/etl-auth.js"></script>
+  <script src="/etl-utils.js"></script>
   <script src="/etl-inventory-autocomplete.js"></script>
 
   <style>
@@ -837,15 +838,15 @@
             <tr>
               <td>
                 <div class="desc-wrap">
-                  <input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
+                  <input type="text" class="i-desc" placeholder="Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
                   <div class="autocomplete-list"></div>
                 </div>
-              </div>
-              <td><input type="text" class="i-unit" placeholder="Unit"></div>
-              <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></div>
-              <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></div>
-              <td><span class="row-total">0</span></div>
-              <td><button class="btn-rm" onclick="removeRow(this)">×</button></div>
+              </td>
+              <td><input type="text" class="i-unit" placeholder="Unit"></td>
+              <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
+              <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
+              <td><span class="row-total">0</span></td>
+              <td><button class="btn-rm" onclick="removeRow(this)">x</button></td>
             </tr>
           </tbody>
         </table>
@@ -1101,10 +1102,10 @@
     tr.innerHTML = `
       <td>
         <div class="desc-wrap">
-          <input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
+          <input type="text" class="i-desc" placeholder="Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
           <div class="autocomplete-list"></div>
         </div>
-      </div>
+      </td>
       <td><input type="text" class="i-unit" placeholder="Unit"></td>
       <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
       <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
@@ -1200,12 +1201,12 @@
                 <input type="text" class="i-desc" value="${escapeHtml(item.desc || '')}" oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
                 <div class="autocomplete-list"></div>
               </div>
-            </div>
-            <td><input type="text" class="i-unit" value="${escapeHtml(item.unit || '')}"></div>
-            <td><input type="number" class="i-qty" value="${item.qty || 1}" min="0" oninput="recalc(this)"></div>
-            <td><input type="number" class="i-price" value="${item.price || 0}" min="0" oninput="recalc(this)"></div>
-            <td><span class="row-total">${fmtNum((item.qty || 1) * (item.price || 0))}</span></div>
-            <td><button class="btn-rm" onclick="removeRow(this)">×</button></div>
+            </td>
+            <td><input type="text" class="i-unit" value="${escapeHtml(item.unit || '')}"></td>
+            <td><input type="number" class="i-qty" value="${item.qty || 1}" min="0" oninput="recalc(this)"></td>
+            <td><input type="number" class="i-price" value="${item.price || 0}" min="0" oninput="recalc(this)"></td>
+            <td><span class="row-total">${fmtNum((item.qty || 1) * (item.price || 0))}</span></td>
+            <td><button class="btn-rm" onclick="removeRow(this)">x</button></td>
           `;
           tbody.appendChild(tr);
         });
@@ -1249,29 +1250,35 @@
      GENERATE INVOICE
   ============================================ */
   async function generateInvoice() {
-    if (!document.getElementById('inv-client-name').value.trim()) {
-      alert('Please enter the client name.');
+    const missing = [];
+    const clientName = ETLUtils.requireText('inv-client-name', 'Client name', missing);
+    const invNum = decode(ETLUtils.requireText('inv-number', 'Invoice number', missing));
+    const invDate = ETLUtils.requireText('inv-date', 'Invoice date', missing);
+    const invDue = ETLUtils.requireText('inv-due', 'Due date', missing);
+
+    if (missing.length) {
+      alert('Please complete these required fields before generating:\n\n- ' + missing.join('\n- '));
+      return;
+    }
+    if (new Date(invDue) < new Date(invDate)) {
+      alert('The due date cannot be earlier than the invoice date.');
+      return;
+    }
+    if (!currentSession || !currentSession.access_token) {
+      alert('Your session is not ready. Please refresh and try again.');
       return;
     }
 
     const rows = document.querySelectorAll('#inv-items tr');
-    let items = [];
-    let sub = 0;
-    
-    rows.forEach((row, i) => {
-      const desc = row.querySelector('.i-desc').value.trim();
-      const unit = row.querySelector('.i-unit').value.trim();
-      const qty = parseFloat(row.querySelector('.i-qty').value) || 0;
-      const price = parseFloat(row.querySelector('.i-price').value) || 0;
-      const total = qty * price;
-      sub += total;
-      if (desc) {
-        items.push({ i: i + 1, desc, unit, qty, price, total });
-      }
+    const { items, subtotal: sub } = ETLUtils.sanitizeItems(rows, {
+      desc: '.i-desc',
+      unit: '.i-unit',
+      qty: '.i-qty',
+      price: '.i-price'
     });
-
-    if (items.length === 0) {
-      alert('Please add at least one item/service.');
+    const invalidItem = items.find(item => item.qty <= 0 || item.price <= 0 || item.total <= 0);
+    if (!items.length || invalidItem) {
+      alert('Please add at least one valid item/service with a description, positive quantity, and positive unit price.');
       return;
     }
 
@@ -1280,34 +1287,68 @@
     const grand = sub + vat;
     const terms = document.getElementById('inv-payment-terms').value;
     const notes = document.getElementById('inv-notes').value.trim();
-    const invNum = decode(document.getElementById('inv-number').value);
-    const invDate = document.getElementById('inv-date').value;
-    const invDue = document.getElementById('inv-due').value;
+    const invoiceLink = crypto.randomUUID();
+    let invoiceViewLink = '';
 
-    // Fill preview
+    try {
+      const saveRes = await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${currentSession.access_token}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          invoice_number: invNum,
+          lpo_ref: decode(document.getElementById('inv-lpo-ref').value) || null,
+          client_name: clientName,
+          client_email: document.getElementById('inv-client-email').value.trim(),
+          invoice_date: invDate,
+          due_date: invDue,
+          subtotal: sub,
+          vat: vat,
+          total: grand,
+          payment_terms: terms,
+          notes: notes || null,
+          unique_link: invoiceLink,
+          items: items
+        })
+      });
+
+      if (!saveRes.ok) {
+        alert('Could not save invoice: ' + await ETLUtils.readResponseError(saveRes));
+        return;
+      }
+      invoiceViewLink = SITE_BASE_URL + '/ETL-Invoice-View.html?inv=' + invoiceLink;
+    } catch (e) {
+      alert('Network error saving invoice: ' + e.message);
+      return;
+    }
+
+    // Fill preview after the database record exists.
     document.getElementById('p-inv-number').innerText = invNum;
     document.getElementById('p-inv-num2').innerText = invNum;
     document.getElementById('p-inv-date').innerText = invDate;
     document.getElementById('p-inv-due').innerText = invDue;
     document.getElementById('p-due2').innerText = invDue;
-    document.getElementById('p-lpo-ref').innerText = decode(document.getElementById('inv-lpo-ref').value) || '—';
-    document.getElementById('p-project').innerText = document.getElementById('inv-project').value || '—';
-    document.getElementById('p-client-name').innerText = document.getElementById('inv-client-name').value;
+    document.getElementById('p-lpo-ref').innerText = decode(document.getElementById('inv-lpo-ref').value) || '-';
+    document.getElementById('p-project').innerText = document.getElementById('inv-project').value || '-';
+    document.getElementById('p-client-name').innerText = clientName;
     document.getElementById('p-contact').innerText = document.getElementById('inv-contact').value || '';
     document.getElementById('p-contact2').innerText = document.getElementById('inv-contact2').value || '';
     document.getElementById('p-address').innerText = document.getElementById('inv-address').value || '';
     document.getElementById('p-payment-terms').innerText = terms;
     document.getElementById('p-preparer-name').innerText = document.getElementById('inv-preparer').value || '';
 
-    // Items table
     document.getElementById('p-inv-items').innerHTML = items.map(it => `
       <tr>
-        <td>${it.i}</div>
-        <td>${escapeHtml(it.desc)}</div>
-        <td>${escapeHtml(it.unit)}</div>
-        <td style="text-align: right">${it.qty}</div>
-        <td style="text-align: right">${fmtNum(it.price)}</div>
-        <td style="text-align: right">${fmtNum(it.total)}</div>
+        <td>${it.i}</td>
+        <td>${escapeHtml(it.desc)}</td>
+        <td>${escapeHtml(it.unit)}</td>
+        <td style="text-align: right">${it.qty}</td>
+        <td style="text-align: right">${fmtNum(it.price)}</td>
+        <td style="text-align: right">${fmtNum(it.total)}</td>
       </tr>
     `).join('');
 
@@ -1323,53 +1364,11 @@
       document.getElementById('p-notes-wrap').style.display = 'none';
     }
 
-    // Show preview
     document.getElementById('form-section').style.display = 'none';
     document.getElementById('invoice-preview').style.display = 'block';
     window.scrollTo(0, 0);
 
-    // Save to Supabase
-    const invoiceLink = crypto.randomUUID();
-    let invoiceViewLink = '';
-    
-    try {
-      const saveRes = await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${currentSession.access_token}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          invoice_number: invNum,
-          lpo_ref: decode(document.getElementById('inv-lpo-ref').value) || null,
-          client_name: document.getElementById('inv-client-name').value,
-          client_email: document.getElementById('inv-client-email').value,
-          invoice_date: invDate,
-          due_date: invDue,
-          subtotal: sub,
-          vat: vat,
-          total: grand,
-          payment_terms: terms,
-          notes: notes || null,
-          unique_link: invoiceLink,
-          items: items
-        })
-      });
-      
-      if (saveRes.ok) {
-        invoiceViewLink = SITE_BASE_URL + '/ETL-Invoice-View.html?inv=' + invoiceLink;
-      } else {
-        console.warn('Save failed:', await saveRes.text());
-      }
-    } catch (e) {
-      console.warn('Could not save invoice:', e);
-    }
-
-    // Email to client
     const clientEmail = document.getElementById('inv-client-email').value.trim();
-    const clientName = document.getElementById('inv-client-name').value.trim();
     const lpoRef = decode(document.getElementById('inv-lpo-ref').value);
 
     if (clientEmail) {
@@ -1380,7 +1379,7 @@ Please find your invoice from Engineering Trade Links Co. Ltd.
 Invoice Number: ${invNum}
 Invoice Date: ${invDate}
 Payment Due: ${invDue}
-LPO Reference: ${lpoRef || '—'}
+LPO Reference: ${lpoRef || '-'}
 Payment Terms: ${terms}
 
 AMOUNT DUE: UGX ${fmtNum(grand)}
@@ -1396,11 +1395,11 @@ Email: tradelinks.ltd@gmail.com
 Quality at Service,
 Engineering Trade Links Co. Ltd`;
 
-      sendEmail(clientEmail, `Invoice ${invNum} from Engineering Trade Links — UGX ${fmtNum(grand)}`, emailBody + (invoiceViewLink ? `\n\nView your invoice online:\n${invoiceViewLink}` : ''));
+      sendEmail(clientEmail, `Invoice ${invNum} from Engineering Trade Links - UGX ${fmtNum(grand)}`, emailBody + `\n\nView your invoice online:\n${invoiceViewLink}`);
     }
 
     setTimeout(() => {
-      alert('✅ Invoice ' + invNum + ' generated!\n\n' + (clientEmail ? 'Sent to: ' + clientEmail : 'No client email provided — please share manually.'));
+      alert('Invoice ' + invNum + ' generated!\n\n' + (clientEmail ? 'Sent to: ' + clientEmail : 'No client email provided - please share manually.'));
     }, 100);
   }
 
