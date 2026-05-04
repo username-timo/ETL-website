@@ -1,445 +1,919 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="icon" type="image/png" href="/etl-images/etl-logo.png">
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ETL | Invoice Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js">
-
-
-</script>
-<style>
-  :root {
-    --primary:#1a3c6e; --secondary:#4fa3d1; --gold:#c8860a; --gold-bg:#fdf3e0;
-    --light-bg:#eaf2fb; --lighter-bg:#f5f9fd; --white:#ffffff;
-    --text:#1e293b; --text-muted:#64748b; --border:#cfe3f0;
-    --success:#0f7a4a; --success-bg:#e6f7ef;
-    --danger:#c0392b; --danger-bg:#fdf0ef;
-  }
-  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'DM Sans',sans-serif; background:var(--lighter-bg); color:var(--text); }
-
-  /* TOP NAV */
-  .top-nav { background:var(--primary); padding:0 5%; display:flex; align-items:center; justify-content:space-between; height:56px; }
-  .top-nav-brand { display:flex; align-items:center; gap:12px; }
-  .nav-sq { background:transparent; width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; }
-  .top-nav-title { font-family:'Barlow Condensed',sans-serif; font-size:17px; font-weight:900; color:#fff; }
-  .top-nav-sub { font-size:10px; color:rgba(255,255,255,0.65); font-weight:700; text-transform:uppercase; }
-  .top-nav-back { color:var(--primary, #1a3c6e); font-size:13px; font-weight:800; text-decoration:none; background:#fff; border:none; padding:9px 20px; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,0.15); }
-
-  /* FORM */
-  .page-wrap { max-width:900px; margin:0 auto; padding:32px 20px 60px; }
-  .form-section { background:var(--white); border:1px solid var(--border); border-radius:12px; overflow:visible; margin-bottom:20px; }
-  .form-section-header { background:var(--primary); padding:14px 20px; display:flex; align-items:center; gap:10px; border-radius:12px 12px 0 0; }
-  .form-section-num { background:var(--secondary); color:#fff; width:26px; height:26px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:800; flex-shrink:0; }
-  .form-section-title { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:#fff; text-transform:uppercase; letter-spacing:0.5px; }
-  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; padding:20px; }
-  .field { display:flex; flex-direction:column; gap:6px; }
-  .field.full { grid-column:span 2; }
-  .field label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.7px; color:var(--text-muted); }
-  .field input, .field select, .field textarea {
-    padding:10px 12px; border:1.5px solid var(--border); border-radius:8px;
-    font-family:'DM Sans',sans-serif; font-size:14px; color:var(--text);
-    background:var(--lighter-bg); outline:none; transition:border-color 0.2s;
-  }
-  .field input:focus, .field select:focus { border-color:var(--secondary); background:#fff; }
-
-  /* ITEMS TABLE */
-  .items-wrap { padding:0 20px 20px; overflow:visible; }
-  .items-table { width:100%; border-collapse:collapse; font-size:13px; }
-  .items-table th { background:var(--primary); color:#fff; padding:10px 12px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; }
-  .items-table td { padding:8px 10px; border-bottom:1px solid var(--border); vertical-align:middle; }
-  .items-table input { width:100%; border:1.5px solid var(--border); border-radius:6px; padding:7px 10px; font-family:'DM Sans',sans-serif; font-size:13px; background:var(--lighter-bg); outline:none; }
-  .items-table input:focus { border-color:var(--secondary); background:#fff; }
-  .row-total { font-weight:700; color:var(--primary); text-align:right; white-space:nowrap; }
-  .btn-rm { background:var(--danger-bg); color:var(--danger); border:none; border-radius:6px; width:26px; height:26px; cursor:pointer; font-size:14px; font-weight:700; }
-  .btn-add-row { background:var(--light-bg); color:var(--primary); border:1.5px dashed var(--secondary); padding:9px 18px; border-radius:8px; cursor:pointer; font-weight:700; font-size:12px; text-transform:uppercase; letter-spacing:0.5px; margin-top:10px; }
-  .btn-add-row:hover { background:var(--secondary); color:#fff; border-color:var(--secondary); }
-
-  /* TOTALS */
-  .totals-box { padding:16px 20px; border-top:1px solid var(--border); }
-  .totals-row { display:flex; justify-content:space-between; align-items:center; padding:6px 0; font-size:14px; }
-  .totals-row.grand { border-top:2px solid var(--primary); margin-top:8px; padding-top:12px; }
-  .totals-row.grand span:last-child { font-family:'Barlow Condensed',sans-serif; font-size:24px; font-weight:900; color:var(--primary); }
-  .vat-toggle { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text-muted); margin-bottom:12px; }
-  .vat-toggle input { width:16px; height:16px; accent-color:var(--primary); cursor:pointer; }
-
-  /* ACTIONS */
-  .action-bar { display:flex; gap:12px; flex-wrap:wrap; }
-  .btn-primary { background:var(--primary); color:#fff; border:none; padding:13px 28px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s; }
-  .btn-primary:hover { background:var(--secondary); }
-  .btn-gold { background:var(--gold); color:#fff; border:none; padding:13px 28px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
-  .btn-secondary { background:var(--light-bg); color:var(--primary); border:1.5px solid var(--border); padding:13px 28px; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:700; cursor:pointer; }
-
-  /* NOTICE */
-  .notice { background:var(--success-bg); border:1px solid var(--success); color:var(--success); padding:12px 16px; border-radius:8px; font-size:13px; font-weight:700; margin-bottom:16px; }
-
-  /* ── PRINTABLE INVOICE ── */
-  #invoice-preview { display:none; }
-  .inv-wrap { background:#fff; max-width:820px; margin:0 auto; padding:40px; font-family:'DM Sans',sans-serif; }
-  .inv-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:32px; padding-bottom:24px; border-bottom:3px solid var(--primary); }
-  .inv-logo-area h1 { font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900; color:var(--primary); }
-  .inv-logo-area p { font-size:12px; color:var(--text-muted); margin-top:4px; }
-  .inv-badge { background:var(--primary); color:#fff; padding:8px 20px; border-radius:8px; text-align:center; }
-  .inv-badge div:first-child { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; letter-spacing:2px; }
-  .inv-badge div:last-child { font-size:11px; color:rgba(255,255,255,0.8); margin-top:2px; }
-  .inv-meta { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:28px; }
-  .inv-meta-box h4 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:8px; border-bottom:1px solid var(--border); padding-bottom:4px; }
-  .inv-meta-box p { font-size:13px; line-height:1.7; }
-  .inv-meta-box strong { color:var(--primary); }
-  .inv-table { width:100%; border-collapse:collapse; margin-bottom:24px; font-size:13px; }
-  .inv-table th { background:var(--primary); color:#fff; padding:10px 12px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; }
-  .inv-table th:last-child { text-align:right; }
-  .inv-table td { padding:10px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
-  .inv-table td:last-child { text-align:right; font-weight:700; }
-  .inv-table tr:nth-child(even) td { background:#f8fafc; }
-  .inv-totals { margin-left:auto; width:280px; }
-  .inv-totals-row { display:flex; justify-content:space-between; padding:6px 0; font-size:13px; border-bottom:1px solid var(--border); }
-  .inv-totals-row.grand { border-top:2px solid var(--primary); border-bottom:none; margin-top:4px; padding-top:10px; }
-  .inv-totals-row.grand span:last-child { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; color:var(--primary); }
-  .inv-bank { background:var(--light-bg); border:1px solid var(--border); border-radius:8px; padding:16px; margin-bottom:24px; }
-  .inv-bank h4 { font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin-bottom:10px; }
-  .inv-bank-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px; }
-  .inv-bank-grid span:first-child { color:var(--text-muted); }
-  .inv-bank-grid span:last-child { font-weight:700; color:var(--text); }
-  .inv-sig { display:grid; grid-template-columns:1fr 1fr; gap:40px; margin-top:32px; }
-  .inv-sig-box { text-align:center; }
-  .inv-sig-line { border-top:1.5px solid var(--text); margin-bottom:6px; margin-top:40px; }
-  .inv-sig-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
-  .inv-footer { background:var(--primary); color:rgba(255,255,255,0.75); text-align:center; padding:12px; font-size:10px; letter-spacing:0.5px; margin-top:32px; }
-  .inv-notes { font-size:12px; color:var(--text-muted); border-top:1px solid var(--border); padding-top:12px; margin-bottom:20px; }
-
-  @media print {
-    .top-nav, .page-wrap, #form-section { display:none !important; }
-    #invoice-preview { display:block !important; }
-    body { background:#fff; }
-  }
-
-  /* Autocomplete */
-  .desc-wrap { position: relative; }
-  .autocomplete-list {
-    position: absolute; top: calc(100% + 2px); left: 0; right: 0;
-    background: #fff; border: 1.5px solid #4fa3d1;
-    border-radius: 6px; z-index: 9999; min-width: 300px;
-    display: none;
-    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-  }
-  .autocomplete-list.show { display: block; }
-  .ac-item {
-    padding: 10px 14px; font-size: 13px; color: #1e293b;
-    font-weight: 500; border-bottom: 1px solid #e8f0f8;
-    user-select: none; cursor: pointer !important;
-  }
-  .ac-item:last-child { border-bottom: none; }
-  .ac-item:hover, .ac-item.highlighted { background: #1a3c6e; color: #fff; }
-  .ac-no-results { padding: 10px 14px; font-size: 12px; color: #64748b; text-align: center; }
-  .autocomplete-list * { cursor: pointer !important; }
-  .items-wrap { overflow: visible; }
-
-  /* Prevent text wrapping on buttons and labels */
-  .btn-primary, .btn-gold, .btn-secondary, .btn-add-row, .vat-toggle label {
-    white-space: nowrap;
-  }
-
-  /* MOBILE RESPONSIVE - TABLETS (768px and below) */
-  @media(max-width:768px) {
-    html { overflow-x: hidden; }
-    body { overflow-x: hidden; width: 100vw; }
-    .top-nav { padding: 0 3%; height: 56px; }
-    .top-nav-brand { gap: 10px; }
-    .top-nav-title { font-size: 15px; }
-    .top-nav-back { font-size: 11px; padding: 6px 12px; }
-    .page-wrap { padding: 24px 3% 40px; max-width: 100%; }
-    .form-section { margin-bottom: 16px; border-radius: 10px; }
-    .form-section-header { padding: 12px 16px; gap: 8px; }
-    .form-section-title { font-size: 14px; }
-    .form-grid { grid-template-columns: 1fr; gap: 12px; padding: 16px; }
-    .field label { font-size: 10px; }
-    .field input, .field select, .field textarea { font-size: 13px; padding: 9px 11px; }
-    .items-wrap { padding: 0 16px 16px; }
-    .items-table { font-size: 12px; }
-    .items-table th { padding: 8px 10px; font-size: 10px; }
-    .items-table td { padding: 7px 9px; }
-    .btn-rm { width: 24px; height: 24px; font-size: 12px; }
-    .btn-add-row { font-size: 11px; padding: 8px 16px; }
-    .totals-box { padding: 12px 16px; }
-    .totals-row { font-size: 13px; }
-    .totals-row.grand span:last-child { font-size: 20px; }
-    .action-bar { gap: 10px; }
-    .btn-primary, .btn-gold, .btn-secondary { padding: 11px 22px; font-size: 13px; }
-    .notice { font-size: 12px; padding: 10px 14px; }
-    .inv-wrap { padding: 24px; }
-    .inv-logo-area h1 { font-size: 28px; }
-    .inv-meta { grid-template-columns: 1fr; gap: 16px; }
-    .inv-table { font-size: 12px; }
-    .inv-table th { padding: 8px 10px; font-size: 10px; }
-    .inv-table td { padding: 8px 10px; }
-    .inv-totals { width: 100%; margin-left: 0; }
-    .inv-bank-grid { grid-template-columns: 1fr; gap: 6px; }
-    .inv-sig { grid-template-columns: 1fr; gap: 24px; }
-  }
-
-  /* MOBILE RESPONSIVE - PHONES (480px and below) */
-  @media(max-width:480px) {
-    html { overflow-x: hidden; }
-    body { font-size: 13px; overflow-x: hidden; width: 100vw; }
-
-    /* NAV */
-    .top-nav { height: 56px; padding: 0 2%; }
-    .nav-sq { width: 30px; height: 30px; font-size: 13px; }
-    .top-nav-title { font-size: 13px; font-weight: 800; }
-    .top-nav-sub { font-size: 8px; }
-    .top-nav-back { font-size: 10px; padding: 5px 10px; }
-
-    /* FORM */
-    .page-wrap { padding: 16px 2% 32px; }
-    .form-section { margin-bottom: 12px; }
-    .form-section-header { padding: 10px 12px; gap: 6px; border-radius: 8px 8px 0 0; }
-    .form-section-num { width: 24px; height: 24px; font-size: 11px; }
-    .form-section-title { font-size: 13px; }
-    .form-grid { grid-template-columns: 1fr; gap: 10px; padding: 12px; }
-    .field { gap: 4px; }
-    .field label { font-size: 9px; }
-    .field input, .field select, .field textarea { font-size: 12px; padding: 8px 10px; }
-
-    /* ITEMS TABLE */
-    .items-wrap { padding: 0 12px 12px; }
-    .items-table { font-size: 11px; }
-    .items-table th { padding: 6px 8px; font-size: 9px; }
-    .items-table td { padding: 6px 8px; }
-    .items-table input { font-size: 12px; padding: 6px 8px; }
-    .row-total { font-size: 11px; }
-    .btn-rm { width: 22px; height: 22px; font-size: 11px; }
-    .btn-add-row { font-size: 10px; padding: 6px 12px; }
-
-
-    /* TOTALS */
-    .totals-box { padding: 10px 12px; }
-    .totals-row { font-size: 12px; padding: 4px 0; }
-    .totals-row.grand { margin-top: 6px; padding-top: 8px; }
-    .totals-row.grand span:last-child { font-size: 18px; }
-    .vat-toggle { font-size: 12px; gap: 6px; }
-
-    /* ACTIONS */
-    .action-bar { flex-direction: column; gap: 8px; }
-    .btn-primary, .btn-gold, .btn-secondary { width: 100%; padding: 12px 16px; font-size: 13px; }
-
-    /* NOTICE */
-    .notice { font-size: 11px; padding: 8px 12px; }
-
-    /* INVOICE PREVIEW */
-    .inv-wrap { padding: 16px; }
-    .inv-header { flex-direction: column; margin-bottom: 20px; padding-bottom: 16px; }
-    .inv-logo-area h1 { font-size: 24px; }
-    .inv-logo-area p { font-size: 11px; }
-    .inv-badge { padding: 6px 14px; }
-    .inv-badge div:first-child { font-size: 18px; }
-    .inv-badge div:last-child { font-size: 9px; }
-    .inv-meta { grid-template-columns: 1fr; gap: 12px; margin-bottom: 16px; }
-    .inv-meta-box h4 { font-size: 9px; padding-bottom: 3px; }
-    .inv-meta-box p { font-size: 12px; }
-    .inv-table { font-size: 11px; }
-    .inv-table th { padding: 6px 8px; font-size: 9px; }
-    .inv-table td { padding: 6px 8px; }
-    .row-total { font-size: 10px; }
-    .inv-totals { width: 100%; margin-left: 0; }
-    .inv-totals-row { font-size: 12px; }
-    .inv-totals-row.grand span:last-child { font-size: 16px; }
-    .inv-bank { padding: 12px; }
-    .inv-bank h4 { font-size: 9px; }
-    .inv-bank-grid { grid-template-columns: 1fr; gap: 4px; font-size: 11px; }
-    .inv-sig { gap: 16px; margin-top: 20px; }
-    .inv-sig-line { margin-top: 24px; }
-    .inv-sig-label { font-size: 9px; }
-    .inv-footer { font-size: 9px; padding: 10px; }
-    .inv-notes { font-size: 11px; }
-
-    /* Autocomplete */
-    .autocomplete-list { max-height: 160px; }
-    .ac-item { padding: 8px 10px; font-size: 12px; }
-  }
-
-</style>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="/etl-auth.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ETL | Invoice Generator</title>
+  <link rel="icon" type="image/png" href="/etl-images/etl-logo.png">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="/etl-auth.js"></script>
   <script src="/etl-inventory-autocomplete.js"></script>
+
+  <style>
+    /* ============================================
+       DESIGN SYSTEM / VARIABLES
+    ============================================ */
+    :root {
+      --primary: #1a3c6e;
+      --secondary: #4fa3d1;
+      --gold: #c8860a;
+      --gold-bg: #fdf3e0;
+      --light-bg: #eaf2fb;
+      --lighter-bg: #f5f9fd;
+      --white: #ffffff;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --border: #cfe3f0;
+      --success: #0f7a4a;
+      --success-bg: #e6f7ef;
+      --danger: #c0392b;
+      --danger-bg: #fdf0ef;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--lighter-bg);
+      color: var(--text);
+    }
+
+    /* ============================================
+       TOP NAVIGATION
+    ============================================ */
+    .top-nav {
+      background: var(--primary);
+      padding: 0 5%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 56px;
+    }
+
+    .top-nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-sq {
+      background: transparent;
+      width: 74px;
+      height: 74px;
+      object-fit: contain;
+      display: block;
+    }
+
+    .top-nav-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 17px;
+      font-weight: 900;
+      color: #fff;
+    }
+
+    .top-nav-sub {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.65);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .top-nav-back {
+      color: var(--primary);
+      font-size: 13px;
+      font-weight: 800;
+      text-decoration: none;
+      background: #fff;
+      border: none;
+      padding: 9px 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .top-nav-back:hover {
+      background: var(--light-bg);
+      transform: translateY(-1px);
+    }
+
+    /* ============================================
+       FORM CONTAINER
+    ============================================ */
+    .page-wrap {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 20px 60px;
+    }
+
+    .form-section {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: visible;
+      margin-bottom: 20px;
+    }
+
+    .form-section-header {
+      background: var(--primary);
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .form-section-num {
+      background: var(--secondary);
+      color: #fff;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+
+    .form-section-title {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      padding: 20px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field.full {
+      grid-column: span 2;
+    }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+      color: var(--text-muted);
+    }
+
+    .field input,
+    .field select,
+    .field textarea {
+      padding: 10px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      color: var(--text);
+      background: var(--lighter-bg);
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--secondary);
+      background: #fff;
+    }
+
+    /* ============================================
+       ITEMS TABLE
+    ============================================ */
+    .items-wrap {
+      padding: 0 20px 20px;
+      overflow: visible;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    .items-table th {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .items-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+
+    .items-table input {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      padding: 7px 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      background: var(--lighter-bg);
+      outline: none;
+    }
+
+    .items-table input:focus {
+      border-color: var(--secondary);
+      background: #fff;
+    }
+
+    .row-total {
+      font-weight: 700;
+      color: var(--primary);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .btn-rm {
+      background: var(--danger-bg);
+      color: var(--danger);
+      border: none;
+      border-radius: 6px;
+      width: 26px;
+      height: 26px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .btn-rm:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .btn-add-row {
+      background: var(--light-bg);
+      color: var(--primary);
+      border: 1.5px dashed var(--secondary);
+      padding: 9px 18px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-top: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-add-row:hover {
+      background: var(--secondary);
+      color: #fff;
+      border-color: var(--secondary);
+    }
+
+    /* ============================================
+       TOTALS SECTION
+    ============================================ */
+    .totals-box {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+
+    .totals-row.grand {
+      border-top: 2px solid var(--primary);
+      margin-top: 8px;
+      padding-top: 12px;
+    }
+
+    .totals-row.grand span:last-child {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 24px;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .vat-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
+
+    .vat-toggle input {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+
+    /* ============================================
+       ACTION BUTTONS
+    ============================================ */
+    .action-bar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      padding: 13px 28px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary:hover {
+      background: var(--secondary);
+      transform: translateY(-1px);
+    }
+
+    .btn-gold {
+      background: var(--gold);
+      color: #fff;
+      border: none;
+      padding: 13px 28px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary {
+      background: var(--light-bg);
+      color: var(--primary);
+      border: 1.5px solid var(--border);
+      padding: 13px 28px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--secondary);
+      background: var(--white);
+    }
+
+    .notice {
+      background: var(--success-bg);
+      border: 1px solid var(--success);
+      color: var(--success);
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    /* ============================================
+       INVOICE PREVIEW (PRINTABLE)
+    ============================================ */
+    #invoice-preview {
+      display: none;
+    }
+
+    .inv-wrap {
+      background: #fff;
+      max-width: 820px;
+      margin: 0 auto;
+      padding: 40px;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .inv-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+      padding-bottom: 24px;
+      border-bottom: 3px solid var(--primary);
+    }
+
+    .inv-logo-area h1 {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--primary);
+    }
+
+    .inv-logo-area p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .inv-badge {
+      background: var(--primary);
+      color: #fff;
+      padding: 8px 20px;
+      border-radius: 8px;
+      text-align: center;
+    }
+
+    .inv-badge div:first-child {
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 2px;
+    }
+
+    .inv-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 28px;
+    }
+
+    .inv-meta-box h4 {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 4px;
+    }
+
+    .inv-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+      font-size: 13px;
+    }
+
+    .inv-table th {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .inv-table th:last-child {
+      text-align: right;
+    }
+
+    .inv-table td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .inv-table td:last-child {
+      text-align: right;
+      font-weight: 700;
+    }
+
+    .inv-totals {
+      margin-left: auto;
+      width: 280px;
+    }
+
+    .inv-totals-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .inv-totals-row.grand {
+      border-top: 2px solid var(--primary);
+      border-bottom: none;
+      margin-top: 4px;
+      padding-top: 10px;
+    }
+
+    .inv-bank {
+      background: var(--light-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .inv-bank h4 {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .inv-bank-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      font-size: 12px;
+    }
+
+    .inv-sig {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      margin-top: 32px;
+    }
+
+    .inv-sig-line {
+      border-top: 1.5px solid var(--text);
+      margin-bottom: 6px;
+      margin-top: 40px;
+    }
+
+    .inv-footer {
+      background: var(--primary);
+      color: rgba(255, 255, 255, 0.75);
+      text-align: center;
+      padding: 12px;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      margin-top: 32px;
+    }
+
+    /* ============================================
+       AUTOCOMPLETE
+    ============================================ */
+    .desc-wrap {
+      position: relative;
+    }
+
+    .autocomplete-list {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 0;
+      right: 0;
+      background: #fff;
+      border: 1.5px solid #4fa3d1;
+      border-radius: 6px;
+      z-index: 9999;
+      min-width: 300px;
+      display: none;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .autocomplete-list.show {
+      display: block;
+    }
+
+    .ac-item {
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #1e293b;
+      font-weight: 500;
+      border-bottom: 1px solid #e8f0f8;
+      user-select: none;
+      cursor: pointer !important;
+    }
+
+    .ac-item:last-child {
+      border-bottom: none;
+    }
+
+    .ac-item:hover,
+    .ac-item.highlighted {
+      background: #1a3c6e;
+      color: #fff;
+    }
+
+    /* ============================================
+       PRINT STYLES
+    ============================================ */
+    @media print {
+
+      .top-nav,
+      .page-wrap,
+      #form-section,
+      .no-print {
+        display: none !important;
+      }
+
+      #invoice-preview {
+        display: block !important;
+      }
+
+      body {
+        background: #fff;
+      }
+    }
+
+    /* ============================================
+       RESPONSIVE STYLES
+    ============================================ */
+    @media (max-width: 768px) {
+      .top-nav {
+        padding: 0 3%;
+      }
+
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .field.full {
+        grid-column: span 1;
+      }
+
+      .inv-header {
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .inv-meta {
+        grid-template-columns: 1fr;
+      }
+
+      .inv-bank-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .inv-sig {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .action-bar {
+        flex-direction: column;
+      }
+
+      .btn-primary,
+      .btn-gold,
+      .btn-secondary {
+        width: 100%;
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page-wrap {
+        padding: 16px 16px 40px;
+      }
+
+      .form-section-header {
+        padding: 10px 16px;
+      }
+
+      .form-section-title {
+        font-size: 14px;
+      }
+
+      .form-grid {
+        padding: 16px;
+        gap: 12px;
+      }
+
+      .items-wrap {
+        padding: 0 16px 16px;
+      }
+
+      .inv-wrap {
+        padding: 20px;
+      }
+
+      .inv-logo-area h1 {
+        font-size: 24px;
+      }
+
+      .top-nav-back {
+        font-size: 11px;
+        padding: 6px 12px;
+      }
+    }
+  </style>
 </head>
 <body>
 
+<!-- ============================================
+     TOP NAVIGATION
+  ============================================ -->
 <nav class="top-nav">
   <div class="top-nav-brand">
-<a href="/" aria-label="Go to ETL main site" style="display:inline-flex;align-items:center;text-decoration:none;"><img src="/etl-images/etl-logo.png" alt="ETL" class="nav-sq" style="width:74px;height:74px;object-fit:contain;display:block;"></a>
+    <a href="/" aria-label="Go to ETL main site" style="display: inline-flex; align-items: center; text-decoration: none;">
+      <img src="/etl-images/etl-logo.png" alt="ETL" class="nav-sq">
+    </a>
     <div>
       <div class="top-nav-title">Invoice Generator</div>
       <div class="top-nav-sub">Internal Use Only</div>
     </div>
   </div>
-  <div style="display:flex;gap:8px;align-items:center;">
-    <a href="/" class="top-nav-back">← Back to Website</a>
-    <button class="top-nav-back" onclick="etlAuth.signOut()" style="cursor:pointer;">🔓 Log Out</button>
+  <div style="display: flex; gap: 8px; align-items: center;">
+    <a href="/ETL-Dashboard.html" class="top-nav-back">← Back to Dashboard</a>
+    <button class="top-nav-back" onclick="etlAuth.signOut()">🔓 Log Out</button>
   </div>
 </nav>
 
+<!-- ============================================
+     MAIN FORM SECTION
+  ============================================ -->
 <div id="form-section">
-<div class="page-wrap">
+  <div class="page-wrap">
 
-  <div id="prefill-notice" class="notice" style="display:none;">
-    ✅ Invoice pre-filled from LPO. Review and generate when ready.
+    <!-- Prefill Notice -->
+    <div id="prefill-notice" class="notice" style="display: none;">
+      ✅ Invoice pre-filled from LPO. Review and generate when ready.
+    </div>
+
+    <!-- SECTION 1: INVOICE DETAILS -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-num">1</div>
+        <div class="form-section-title">Invoice Details</div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Invoice Number *</label>
+          <input type="text" id="inv-number" placeholder="ETL-INV-2026-001" readonly style="background:#f0f4f8; cursor: default;">
+        </div>
+        <div class="field">
+          <label>Invoice Date *</label>
+          <input type="date" id="inv-date">
+        </div>
+        <div class="field">
+          <label>Payment Due Date *</label>
+          <input type="date" id="inv-due">
+        </div>
+        <div class="field">
+          <label>LPO Reference</label>
+          <input type="text" id="inv-lpo-ref" placeholder="e.g. ETL/INLPO/2026/001">
+        </div>
+        <div class="field full">
+          <label>Project / Contract Title</label>
+          <input type="text" id="inv-project" placeholder="e.g. Construction of Ciforo Market">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: BILLED TO -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-num">2</div>
+        <div class="form-section-title">Billed To (Client Details)</div>
+      </div>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Client / Organisation Name *</label>
+          <input type="text" id="inv-client-name" placeholder="e.g. Phaneroo Ministries International">
+        </div>
+        <div class="field">
+          <label>Contact Person</label>
+          <input type="text" id="inv-contact" placeholder="e.g. Mr. Odongo Paul">
+        </div>
+        <div class="field">
+          <label>Phone</label>
+          <input type="text" id="inv-contact2" placeholder="e.g. +256 700 000 000">
+        </div>
+        <div class="field">
+          <label>Client Email *</label>
+          <input type="email" id="inv-client-email" placeholder="e.g. client@company.com">
+        </div>
+        <div class="field full">
+          <label>Address</label>
+          <input type="text" id="inv-address" placeholder="e.g. Plot 2-4, Naguru, Kampala">
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: ITEMS -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-num">3</div>
+        <div class="form-section-title">Items / Services</div>
+      </div>
+      <div class="items-wrap">
+        <table class="items-table">
+          <thead>
+            <tr>
+              <th style="width: 40%">Description</th>
+              <th style="width: 10%">Unit</th>
+              <th style="width: 10%">Qty</th>
+              <th style="width: 18%">Unit Price (UGX)</th>
+              <th style="width: 16%">Total (UGX)</th>
+              <th style="width: 6%"></th>
+            </tr>
+          </thead>
+          <tbody id="inv-items">
+            <tr>
+              <td>
+                <div class="desc-wrap">
+                  <input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
+                  <div class="autocomplete-list"></div>
+                </div>
+              </div>
+              <td><input type="text" class="i-unit" placeholder="Unit"></div>
+              <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></div>
+              <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></div>
+              <td><span class="row-total">0</span></div>
+              <td><button class="btn-rm" onclick="removeRow(this)">×</button></div>
+            </tr>
+          </tbody>
+        </table>
+        <button class="btn-add-row" onclick="addRow()">+ Add Line Item</button>
+      </div>
+
+      <div class="totals-box">
+        <label class="vat-toggle">
+          <input type="checkbox" id="vat-toggle" onchange="updateTotals()"> Include VAT (18%)
+        </label>
+        <div class="totals-row"><span>Subtotal</span><span id="inv-subtotal">UGX 0</span></div>
+        <div class="totals-row" id="vat-row" style="display: none;"><span>VAT (18%)</span><span id="inv-vat">UGX 0</span></div>
+        <div class="totals-row grand"><span style="font-weight: 700;">GRAND TOTAL</span><span id="inv-total">UGX 0</span></div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: NOTES -->
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-num">4</div>
+        <div class="form-section-title">Payment Terms & Notes</div>
+      </div>
+      <div class="form-grid">
+        <div class="field">
+          <label>Payment Terms</label>
+          <select id="inv-payment-terms">
+            <option>Net 30 Days</option>
+            <option>Net 14 Days</option>
+            <option>Net 7 Days</option>
+            <option>Upon Delivery</option>
+            <option>50% Advance, 50% on Completion</option>
+            <option>As per Contract</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Prepared By</label>
+          <input type="text" id="inv-preparer" placeholder="e.g. ETL Finance Department">
+        </div>
+        <div class="field full">
+          <label>Notes / Special Instructions</label>
+          <textarea id="inv-notes" rows="3" placeholder="e.g. Please make payment to the account below. Quote invoice number on transfer."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <div class="action-bar">
+      <button class="btn-primary" onclick="generateInvoice()">📄 Preview & Generate Invoice</button>
+      <button class="btn-secondary" onclick="window.history.back()">← Back</button>
+    </div>
+
   </div>
-
-  <!-- SECTION 1: INVOICE DETAILS -->
-  <div class="form-section">
-    <div class="form-section-header">
-      <div class="form-section-num">1</div>
-      <div class="form-section-title">Invoice Details</div>
-    </div>
-    <div class="form-grid">
-      <div class="field">
-        <label>Invoice Number *</label>
-        <input type="text" id="inv-number" placeholder="ETL-INV-2026-001" readonly style="background:#f0f4f8;cursor:default;">
-      </div>
-      <div class="field">
-        <label>Invoice Date *</label>
-        <input type="date" id="inv-date">
-      </div>
-      <div class="field">
-        <label>Payment Due Date *</label>
-        <input type="date" id="inv-due">
-      </div>
-      <div class="field">
-        <label>LPO Reference</label>
-        <input type="text" id="inv-lpo-ref" placeholder="e.g. ETL/INLPO/2026/001">
-      </div>
-      <div class="field full">
-        <label>Project / Contract Title</label>
-        <input type="text" id="inv-project" placeholder="e.g. Construction of Ciforo Market">
-      </div>
-    </div>
-  </div>
-
-  <!-- SECTION 2: BILLED TO -->
-  <div class="form-section">
-    <div class="form-section-header">
-      <div class="form-section-num">2</div>
-      <div class="form-section-title">Billed To (Client Details)</div>
-    </div>
-    <div class="form-grid">
-      <div class="field full">
-        <label>Client / Organisation Name *</label>
-        <input type="text" id="inv-client-name" placeholder="e.g. Phaneroo Ministries International">
-      </div>
-      <div class="field">
-        <label>Contact Person</label>
-        <input type="text" id="inv-contact" placeholder="e.g. Mr. Odongo Paul">
-      </div>
-      <div class="field">
-        <label>Phone</label>
-        <input type="text" id="inv-contact2" placeholder="e.g. +256 700 000 000">
-      </div>
-      <div class="field">
-        <label>Client Email *</label>
-        <input type="email" id="inv-client-email" placeholder="e.g. client@company.com">
-      </div>
-      <div class="field full">
-        <label>Address</label>
-        <input type="text" id="inv-address" placeholder="e.g. Plot 2-4, Naguru, Kampala">
-      </div>
-    </div>
-  </div>
-
-  <!-- SECTION 3: ITEMS -->
-  <div class="form-section">
-    <div class="form-section-header">
-      <div class="form-section-num">3</div>
-      <div class="form-section-title">Items / Services</div>
-    </div>
-    <div class="items-wrap">
-      <table class="items-table">
-        <thead>
-          <tr>
-            <th style="width:40%">Description</th>
-            <th style="width:10%">Unit</th>
-            <th style="width:10%">Qty</th>
-            <th style="width:18%">Unit Price (UGX)</th>
-            <th style="width:16%">Total (UGX)</th>
-            <th style="width:6%"></th>
-          </tr>
-        </thead>
-        <tbody id="inv-items">
-          <tr>
-            <td><div class="desc-wrap"><input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-            <td><input type="text" class="i-unit" placeholder="Unit"></td>
-            <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
-            <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
-            <td><span class="row-total">0</span></td>
-            <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>
-          </tr>
-        </tbody>
-      </table>
-      <button class="btn-add-row" onclick="addRow()">+ Add Line Item</button>
-    </div>
-
-    <div class="totals-box">
-      <label class="vat-toggle">
-        <input type="checkbox" id="vat-toggle" onchange="updateTotals()"> Include VAT (18%)
-      </label>
-      <div class="totals-row"><span>Subtotal</span><span id="inv-subtotal">UGX 0</span></div>
-      <div class="totals-row" id="vat-row" style="display:none;"><span>VAT (18%)</span><span id="inv-vat">UGX 0</span></div>
-      <div class="totals-row grand"><span style="font-weight:700;">GRAND TOTAL</span><span id="inv-total">UGX 0</span></div>
-    </div>
-  </div>
-
-  <!-- SECTION 4: NOTES -->
-  <div class="form-section">
-    <div class="form-section-header">
-      <div class="form-section-num">4</div>
-      <div class="form-section-title">Payment Terms & Notes</div>
-    </div>
-    <div class="form-grid">
-      <div class="field">
-        <label>Payment Terms</label>
-        <select id="inv-payment-terms">
-          <option>Net 30 Days</option>
-          <option>Net 14 Days</option>
-          <option>Net 7 Days</option>
-          <option>Upon Delivery</option>
-          <option>50% Advance, 50% on Completion</option>
-          <option>As per Contract</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Prepared By</label>
-        <input type="text" id="inv-preparer" placeholder="e.g. ETL Finance Department">
-      </div>
-      <div class="field full">
-        <label>Notes / Special Instructions</label>
-        <textarea id="inv-notes" rows="3" placeholder="e.g. Please make payment to the account below. Quote invoice number on transfer."></textarea>
-      </div>
-    </div>
-  </div>
-
-  <!-- ACTIONS -->
-  <div class="action-bar">
-    <button class="btn-primary" onclick="generateInvoice()">📄 Preview & Generate Invoice</button>
-    <button class="btn-secondary" onclick="window.history.back()">← Back</button>
-  </div>
-
 </div>
-</div>
 
-<!-- ── PRINTABLE INVOICE ── -->
+<!-- ============================================
+     PRINTABLE INVOICE PREVIEW
+  ============================================ -->
 <div id="invoice-preview">
   <div class="inv-wrap" id="inv-doc">
-
     <div class="inv-header">
       <div class="inv-logo-area">
         <h1>Engineering Trade Links Co. Ltd</h1>
-        <p>Plot 1353, Sonde-Seeta Road, Goma Division, Mukono Municipality<br>
-        Tel: +256 776 566 522 / +256 704 545 163<br>
-        Email: tradelinks.ltd@gmail.com &nbsp;|&nbsp; www.engineeringtradelinks.com<br>
-        TIN: 1000161539 &nbsp;|&nbsp; VAT Reg: 49481-L</p>
+        <p>
+          Plot 1353, Sonde-Seeta Road, Goma Division, Mukono Municipality<br>
+          Tel: +256 776 566 522 / +256 704 545 163<br>
+          Email: tradelinks.ltd@gmail.com | www.engineeringtradelinks.com<br>
+          TIN: 1000161539 | VAT Reg: 49481-L
+        </p>
       </div>
       <div class="inv-badge">
         <div>INVOICE</div>
@@ -460,11 +934,11 @@
       <div class="inv-meta-box">
         <h4>Invoice Details</h4>
         <p>
-          <span style="color:var(--text-muted)">Invoice No:</span> <strong id="p-inv-num2"></strong><br>
-          <span style="color:var(--text-muted)">Invoice Date:</span> <strong id="p-inv-date"></strong><br>
-          <span style="color:var(--text-muted)">Payment Due:</span> <strong id="p-inv-due"></strong><br>
-          <span style="color:var(--text-muted)">LPO Ref:</span> <strong id="p-lpo-ref"></strong><br>
-          <span style="color:var(--text-muted)">Project:</span> <strong id="p-project"></strong>
+          <span style="color: var(--text-muted);">Invoice No:</span> <strong id="p-inv-num2"></strong><br>
+          <span style="color: var(--text-muted);">Invoice Date:</span> <strong id="p-inv-date"></strong><br>
+          <span style="color: var(--text-muted);">Payment Due:</span> <strong id="p-inv-due"></strong><br>
+          <span style="color: var(--text-muted);">LPO Ref:</span> <strong id="p-lpo-ref"></strong><br>
+          <span style="color: var(--text-muted);">Project:</span> <strong id="p-project"></strong>
         </p>
       </div>
     </div>
@@ -472,21 +946,21 @@
     <table class="inv-table">
       <thead>
         <tr>
-          <th style="width:5%">#</th>
-          <th style="width:42%">Description</th>
-          <th style="width:10%">Unit</th>
-          <th style="width:10%">Qty</th>
-          <th style="width:16%">Unit Price (UGX)</th>
-          <th style="width:17%">Total (UGX)</th>
+          <th style="width: 5%">#</th>
+          <th style="width: 42%">Description</th>
+          <th style="width: 10%">Unit</th>
+          <th style="width: 10%">Qty</th>
+          <th style="width: 16%">Unit Price (UGX)</th>
+          <th style="width: 17%">Total (UGX)</th>
         </tr>
       </thead>
       <tbody id="p-inv-items"></tbody>
     </table>
 
-    <div style="display:flex; justify-content:flex-end; margin-bottom:24px;">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 24px;">
       <div class="inv-totals">
         <div class="inv-totals-row"><span>Subtotal</span><span id="p-subtotal"></span></div>
-        <div class="inv-totals-row" id="p-vat-row" style="display:none;"><span>VAT (18%)</span><span id="p-vat"></span></div>
+        <div class="inv-totals-row" id="p-vat-row" style="display: none;"><span>VAT (18%)</span><span id="p-vat"></span></div>
         <div class="inv-totals-row grand"><span>GRAND TOTAL</span><span id="p-total"></span></div>
       </div>
     </div>
@@ -501,7 +975,7 @@
       </div>
     </div>
 
-    <div class="inv-notes" id="p-notes-wrap" style="display:none;">
+    <div class="inv-notes" id="p-notes-wrap" style="display: none;">
       <strong>Notes:</strong> <span id="p-notes"></span>
     </div>
 
@@ -509,245 +983,342 @@
       <div class="inv-sig-box">
         <div class="inv-sig-line"></div>
         <div class="inv-sig-label">Authorised By: ETL Management</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;" id="p-preparer-name"></div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;" id="p-preparer-name"></div>
       </div>
       <div class="inv-sig-box">
         <div class="inv-sig-line"></div>
         <div class="inv-sig-label">Client Acknowledgement</div>
-        <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">Date: _________________</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Date: _________________</div>
       </div>
     </div>
 
     <div class="inv-footer">
-      Engineering Trade Links Company Limited &nbsp;|&nbsp; Reg No: 82786 &nbsp;|&nbsp; VAT Reg: 49481-L &nbsp;|&nbsp; PPDA: PRV/WKRS/25051515/MAY/25 &nbsp;|&nbsp; Quality at Service Since 2006
+      Engineering Trade Links Company Limited | Reg No: 82786 | VAT Reg: 49481-L | PPDA: PRV/WKRS/25051515/MAY/25 | Quality at Service Since 2006
     </div>
 
-    <!-- Print actions (hidden when printing) -->
-    <div style="margin-top:24px; display:flex; gap:12px; justify-content:center;" class="no-print">
-      <button onclick="downloadPDF()" style="background:var(--primary);color:#fff;border:none;padding:12px 28px;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">⬇ Download PDF</button>
-      <button onclick="window.print()" style="background:var(--secondary);color:#fff;border:none;padding:12px 28px;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">🖨 Print</button>
-      <button onclick="backToForm()" style="background:var(--light-bg);color:var(--primary);border:1.5px solid var(--border);padding:12px 28px;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:14px;cursor:pointer;">← Edit Invoice</button>
+    <!-- Print Actions (hidden when printing) -->
+    <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: center;" class="no-print">
+      <button onclick="downloadPDF()" class="btn-primary">⬇ Download PDF</button>
+      <button onclick="window.print()" class="btn-gold">🖨 Print</button>
+      <button onclick="backToForm()" class="btn-secondary">← Edit Invoice</button>
     </div>
   </div>
 </div>
 
 <script>
+  /* ============================================
+     CONFIGURATION
+     Anon key is safe for client-side with RLS policies
+  ============================================ */
   const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
   const SITE_BASE_URL = window.location.origin;
-  const DASHBOARD_URL = `${window.location.origin}/ETL-Dashboard.html`;
-  function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'"); }
+  const DASHBOARD_URL = `${SITE_BASE_URL}/ETL-Dashboard.html`;
 
-  
-  // ─── Brevo Email Helper ───
-  async function sendEmail(to, subject, body) {
-    if(!to || !to.includes('@')) return;
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body, flow: 'internal_ops', context: 'invoice' })
-      });
-      if(!res.ok) throw new Error(await res.text());
-    } catch(e) { console.warn('Email error:', e); }
+  let supabaseClient = null;
+  let currentSession = null;
+
+  /* ============================================
+     UTILITY FUNCTIONS
+  ============================================ */
+  function decode(s) {
+    if (!s) return '';
+    return s.replace(/&#x2F;/g, '/').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"');
   }
 
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
-  let SESSION_TOKEN = '';
+  function fmt(n) {
+    return 'UGX ' + Math.round(n || 0).toLocaleString();
+  }
 
-  // ── Inventory Autocomplete ──
+  function fmtNum(n) {
+    return Math.round(n || 0).toLocaleString();
+  }
 
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
 
-  function fmt(n) { return 'UGX ' + Math.round(n||0).toLocaleString(); }
-  function fmtNum(n) { return Math.round(n||0).toLocaleString(); }
-
-  // Auto-generate invoice number and dates
-  (function init() {
+  /* ============================================
+     AUTO-GENERATE INVOICE NUMBER & DATES
+  ============================================ */
+  (function initForm() {
     const yr = new Date().getFullYear();
-    const num = String(Math.floor(Math.random()*900)+100);
+    const num = String(Math.floor(Math.random() * 900) + 100);
     document.getElementById('inv-number').value = 'ETL-INV-' + yr + '-' + num;
+    
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('inv-date').value = today;
-    const due = new Date(); due.setDate(due.getDate() + 30);
+    
+    const due = new Date();
+    due.setDate(due.getDate() + 30);
     document.getElementById('inv-due').value = due.toISOString().split('T')[0];
   })();
 
-  // Read LPO data from URL params
-  async function prefillFromLPO() {
-    const params = new URLSearchParams(window.location.search);
-    const lpoId = params.get('lpo_id');
-    if(!lpoId) return;
-
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${lpoId}&limit=1`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
-      });
-      const data = await res.json();
-      if(!data || !data.length) return;
-      const l = data[0];
-
-      // Fill invoice details
-      document.getElementById('inv-lpo-ref').value = decode(l.lpo_number);
-
-      // Try project_name first, then fetch from linked quotation if empty
-      if(l.project_name) {
-        document.getElementById('inv-project').value = l.project_name;
-      } else {
-        // Try to find linked quotation by entity name to get project title
-        try {
-          const qRes = await fetch(`${SUPABASE_URL}/rest/v1/quotations_generated?client_name=eq.${encodeURIComponent(l.entity_name)}&order=created_at.desc&limit=1`, {
-            headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
-          });
-          const qData = await qRes.json();
-          if(qData && qData.length) {
-            document.getElementById('inv-project').value = qData[0].project_title || l.notes || '';
-          } else {
-            document.getElementById('inv-project').value = l.notes || '';
-          }
-        } catch(e) {
-          document.getElementById('inv-project').value = l.notes || '';
-        }
-      }
-
-      // Fill client details
-      document.getElementById('inv-client-name').value = l.entity_name    || '';
-      document.getElementById('inv-contact').value     = l.entity_contact || '';
-      document.getElementById('inv-contact2').value     = l.entity_phone  || '';
-      // Extract clean email - handle old format "phone / email" or just email
-      const rawEmail = l.entity_email || '';
-      const emailMatch = rawEmail.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
-      document.getElementById('inv-client-email').value = emailMatch ? emailMatch[0] : rawEmail;
-      document.getElementById('inv-address').value     = l.entity_address || '';
-
-      // Fill items
-      if(l.items && l.items.length) {
-        const tbody = document.getElementById('inv-items');
-        tbody.innerHTML = '';
-        l.items.forEach(item => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><div class="desc-wrap"><input type="text" class="i-desc" value="${item.desc||''}" oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-            <td><input type="text" class="i-unit" value="${item.unit||''}"></td>
-            <td><input type="number" class="i-qty" value="${item.qty||1}" min="0" oninput="recalc(this)"></td>
-            <td><input type="number" class="i-price" value="${item.price||0}" min="0" oninput="recalc(this)"></td>
-            <td><span class="row-total">${fmtNum((item.qty||1)*(item.price||0))}</span></td>
-            <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>`;
-          tbody.appendChild(tr);
-        });
-        updateTotals();
-      }
-
-      document.getElementById('prefill-notice').style.display = 'block';
-    } catch(e) { console.warn('Prefill error:', e); }
-  }
-
-  // Recalc row total
+  /* ============================================
+     RECALCULATE ROW TOTAL
+  ============================================ */
   function recalc(el) {
     const row = el.closest('tr');
-    const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
+    const qty = parseFloat(row.querySelector('.i-qty').value) || 0;
     const price = parseFloat(row.querySelector('.i-price').value) || 0;
     row.querySelector('.row-total').innerText = fmtNum(qty * price);
     updateTotals();
   }
 
+  /* ============================================
+     UPDATE GLOBAL TOTALS
+  ============================================ */
   function updateTotals() {
     let sub = 0;
     document.querySelectorAll('#inv-items tr').forEach(row => {
-      const qty   = parseFloat(row.querySelector('.i-qty')?.value)   || 0;
+      const qty = parseFloat(row.querySelector('.i-qty')?.value) || 0;
       const price = parseFloat(row.querySelector('.i-price')?.value) || 0;
       sub += qty * price;
     });
+    
     const vatOn = document.getElementById('vat-toggle').checked;
-    const vat   = vatOn ? sub * 0.18 : 0;
+    const vat = vatOn ? sub * 0.18 : 0;
     const total = sub + vat;
+    
     document.getElementById('inv-subtotal').innerText = fmt(sub);
-    document.getElementById('inv-vat').innerText      = fmt(vat);
-    document.getElementById('inv-total').innerText    = fmt(total);
-    document.getElementById('vat-row').style.display  = vatOn ? '' : 'none';
+    document.getElementById('inv-vat').innerText = fmt(vat);
+    document.getElementById('inv-total').innerText = fmt(total);
+    document.getElementById('vat-row').style.display = vatOn ? 'flex' : 'none';
   }
 
+  /* ============================================
+     ADD NEW ROW TO ITEMS TABLE
+  ============================================ */
   function addRow() {
     const tbody = document.getElementById('inv-items');
     const tr = document.createElement('tr');
     tr.innerHTML = `
-      <td><div class="desc-wrap"><input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
+      <td>
+        <div class="desc-wrap">
+          <input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
+          <div class="autocomplete-list"></div>
+        </div>
+      </div>
       <td><input type="text" class="i-unit" placeholder="Unit"></td>
       <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
       <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
       <td><span class="row-total">0</span></td>
-      <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>`;
+      <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>
+    `;
     tbody.appendChild(tr);
   }
 
+  /* ============================================
+     REMOVE ROW FROM ITEMS TABLE
+  ============================================ */
   function removeRow(btn) {
     const rows = document.querySelectorAll('#inv-items tr');
-    if(rows.length > 1) { btn.closest('tr').remove(); updateTotals(); }
+    if (rows.length > 1) {
+      btn.closest('tr').remove();
+      updateTotals();
+    }
   }
 
-  async function generateInvoice() {
-    // Validate
-    if(!document.getElementById('inv-client-name').value.trim()) {
-      alert('Please enter the client name.'); return;
+  /* ============================================
+     PREFILL FROM LPO (FIXED)
+  ============================================ */
+  async function prefillFromLPO() {
+    const params = new URLSearchParams(window.location.search);
+    const lpoId = params.get('lpo_id');
+    
+    if (!lpoId) {
+      console.log('No lpo_id in URL');
+      return;
     }
 
-    // Build items
+    if (!currentSession || !currentSession.access_token) {
+      console.log('No session yet, will retry later');
+      // Wait for session
+      setTimeout(() => prefillFromLPO(), 500);
+      return;
+    }
+
+    try {
+      console.log('Fetching LPO:', lpoId);
+      const response = await fetch(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${lpoId}&limit=1`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${currentSession.access_token}`
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const data = await response.json();
+      if (!data || !data.length) {
+        console.warn('No LPO found');
+        return;
+      }
+      
+      const l = data[0];
+      console.log('LPO data loaded:', l);
+
+      // Fill invoice details
+      document.getElementById('inv-lpo-ref').value = decode(l.lpo_number || '');
+
+      // Project name
+      if (l.project_name) {
+        document.getElementById('inv-project').value = l.project_name;
+      } else if (l.notes) {
+        document.getElementById('inv-project').value = l.notes;
+      }
+
+      // Client details
+      document.getElementById('inv-client-name').value = l.entity_name || '';
+      document.getElementById('inv-contact').value = l.entity_contact || '';
+      document.getElementById('inv-contact2').value = l.entity_phone || '';
+      
+      // Extract email
+      const rawEmail = l.entity_email || '';
+      const emailMatch = rawEmail.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/);
+      document.getElementById('inv-client-email').value = emailMatch ? emailMatch[0] : rawEmail;
+      document.getElementById('inv-address').value = l.entity_address || '';
+
+      // Fill items
+      if (l.items && l.items.length) {
+        const tbody = document.getElementById('inv-items');
+        tbody.innerHTML = '';
+        
+        l.items.forEach(item => {
+          const tr = document.createElement('tr');
+          tr.innerHTML = `
+            <td>
+              <div class="desc-wrap">
+                <input type="text" class="i-desc" value="${escapeHtml(item.desc || '')}" oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
+                <div class="autocomplete-list"></div>
+              </div>
+            </div>
+            <td><input type="text" class="i-unit" value="${escapeHtml(item.unit || '')}"></div>
+            <td><input type="number" class="i-qty" value="${item.qty || 1}" min="0" oninput="recalc(this)"></div>
+            <td><input type="number" class="i-price" value="${item.price || 0}" min="0" oninput="recalc(this)"></div>
+            <td><span class="row-total">${fmtNum((item.qty || 1) * (item.price || 0))}</span></div>
+            <td><button class="btn-rm" onclick="removeRow(this)">×</button></div>
+          `;
+          tbody.appendChild(tr);
+        });
+        updateTotals();
+      }
+
+      // Show notice
+      const notice = document.getElementById('prefill-notice');
+      if (notice) {
+        notice.style.display = 'block';
+        setTimeout(() => {
+          notice.style.opacity = '0';
+          setTimeout(() => {
+            notice.style.display = 'none';
+            notice.style.opacity = '';
+          }, 1000);
+        }, 4000);
+      }
+
+    } catch (e) {
+      console.error('Prefill error:', e);
+      const notice = document.getElementById('prefill-notice');
+      if (notice) {
+        notice.style.background = 'var(--danger-bg)';
+        notice.style.borderColor = 'var(--danger)';
+        notice.style.color = 'var(--danger)';
+        notice.innerHTML = '⚠️ Could not load LPO data. Please fill in manually.';
+        notice.style.display = 'block';
+        setTimeout(() => {
+          notice.style.display = 'none';
+          notice.style.background = '';
+          notice.style.borderColor = '';
+          notice.style.color = '';
+          notice.innerHTML = '✅ Invoice pre-filled from LPO. Review and generate when ready.';
+        }, 5000);
+      }
+    }
+  }
+
+  /* ============================================
+     GENERATE INVOICE
+  ============================================ */
+  async function generateInvoice() {
+    if (!document.getElementById('inv-client-name').value.trim()) {
+      alert('Please enter the client name.');
+      return;
+    }
+
     const rows = document.querySelectorAll('#inv-items tr');
     let items = [];
     let sub = 0;
+    
     rows.forEach((row, i) => {
-      const desc  = row.querySelector('.i-desc').value.trim();
-      const unit  = row.querySelector('.i-unit').value.trim();
-      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
+      const desc = row.querySelector('.i-desc').value.trim();
+      const unit = row.querySelector('.i-unit').value.trim();
+      const qty = parseFloat(row.querySelector('.i-qty').value) || 0;
       const price = parseFloat(row.querySelector('.i-price').value) || 0;
       const total = qty * price;
       sub += total;
-      if(desc) items.push({ i: i+1, desc, unit, qty, price, total });
+      if (desc) {
+        items.push({ i: i + 1, desc, unit, qty, price, total });
+      }
     });
 
-    const vatOn   = document.getElementById('vat-toggle').checked;
-    const vat     = vatOn ? sub * 0.18 : 0;
-    const grand   = sub + vat;
-    const terms   = document.getElementById('inv-payment-terms').value;
-    const notes   = document.getElementById('inv-notes').value.trim();
-    const invNum  = decode(document.getElementById('inv-number').value);
+    if (items.length === 0) {
+      alert('Please add at least one item/service.');
+      return;
+    }
+
+    const vatOn = document.getElementById('vat-toggle').checked;
+    const vat = vatOn ? sub * 0.18 : 0;
+    const grand = sub + vat;
+    const terms = document.getElementById('inv-payment-terms').value;
+    const notes = document.getElementById('inv-notes').value.trim();
+    const invNum = decode(document.getElementById('inv-number').value);
     const invDate = document.getElementById('inv-date').value;
-    const invDue  = document.getElementById('inv-due').value;
+    const invDue = document.getElementById('inv-due').value;
 
     // Fill preview
-    document.getElementById('p-inv-number').innerText   = invNum;
-    document.getElementById('p-inv-num2').innerText     = invNum;
-    document.getElementById('p-inv-date').innerText     = invDate;
-    document.getElementById('p-inv-due').innerText      = invDue;
-    document.getElementById('p-due2').innerText         = invDue;
-    document.getElementById('p-lpo-ref').innerText      = decode(document.getElementById('inv-lpo-ref').value) || '—';
-    document.getElementById('p-project').innerText      = document.getElementById('inv-project').value || '—';
-    document.getElementById('p-client-name').innerText  = document.getElementById('inv-client-name').value;
-    document.getElementById('p-contact').innerText      = document.getElementById('inv-contact').value || '';
-    document.getElementById('p-contact2').innerText     = document.getElementById('inv-contact2').value || '';
-    document.getElementById('p-address').innerText      = document.getElementById('inv-address').value || '';
-    document.getElementById('p-payment-terms').innerText= terms;
-    document.getElementById('p-preparer-name').innerText= document.getElementById('inv-preparer').value || '';
+    document.getElementById('p-inv-number').innerText = invNum;
+    document.getElementById('p-inv-num2').innerText = invNum;
+    document.getElementById('p-inv-date').innerText = invDate;
+    document.getElementById('p-inv-due').innerText = invDue;
+    document.getElementById('p-due2').innerText = invDue;
+    document.getElementById('p-lpo-ref').innerText = decode(document.getElementById('inv-lpo-ref').value) || '—';
+    document.getElementById('p-project').innerText = document.getElementById('inv-project').value || '—';
+    document.getElementById('p-client-name').innerText = document.getElementById('inv-client-name').value;
+    document.getElementById('p-contact').innerText = document.getElementById('inv-contact').value || '';
+    document.getElementById('p-contact2').innerText = document.getElementById('inv-contact2').value || '';
+    document.getElementById('p-address').innerText = document.getElementById('inv-address').value || '';
+    document.getElementById('p-payment-terms').innerText = terms;
+    document.getElementById('p-preparer-name').innerText = document.getElementById('inv-preparer').value || '';
 
     // Items table
     document.getElementById('p-inv-items').innerHTML = items.map(it => `
       <tr>
-        <td>${it.i}</td>
-        <td>${it.desc}</td>
-        <td>${it.unit}</td>
-        <td style="text-align:right">${it.qty}</td>
-        <td style="text-align:right">${fmtNum(it.price)}</td>
-        <td>${fmtNum(it.total)}</td>
-      </tr>`).join('');
+        <td>${it.i}</div>
+        <td>${escapeHtml(it.desc)}</div>
+        <td>${escapeHtml(it.unit)}</div>
+        <td style="text-align: right">${it.qty}</div>
+        <td style="text-align: right">${fmtNum(it.price)}</div>
+        <td style="text-align: right">${fmtNum(it.total)}</div>
+      </tr>
+    `).join('');
 
-    // Totals
     document.getElementById('p-subtotal').innerText = fmtNum(sub);
-    document.getElementById('p-vat').innerText      = fmtNum(vat);
-    document.getElementById('p-total').innerText    = 'UGX ' + fmtNum(grand);
-    document.getElementById('p-vat-row').style.display = vatOn ? '' : 'none';
+    document.getElementById('p-vat').innerText = fmtNum(vat);
+    document.getElementById('p-total').innerText = 'UGX ' + fmtNum(grand);
+    document.getElementById('p-vat-row').style.display = vatOn ? 'flex' : 'none';
 
-    // Notes
-    if(notes) {
+    if (notes) {
       document.getElementById('p-notes').innerText = notes;
-      document.getElementById('p-notes-wrap').style.display = '';
+      document.getElementById('p-notes-wrap').style.display = 'block';
     } else {
       document.getElementById('p-notes-wrap').style.display = 'none';
     }
@@ -757,12 +1328,52 @@
     document.getElementById('invoice-preview').style.display = 'block';
     window.scrollTo(0, 0);
 
-    // Send invoice emails
-    const clientEmail = document.getElementById('inv-client-email').value.trim();
-    const clientName  = document.getElementById('inv-client-name').value.trim();
-    const lpoRef      = decode(document.getElementById('inv-lpo-ref').value);
+    // Save to Supabase
+    const invoiceLink = crypto.randomUUID();
+    let invoiceViewLink = '';
+    
+    try {
+      const saveRes = await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${currentSession.access_token}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({
+          invoice_number: invNum,
+          lpo_ref: decode(document.getElementById('inv-lpo-ref').value) || null,
+          client_name: document.getElementById('inv-client-name').value,
+          client_email: document.getElementById('inv-client-email').value,
+          invoice_date: invDate,
+          due_date: invDue,
+          subtotal: sub,
+          vat: vat,
+          total: grand,
+          payment_terms: terms,
+          notes: notes || null,
+          unique_link: invoiceLink,
+          items: items
+        })
+      });
+      
+      if (saveRes.ok) {
+        invoiceViewLink = SITE_BASE_URL + '/ETL-Invoice-View.html?inv=' + invoiceLink;
+      } else {
+        console.warn('Save failed:', await saveRes.text());
+      }
+    } catch (e) {
+      console.warn('Could not save invoice:', e);
+    }
 
-    const emailBody = `Dear ${clientName},
+    // Email to client
+    const clientEmail = document.getElementById('inv-client-email').value.trim();
+    const clientName = document.getElementById('inv-client-name').value.trim();
+    const lpoRef = decode(document.getElementById('inv-lpo-ref').value);
+
+    if (clientEmail) {
+      const emailBody = `Dear ${clientName},
 
 Please find your invoice from Engineering Trade Links Co. Ltd.
 
@@ -785,69 +1396,34 @@ Email: tradelinks.ltd@gmail.com
 Quality at Service,
 Engineering Trade Links Co. Ltd`;
 
-    // Save invoice to Supabase and get unique link
-    const invoiceLink = crypto.randomUUID();
-    let invoiceViewLink = '';
-    try {
-      const saveRes = await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SESSION_TOKEN}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          invoice_number: invNum,
-          lpo_ref: lpoRef,
-          client_name: clientName,
-          client_email: clientEmail,
-          invoice_date: invDate,
-          due_date: invDue,
-          subtotal: sub,
-          vat: vat,
-          total: grand,
-          payment_terms: terms,
-          notes: notes,
-          unique_link: invoiceLink,
-          items: items
-        })
-      });
-      if(saveRes.ok) {
-        invoiceViewLink = SITE_BASE_URL + '/ETL-Invoice-View.html?inv=' + invoiceLink;
-      } else {
-        const errText = await saveRes.text();
-        console.warn('Invoice save failed:', errText);
-        alert('⚠️ Invoice could not be saved to database: ' + errText + '\n\nThe invoice PDF will still work but the view link will not be available.');
-      }
-    } catch(e) {
-      console.warn('Could not save invoice:', e);
-      alert('⚠️ Invoice save error: ' + e.message);
-      invoiceViewLink = '';
+      sendEmail(clientEmail, `Invoice ${invNum} from Engineering Trade Links — UGX ${fmtNum(grand)}`, emailBody + (invoiceViewLink ? `\n\nView your invoice online:\n${invoiceViewLink}` : ''));
     }
 
-    // Email to client
-    if(clientEmail) {
-      sendEmail(clientEmail, `Invoice ${invNum} from Engineering Trade Links — UGX ${fmtNum(grand)}`, emailBody + '\n\nView your invoice online:\n' + (invoiceViewLink || 'Link not available') + '\n\nFor queries contact us:\nTel: +256 776 566 522\nEmail: tradelinks.ltd@gmail.com');
-    }
-
-    // Notify ETL staff with invoice link + dashboard link only
-    // DISABLED: Email notifications disabled for now
-    // sendEmail('tokui@usiu.ac.ke', `🧾 Invoice Generated — ${invNum} | ${clientName}`, 'A new invoice has been generated and sent to the client.\n\nClient: ' + clientName + '\nAmount: UGX ' + fmtNum(grand) + '\n\nInvoice View Link:\n' + (invoiceViewLink || 'Not saved') + '\n\nDashboard:\n' + DASHBOARD_URL);
-
-    // Copy to MD / Director Finance
-    // DISABLED: Email notifications disabled for now
-    // sendEmail('timookui@gmail.com', `[COPY] Invoice ${invNum} sent to ${clientName} — UGX ${fmtNum(grand)}`, 'Copy of invoice sent to ' + clientName + ' (' + (clientEmail || 'no email') + ').\n\nAmount: UGX ' + fmtNum(grand) + '\nInvoice: ' + invNum + '\n\nInvoice View Link:\n' + (invoiceViewLink || 'Not saved - check Supabase') + '\n\nDashboard:\n' + DASHBOARD_URL);
-
-    // Success notification
     setTimeout(() => {
-      const msg = clientEmail
-        ? '✅ Invoice ' + invNum + ' generated!\n\nSent to: ' + clientEmail + '\nA copy has been sent to management.'
-        : '✅ Invoice ' + invNum + ' generated!\n\nNo client email provided — please share manually.';
-      alert(msg);
-    }, 600);
+      alert('✅ Invoice ' + invNum + ' generated!\n\n' + (clientEmail ? 'Sent to: ' + clientEmail : 'No client email provided — please share manually.'));
+    }, 100);
   }
 
+  /* ============================================
+     EMAIL HELPER
+  ============================================ */
+  async function sendEmail(to, subject, body) {
+    if (!to || !to.includes('@')) return;
+    try {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ to, subject, body, flow: 'internal_ops', context: 'invoice' })
+      });
+      if (!res.ok) throw new Error(await res.text());
+    } catch (e) {
+      console.warn('Email error:', e);
+    }
+  }
+
+  /* ============================================
+     BACK TO FORM & PDF DOWNLOAD
+  ============================================ */
   function backToForm() {
     document.getElementById('invoice-preview').style.display = 'none';
     document.getElementById('form-section').style.display = 'block';
@@ -859,272 +1435,36 @@ Engineering Trade Links Co. Ltd`;
     html2pdf().set({
       margin: 8,
       filename: `ETL_Invoice_${invNum}.pdf`,
-      image: { type:'jpeg', quality:0.98 },
-      html2canvas: { scale:2, useCORS:true },
-      jsPDF: { unit:'mm', format:'a4', orientation:'portrait' }
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
     }).from(document.getElementById('inv-doc')).save();
   }
 
-  // ──────────── INVOICE LIST & PAYMENT TRACKING ────────────
-  /*
-  let INVOICES_CACHE = [];
-  let PAYMENT_MODAL_INVOICE_ID = null;
-
-  async function loadInvoiceList() {
-    const body = document.getElementById('inv-list-body');
-    if (!body) return;
-    body.innerHTML = '<div class="inv-list-empty">Loading invoices…</div>';
-    try {
-      const url = `${SUPABASE_URL}/rest/v1/invoices?select=id,invoice_number,client_name,total,due_date,invoice_date,created_at,invoice_payments(amount,payment_date,note,recorded_by,created_at)&order=created_at.desc`;
-      const res = await fetch(url, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
-      });
-      if (!res.ok) throw new Error(await res.text());
-      INVOICES_CACHE = await res.json();
-      renderInvoiceList();
-    } catch (e) {
-      body.innerHTML = `<div class="inv-list-empty">Could not load invoices: ${e.message}</div>`;
-    }
-  }
-
-  function invoiceStatus(inv) {
-    const paid = (inv.invoice_payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
-    const total = Number(inv.total) || 0;
-    const balance = Math.max(0, total - paid);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const due = inv.due_date ? new Date(inv.due_date) : null;
-    let state;
-    if (total - paid <= 0.009) state = 'paid';
-    else if (paid > 0) state = (due && due < today) ? 'overdue' : 'partial';
-    else state = (due && due < today) ? 'overdue' : 'unpaid';
-    return { paid, balance, state };
-  }
-
-  function fmtShort(n) {
-    if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
-    if (n >= 1_000_000)     return (n / 1_000_000).toFixed(1) + 'M';
-    if (n >= 1_000)         return (n / 1_000).toFixed(1) + 'K';
-    return Math.round(n).toLocaleString();
-  }
-
-  function renderInvoiceList() {
-    const body = document.getElementById('inv-list-body');
-    const q = document.getElementById('inv-list-search').value.trim().toLowerCase();
-    const windowDays = document.getElementById('inv-list-filter').value;
-    const cutoff = windowDays === 'all' ? 0 : Date.now() - (parseInt(windowDays, 10) * 86400000);
-
-    const rows = INVOICES_CACHE.filter(inv => {
-      if (cutoff && new Date(inv.created_at).getTime() < cutoff) return false;
-      if (q) {
-        const hay = `${inv.invoice_number || ''} ${inv.client_name || ''}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-
-    if (rows.length === 0) {
-      body.innerHTML = '<div class="inv-list-empty">No invoices match.</div>';
+  /* ============================================
+     AUTHENTICATION & INIT
+  ============================================ */
+  etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const { data: { session }, error } = await supabaseClient.auth.getSession();
+    
+    if (error || !session) {
+      console.error('Auth error:', error);
+      window.location.href = '/ETL-Dashboard.html';
       return;
     }
-
-    const badgeMap = { paid: 'badge-paid', partial: 'badge-partial', unpaid: 'badge-unpaid', overdue: 'badge-overdue' };
-    const labelMap = { paid: 'Paid', partial: 'Partial', unpaid: 'Unpaid', overdue: 'Overdue' };
-
-    const html = `
-      <div class="inv-list-table-wrap">
-        <table class="inv-list-table">
-          <thead>
-            <tr>
-              <th>Invoice #</th>
-              <th>Client</th>
-              <th class="num">Total</th>
-              <th class="num">Paid</th>
-              <th class="num">Balance</th>
-              <th>Due</th>
-              <th>Status</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows.map(inv => {
-              const s = invoiceStatus(inv);
-              const dueStr = inv.due_date
-                ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })
-                : '—';
-              const payCount = (inv.invoice_payments || []).length;
-              return `
-                <tr>
-                  <td><strong>${inv.invoice_number || '—'}</strong></td>
-                  <td>${(inv.client_name || '—').replace(/</g, '&lt;')}</td>
-                  <td class="num">${fmtShort(Number(inv.total) || 0)}</td>
-                  <td class="num">${fmtShort(s.paid)}</td>
-                  <td class="num"><strong>${fmtShort(s.balance)}</strong></td>
-                  <td>${dueStr}</td>
-                  <td><span class="badge ${badgeMap[s.state]}">${labelMap[s.state]}</span></td>
-                  <td style="white-space:nowrap;">
-                    ${s.state !== 'paid' ? `<button class="btn-sm btn-sm-primary" onclick="openPaymentModal('${inv.id}')">+ Pay</button>` : ''}
-                    ${payCount > 0 ? `<button class="btn-sm btn-sm-secondary" onclick="openHistoryModal('${inv.id}')" style="margin-left:4px;">${payCount} ${payCount === 1 ? 'Payment' : 'Payments'}</button>` : ''}
-                  </td>
-                </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>`;
-    body.innerHTML = html;
-  }
-
-  function openPaymentModal(invoiceId) {
-    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
-    if (!inv) return;
-    const s = invoiceStatus(inv);
-    PAYMENT_MODAL_INVOICE_ID = invoiceId;
-    document.getElementById('pm-summary').innerHTML = `
-      <div><strong>${inv.invoice_number}</strong> — ${(inv.client_name || '').replace(/</g, '&lt;')}</div>
-      <div>Total: UGX ${Math.round(Number(inv.total) || 0).toLocaleString()} · Paid: UGX ${Math.round(s.paid).toLocaleString()} · <strong>Balance: UGX ${Math.round(s.balance).toLocaleString()}</strong></div>
-    `;
-    document.getElementById('pm-amount').value = '';
-    document.getElementById('pm-amount').setAttribute('max', s.balance);
-    document.getElementById('pm-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('pm-note').value = '';
-    document.getElementById('payment-modal').classList.add('show');
-    setTimeout(() => document.getElementById('pm-amount').focus(), 50);
-  }
-
-  function closePaymentModal() {
-    document.getElementById('payment-modal').classList.remove('show');
-    PAYMENT_MODAL_INVOICE_ID = null;
-  }
-
-  async function recordPayment() {
-    if (!PAYMENT_MODAL_INVOICE_ID) return;
-    const amount = parseFloat(document.getElementById('pm-amount').value);
-    const payDate = document.getElementById('pm-date').value;
-    const note = document.getElementById('pm-note').value.trim();
-    if (!amount || amount <= 0) { alert('Enter a positive amount.'); return; }
-    if (!payDate) { alert('Enter a payment date.'); return; }
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoice_payments`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SESSION_TOKEN}`,
-          'Prefer': 'return=minimal'
-        },
-        body: JSON.stringify({
-          invoice_id: PAYMENT_MODAL_INVOICE_ID,
-          amount,
-          payment_date: payDate,
-          note: note || null
-        })
-      });
-      if (!res.ok) {
-        const err = await res.text();
-        alert('Could not save payment: ' + err);
-        return;
-      }
-      closePaymentModal();
-      await loadInvoiceList();
-    } catch (e) {
-      alert('Network error: ' + e.message);
+    
+    currentSession = session;
+    
+    // Load inventory if function exists
+    if (typeof loadInventoryItems === 'function') {
+      await loadInventoryItems();
     }
-  }
-
-  function openHistoryModal(invoiceId) {
-    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
-    if (!inv) return;
-    const payments = [...(inv.invoice_payments || [])].sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
-    document.getElementById('hm-title').innerText = `Payments — ${inv.invoice_number}`;
-    const total = Number(inv.total) || 0;
-    const paid = payments.reduce((s, p) => s + Number(p.amount || 0), 0);
-    const bal = Math.max(0, total - paid);
-    const body = `
-      <div class="pm-summary">
-        <div><strong>${(inv.client_name || '').replace(/</g, '&lt;')}</strong></div>
-        <div>Total: UGX ${Math.round(total).toLocaleString()} · Paid: UGX ${Math.round(paid).toLocaleString()} · Balance: UGX ${Math.round(bal).toLocaleString()}</div>
-      </div>
-      ${payments.length === 0
-        ? '<div class="inv-list-empty">No payments recorded yet.</div>'
-        : `<ul class="payment-history">${payments.map(p => `
-          <li>
-            <div style="flex:1;">
-              <div class="ph-date">${new Date(p.payment_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-              ${p.note ? `<div class="ph-note">${String(p.note).replace(/</g, '&lt;')}</div>` : ''}
-              <div class="ph-meta">Recorded ${new Date(p.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
-            </div>
-            <div class="ph-amount">UGX ${Math.round(Number(p.amount)).toLocaleString()}</div>
-          </li>`).join('')}</ul>`
-      }
-    `;
-    document.getElementById('hm-body').innerHTML = body;
-    document.getElementById('history-modal').classList.add('show');
-  }
-
-  function closeHistoryModal() {
-    document.getElementById('history-modal').classList.remove('show');
-  }
-
-  // Close modals when clicking backdrop
-  document.addEventListener('click', (e) => {
-    if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
-      e.target.classList.remove('show');
-    }
-  });
-
-  */
-  etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
-    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-    const { data: { session } } = await sbClient.auth.getSession();
-    SESSION_TOKEN = session ? session.access_token : '';
-    await loadInventoryItems();
+    
+    // Prefill from LPO after session is ready
     await prefillFromLPO();
+  }).catch(err => {
+    console.error('Auth init failed:', err);
+    window.location.href = '/ETL-Dashboard.html';
   });
 </script>
-
-<!-- Invoice dashboard payment modals retained only as legacy reference:
-RECORD PAYMENT MODAL
-<div class="modal-backdrop" id="payment-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Record Payment</h3>
-      <button class="modal-close" onclick="closePaymentModal()">×</button>
-    </div>
-    <div class="modal-body">
-      <div id="pm-summary" class="pm-summary"></div>
-      <div class="field">
-        <label>Amount (UGX) *</label>
-        <input type="number" id="pm-amount" min="1" step="0.01" placeholder="e.g. 500000">
-      </div>
-      <div class="field">
-        <label>Payment Date *</label>
-        <input type="date" id="pm-date">
-      </div>
-      <div class="field">
-        <label>Note (optional)</label>
-        <textarea id="pm-note" rows="2" placeholder="e.g. Cash received at office / Bank ref 12345"></textarea>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn-secondary" style="padding:9px 18px;" onclick="closePaymentModal()">Cancel</button>
-      <button class="btn-primary" style="padding:9px 18px;" onclick="recordPayment()">Save Payment</button>
-    </div>
-  </div>
-</div>
-
-PAYMENT HISTORY MODAL
-<div class="modal-backdrop" id="history-modal">
-  <div class="modal">
-    <div class="modal-header">
-      <h3 id="hm-title">Payment History</h3>
-      <button class="modal-close" onclick="closeHistoryModal()">×</button>
-    </div>
-    <div class="modal-body" id="hm-body"></div>
-    <div class="modal-footer">
-      <button class="btn-secondary" style="padding:9px 18px;" onclick="closeHistoryModal()">Close</button>
-    </div>
-  </div>
-</div>
--->
-
-</body>
-</html>

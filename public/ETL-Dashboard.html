@@ -147,6 +147,8 @@
   .modal-btn.primary { background: var(--primary); color: var(--white); }
   .modal-btn.secondary { background: var(--lighter-bg); color: var(--text); border: 1px solid var(--border); }
   .modal-btn.gold { background: var(--gold); color: var(--white); }
+  .modal-btn.green  { background: var(--success); color: var(--white); }
+  .modal-btn.danger { background: var(--danger);  color: var(--white); }
 
   /* ── Approved / Pending Row Highlight ── */
   tr.row-approved td { background: #e6f7ef !important; border-top: 2px solid #0f7a4a; border-bottom: 2px solid #0f7a4a; }
@@ -866,6 +868,10 @@ ${(()=>{
       <div class="modal-actions">
         <button class="modal-btn secondary" onclick="closeModal()">Close</button>
         ${l.direction === 'outward' && l.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${l.unique_link}')">📋 Copy Supplier Link</button>` : ''}
+        ${l.status === 'pending_approval' && currentRole === 'management'
+          ? `<button class="modal-btn green" onclick="approveLPO('${l.id}');closeModal()">✅ Approve</button>
+             <button class="modal-btn danger" onclick="rejectLPO('${l.id}');closeModal()">❌ Reject</button>`
+          : ''}
       </div>`;
     document.getElementById('detail-modal').classList.add('open');
   }
