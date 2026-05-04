@@ -287,7 +287,7 @@
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
     <a href="/" class="top-nav-back">← Back to Website</a>
-    <button id="top-nav-logout" class="top-nav-back" onclick="etlAuth.signOut()" style="cursor:pointer;display:none;">🔓 Log Out</button>
+   
   </div>
 </div>
 
@@ -1014,9 +1014,8 @@ LPO View Link:` + (link ? '\n\nLPO View Link:\n' + link : '') + '\n\nDashboard:\
     SESSION_TOKEN = session ? session.access_token : '';
     IS_ANON = !session;
 
-    // Show Log Out only when signed in
-    const logoutBtn = document.getElementById('top-nav-logout');
-    if(logoutBtn) logoutBtn.style.display = IS_ANON ? 'none' : '';
+   
+  
 
     if(IS_ANON) {
       // Render Turnstile for the public submitter
