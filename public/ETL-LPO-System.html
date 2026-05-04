@@ -273,7 +273,7 @@
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/etl-auth.js"></script>
-<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 </head>
 <body>
 
@@ -464,7 +464,7 @@
   <div id="turnstile-wrap" style="display:none;margin:0 0 18px;padding:16px;background:#f1f7fd;border:1px solid #cfe3f0;border-radius:10px;">
     <div style="font-size:13px;font-weight:700;color:#1a3c6e;margin-bottom:10px;">Security check</div>
     <div id="turnstile-widget"></div>
-    <p style="font-size:11px;color:#64748b;margin:8px 0 0;">Please complete the check above before submitting your LPO.</p>
+    <p id="turnstile-msg" style="font-size:11px;color:#64748b;margin:8px 0 0;">Please complete the check above before submitting your LPO.</p>
   </div>
 
   <div class="form-actions">
@@ -711,10 +711,9 @@
     }
 
     // Public submitters must pass Turnstile before we save + notify
-    if(IS_ANON) {
-      const tsToken = (window.turnstile && TURNSTILE_WIDGET_ID !== null)
-        ? window.turnstile.getResponse(TURNSTILE_WIDGET_ID) : '';
-      if(!tsToken) {
+    if(IS_ANON && TURNSTILE_ENABLED) {
+      if(!TURNSTILE_TOKEN) {
+        setTurnstileMessage('Please complete the security check before submitting your LPO.', true);
         alert('Please complete the security check before submitting your LPO.');
         return;
       }
@@ -804,7 +803,57 @@
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
   let SESSION_TOKEN = '';
   let IS_ANON = false;
+  let TURNSTILE_ENABLED = false;
+  let TURNSTILE_SITE_KEY = '';
+  let TURNSTILE_TOKEN = '';
   let TURNSTILE_WIDGET_ID = null;
+
+  function setTurnstileMessage(message, isError) {
+    const el = document.getElementById('turnstile-msg');
+    if(!el) return;
+    el.textContent = message || '';
+    el.style.color = isError ? '#c53030' : '#64748b';
+    el.style.fontWeight = isError ? '700' : '400';
+  }
+
+  function resetTurnstileWidget() {
+    TURNSTILE_TOKEN = '';
+    if(TURNSTILE_ENABLED && window.turnstile && TURNSTILE_WIDGET_ID !== null) {
+      window.turnstile.reset(TURNSTILE_WIDGET_ID);
+    }
+  }
+
+  function renderTurnstileWidget() {
+    if(!TURNSTILE_ENABLED || !TURNSTILE_SITE_KEY) return;
+    const wrap = document.getElementById('turnstile-wrap');
+    if(!wrap || !window.turnstile || TURNSTILE_WIDGET_ID !== null) return;
+
+    wrap.style.display = 'block';
+    TURNSTILE_WIDGET_ID = window.turnstile.render('#turnstile-widget', {
+      sitekey: TURNSTILE_SITE_KEY,
+      theme: 'light',
+      callback: function(token) {
+        TURNSTILE_TOKEN = token || '';
+        setTurnstileMessage('Security check complete.', false);
+      },
+      'expired-callback': function() {
+        TURNSTILE_TOKEN = '';
+        setTurnstileMessage('Security check expired. Please confirm again.', true);
+      },
+      'error-callback': function() {
+        TURNSTILE_TOKEN = '';
+        setTurnstileMessage('Could not load security check. Refresh and try again.', true);
+      }
+    });
+  }
+
+  function waitForTurnstile() {
+    if(window.turnstile && window.turnstile.render) {
+      renderTurnstileWidget();
+      return;
+    }
+    setTimeout(waitForTurnstile, 150);
+  }
 
   async function saveLPOToSupabase(items, grand) {
     const uniqueLink = crypto.randomUUID();
@@ -832,8 +881,7 @@
     // email endpoint. The /rest/v1/lpos call uses the anon key. RLS restricts
     // anonymous INSERT to inward + pending_approval.
     const bearer = SESSION_TOKEN || SUPABASE_KEY;
-    const tsToken = (IS_ANON && window.turnstile && TURNSTILE_WIDGET_ID !== null)
-      ? window.turnstile.getResponse(TURNSTILE_WIDGET_ID) : '';
+    const tsToken = (IS_ANON && TURNSTILE_ENABLED) ? TURNSTILE_TOKEN : '';
 
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos`, {
@@ -849,6 +897,7 @@
 
       if(!res.ok) {
         alert('Could not save LPO: ' + await ETLUtils.readResponseError(res));
+        resetTurnstileWidget();
         return false;
       }
 
@@ -886,6 +935,7 @@ ${DASHBOARD_URL}`, emailOpts);
       return true;
     } catch(e) {
       alert('Network error saving LPO: ' + e.message);
+      resetTurnstileWidget();
       return false;
     }
   }
@@ -1002,20 +1052,14 @@ ${DASHBOARD_URL}`, emailOpts);
   
 
     if(IS_ANON) {
-      // Render Turnstile for the public submitter
+      // Render Turnstile for the public submitter when configured.
       try {
-        const cfg = await fetch('/api/send-email').then(r => r.json());
-        if(cfg && cfg.turnstileEnabled && cfg.turnstileSiteKey) {
-          document.getElementById('turnstile-wrap').style.display = 'block';
-          const renderWidget = () => {
-            TURNSTILE_WIDGET_ID = window.turnstile.render('#turnstile-widget', {
-              sitekey: cfg.turnstileSiteKey,
-              theme: 'light'
-            });
-          };
-          if(window.turnstile && window.turnstile.render) renderWidget();
-          else window.onloadTurnstileCallback = renderWidget;
-        }
+        const res = await fetch('/api/send-email');
+        if(!res.ok) return;
+        const cfg = await res.json();
+        TURNSTILE_ENABLED = !!cfg.turnstileEnabled;
+        TURNSTILE_SITE_KEY = cfg.turnstileSiteKey || '';
+        if(TURNSTILE_ENABLED && TURNSTILE_SITE_KEY) waitForTurnstile();
       } catch(e) { console.warn('Turnstile config fetch failed:', e); }
     } else {
       // Staff-only features
