@@ -282,6 +282,10 @@
     transform: translateY(-1px);
     box-shadow: 0 2px 10px rgba(26,60,110,0.10);
   }
+  .stat-card.clickable:focus-visible {
+    outline: 3px solid rgba(79,163,209,0.35);
+    outline-offset: 3px;
+  }
   .stat-card.receivable-kpi.clickable {
     transition: box-shadow 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
   }
@@ -1255,13 +1259,31 @@ tradelinks.ltd@gmail.com`);
     document.getElementById('tab-lpos').style.display      = tab === 'lpos'      ? '' : 'none';
     document.getElementById('tab-invoices').style.display  = tab === 'invoices'  ? '' : 'none';
     document.getElementById('tab-approvals').style.display = tab === 'approvals' ? '' : 'none';
-    if(tab === 'lpos')      loadLPOs();
+    if(tab === 'lpos' && !options.skipLpoLoad)      loadLPOs();
     if(tab === 'invoices' && !options.skipInvoiceLoad)  loadInvoiceList();
-    if(tab === 'approvals') loadApprovals();
+    if(tab === 'approvals' && !options.skipApprovalsLoad) loadApprovals();
   }
 
   // ─── KPI card click-through: switch tab with optional filter preset ───
   async function switchTabByName(tab, filter) {
+    if (tab === 'requests') {
+      switchTab(tab);
+      window._reqFilter = filter || 'all';
+      await loadRequests();
+      const requestsHeader = document.querySelector('#tab-requests .table-header');
+      if (requestsHeader) requestsHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
+    if (tab === 'lpos') {
+      switchTab(tab, null, { skipLpoLoad: true });
+      window._lpoFilter = filter || 'all';
+      await loadLPOs();
+      const lpoHeader = document.querySelector('#tab-lpos .table-header');
+      if (lpoHeader) lpoHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
     if (tab === 'invoices') {
       switchTab(tab, null, { skipInvoiceLoad: true });
       const sel = document.getElementById('inv-list-filter');
@@ -1289,19 +1311,17 @@ tradelinks.ltd@gmail.com`);
       return;
     }
 
+    if (tab === 'approvals') {
+      switchTab(tab, null, { skipApprovalsLoad: true });
+      await loadApprovals();
+      const approvalsHeader = document.querySelector('#tab-approvals .table-header');
+      if (approvalsHeader) approvalsHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+
     switchTab(tab);
-    setTimeout(() => {
-      if (tab === 'requests') {
-        window._reqFilter = filter || 'all';
-        loadRequests();
-      }
-      if (tab === 'lpos') {
-        window._lpoFilter = filter || 'all';
-        loadLPOs();
-      }
-      const el = document.getElementById('tab-' + tab);
-      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 0);
+    const el = document.getElementById('tab-' + tab);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function showRequestById(id) {
@@ -1822,6 +1842,27 @@ ${(()=>{
     }
   }
 
+  function initClickableKpis() {
+    document.querySelectorAll('.stat-card.clickable').forEach(card => {
+      card.setAttribute('tabindex', '0');
+      card.setAttribute('role', 'button');
+      if (!card.getAttribute('aria-label')) {
+        const label = card.querySelector('.stat-label')?.innerText?.trim();
+        const title = card.getAttribute('title');
+        card.setAttribute('aria-label', title || label || 'Open dashboard section');
+      }
+      if (card.dataset.kpiReady === '1') return;
+      card.dataset.kpiReady = '1';
+      card.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          card.click();
+        }
+      });
+    });
+  }
+
+  initClickableKpis();
   etlAuth.init({ forceLogin: true }).then(async () => {
     const profile = await etlAuth.getProfile();
     const user    = await etlAuth.getUser();
