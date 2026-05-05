@@ -1043,10 +1043,12 @@ ${DASHBOARD_URL}`, emailOpts);
   //   • Anonymous public     → inward-only submit + Turnstile + rate-limited public email flow
   // We do NOT use etlAuth.init() here because this page is deliberately public.
   (async function bootstrap() {
+    const params = new URLSearchParams(window.location.search);
+    const forcePublic = params.get('public') === '1';
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
-    SESSION_TOKEN = session ? session.access_token : '';
-    IS_ANON = !session;
+    SESSION_TOKEN = !forcePublic && session ? session.access_token : '';
+    IS_ANON = forcePublic || !session;
 
    
   
