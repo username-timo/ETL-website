@@ -10,7 +10,7 @@ const HeaderLink: React.FC<{ item: any; sticky?: boolean }> = ({ item, sticky = 
   if (item.highlight) {
     return (
       <a href={item.href}
-        className="lpo-btn flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-sm text-white transition-all hover:opacity-90 whitespace-nowrap"
+        className="lpo-btn flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-bold text-sm text-white transition-all hover:opacity-90 whitespace-nowrap"
         style={{ background: "linear-gradient(135deg,#c8860a,#e6a830)" }}>
         📋 {item.label}
       </a>
@@ -29,7 +29,7 @@ const HeaderLink: React.FC<{ item: any; sticky?: boolean }> = ({ item, sticky = 
       onMouseLeave={() => setSubmenuOpen(false)}
     >
       <a href={item.href}
-        className={`flex items-center gap-0.5 py-2 font-bold text-sm uppercase tracking-wide transition-colors whitespace-nowrap ${textColor}`}
+        className={`flex items-center gap-0.5 py-1.5 font-bold text-sm uppercase tracking-wide transition-colors whitespace-nowrap ${textColor}`}
         style={{ fontFamily: "var(--font-barlow, sans-serif)", letterSpacing: "0.07em" }}>
         {item.label}
         {item.submenu && (

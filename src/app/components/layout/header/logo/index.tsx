@@ -7,15 +7,15 @@ const Logo: React.FC<{ sticky?: boolean }> = ({ sticky = true }) => {
       <Image
         src="/etl-images/etl-logo.png"
         alt="Engineering Trade Links"
-        width={108}
-        height={108}
+        width={84}
+        height={84}
         className="object-contain"
         priority
-        style={{ marginTop: "-16px", mixBlendMode: "multiply" }}
+        style={{ marginTop: "-8px", mixBlendMode: "multiply" }}
       />
       <div className="flex flex-col leading-none">
         <span className={`font-black uppercase tracking-wide ${sticky ? "text-primary dark:text-white" : "text-white"}`}
-          style={{ fontFamily: "var(--font-barlow, sans-serif)", fontSize: "1rem" }}>
+          style={{ fontFamily: "var(--font-barlow, sans-serif)", fontSize: "1.05rem" }}>
           Engineering Trade Links
         </span>
         <span className={`text-[11px] font-semibold tracking-widest uppercase mt-0.5 ${sticky ? "text-gray" : "text-white/75"}`}>
