@@ -33,12 +33,12 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-0 sm:p-4"
+      className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto p-3 sm:items-center sm:p-4"
       style={{ background: "rgba(8,16,36,0.93)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
 
-      <div className="bg-white dark:bg-darklight rounded-none sm:rounded-2xl w-full overflow-hidden flex flex-col"
-        style={{ maxWidth: 1180, height: "min(94vh, 860px)" }}>
+      <div className="flex w-full flex-col overflow-y-auto rounded-2xl bg-white dark:bg-darklight sm:overflow-hidden"
+        style={{ maxWidth: 1180, maxHeight: "calc(100dvh - 1.5rem)" }}>
 
         {/* ── Modal header ── */}
         <div className="sticky top-0 z-20 flex items-start justify-between gap-4 px-6 py-4 flex-shrink-0"
@@ -63,9 +63,9 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
         </div>
 
         {/* ── Main image + body (split layout) ── */}
-        <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
-          <div className="flex min-h-0 flex-col lg:w-[58%]">
-            <div className="relative flex-1 min-h-[200px]" style={{ background: "#060e20" }}>
+        <div className="flex flex-col lg:min-h-0 lg:flex-1 lg:flex-row">
+          <div className="flex flex-col lg:min-h-0 lg:w-[58%]">
+            <div className="relative h-[42vh] min-h-[220px] max-h-[360px] flex-none lg:min-h-[200px] lg:max-h-none lg:flex-1" style={{ background: "#060e20" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={project.imgs[idx]} alt={project.title}
                 style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
@@ -126,7 +126,7 @@ function ProjectModal({ project, onClose }: { project: Project; onClose: () => v
           </div>
 
           {/* ── Body ── */}
-          <div className="px-6 py-5 overflow-y-auto flex-1 min-h-0 lg:w-[42%] lg:border-l lg:border-border lg:dark:border-dark_border">
+          <div className="flex-none px-6 py-5 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:w-[42%] lg:border-l lg:border-border lg:dark:border-dark_border">
             {/* Meta grid */}
             <div className="grid grid-cols-2 gap-3 mb-5">
               {[

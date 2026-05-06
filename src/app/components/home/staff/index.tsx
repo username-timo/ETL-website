@@ -82,12 +82,12 @@ export default function Staff() {
               data-aos="fade-up" data-aos-delay={`${i * 50}`}>
 
               {/* Photo */}
-              <div className="relative h-56 overflow-hidden">
+              <div className="relative h-72 sm:h-64 overflow-hidden bg-section dark:bg-darkmode">
                 <Image
                   src={member.photo}
                   alt={member.name}
                   fill
-                  className="object-cover object-top group-hover:scale-105 transition-transform duration-500"
+                  className="object-contain object-top group-hover:scale-105 transition-transform duration-500"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                 />
                 <div className="absolute inset-0"

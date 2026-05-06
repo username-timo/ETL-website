@@ -208,12 +208,12 @@ function ServiceModal({
 
   return (
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-start justify-center overflow-y-auto p-3 sm:p-4 lg:items-center"
       style={{ background: "rgba(8,16,36,0.93)" }}
       onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
 
-      <div className="bg-white dark:bg-darklight rounded-2xl w-full overflow-hidden flex flex-col"
-        style={{ maxWidth: 1180, height: "min(94vh, 860px)" }}>
+      <div className="my-auto bg-white dark:bg-darklight rounded-2xl w-full max-h-[calc(100dvh-24px)] overflow-y-auto lg:overflow-hidden flex flex-col"
+        style={{ maxWidth: 1180 }}>
 
         {/* Header */}
         <div className="flex items-start justify-between gap-4 px-6 py-4 flex-shrink-0"
@@ -241,11 +241,11 @@ function ServiceModal({
         </div>
 
         {/* Split body */}
-        <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
+        <div className="flex flex-col lg:flex-row lg:min-h-0 lg:flex-1">
 
           {/* Left: image + gallery */}
-          <div className="flex min-h-0 flex-col lg:w-[58%]">
-            <div className="relative flex-1 min-h-[340px]" style={{ background: "#060e20" }}>
+          <div className="flex flex-col lg:min-h-0 lg:w-[58%]">
+            <div className="relative h-[240px] sm:h-[320px] lg:h-auto lg:flex-1 lg:min-h-[340px]" style={{ background: "#060e20" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={gallery[idx]} alt={service.title}
                 style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
@@ -303,7 +303,7 @@ function ServiceModal({
           </div>
 
           {/* Right: details */}
-          <div className="px-6 py-5 overflow-y-auto flex-1 min-h-0 lg:w-[42%] lg:border-l lg:border-border lg:dark:border-dark_border">
+          <div className="px-6 py-5 flex-1 lg:min-h-0 lg:w-[42%] lg:overflow-y-auto lg:border-l lg:border-border lg:dark:border-dark_border">
 
             <p className="text-sm text-gray leading-relaxed mb-5">{service.desc}</p>
 

@@ -90,7 +90,8 @@
   .field.full { grid-column: 1/-1; }
 
   /* Items Table */
-  .items-wrap { overflow: visible; }
+  .items-wrap { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
+  .items-wrap::after { content: ''; display: block; clear: both; }
   .items-table { width: 100%; border-collapse: collapse; min-width: 600px; }
   .items-table thead tr { background: var(--light-bg); }
   .items-table th { padding: 12px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); font-weight: 800; text-align: left; border-bottom: 2px solid var(--border); }
@@ -300,12 +301,14 @@
     body { font-size: 13px; overflow-x: hidden; width: 100vw; }
 
     /* NAV */
-    .top-nav { height: 56px; padding: 0 2%; }
-    .top-nav-brand { gap: 8px; }
-    .top-nav-sq { width: 30px; height: 30px; font-size: 13px; }
-    .top-nav-title { font-size: 13px; }
-    .top-nav-sub { font-size: 8px; }
-    .top-nav-back { font-size: 9px; padding: 5px 10px; }
+    .top-nav { height: auto; min-height: 72px; padding: 8px 4%; gap: 8px; }
+    .top-nav-brand { flex: 1 1 auto; min-width: 0; gap: 8px; }
+    .top-nav-brand > div { min-width: 0; }
+    .top-nav-sq { width: 50px !important; height: 50px !important; flex-shrink: 0; }
+    .top-nav-title { font-size: 12px; line-height: 1.05; white-space: normal; overflow-wrap: anywhere; }
+    .top-nav-sub { font-size: 8px; letter-spacing: 1px; }
+    .top-nav > div:last-child { flex: 0 0 auto; max-width: 48%; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .top-nav-back { font-size: 9px; padding: 6px 8px; line-height: 1.15; text-align: center; }
 
     /* PAGE HEADER */
     .page-header { padding: 20px 2%; }
@@ -334,19 +337,125 @@
     .field { gap: 4px; margin-bottom: 10px; }
     .field label { font-size: 8px; }
     .field input, .field select, .field textarea { font-size: 12px; padding: 8px 10px; border-radius: 6px; }
+    .field select.mobile-native-hidden { display: none; }
+    .mobile-category-picker { display: block; position: relative; }
+    .mobile-category-button {
+      width: 100%;
+      padding: 9px 12px;
+      border: 1.5px solid var(--border);
+      border-radius: 6px;
+      background: var(--lighter-bg);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .mobile-category-button::after {
+      content: '⌄';
+      float: right;
+      font-weight: 800;
+      color: var(--primary);
+    }
+    .mobile-category-menu {
+      display: none;
+      position: absolute;
+      z-index: 300;
+      top: calc(100% + 6px);
+      left: 0;
+      right: 0;
+      max-height: 220px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      -webkit-overflow-scrolling: touch;
+      touch-action: pan-y;
+      background: var(--white);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 10px 28px rgba(26, 60, 110, 0.16);
+    }
+    .mobile-category-picker.open .mobile-category-menu { display: block; }
+    .mobile-category-option {
+      display: block;
+      width: 100%;
+      padding: 10px 12px;
+      border: 0;
+      border-bottom: 1px solid var(--border);
+      background: var(--white);
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      text-align: left;
+      cursor: pointer;
+    }
+    .mobile-category-option:last-child { border-bottom: 0; }
+    .mobile-category-option.selected { background: var(--light-bg); color: var(--primary); font-weight: 800; }
+    .mobile-category-option:active { background: var(--secondary); color: var(--white); }
     .field textarea { min-height: 70px; }
 
     /* ITEMS TABLE */
-    .items-wrap { overflow: visible; }
-    .items-table { min-width: 100%; font-size: 10px; display: block; }
-    .items-table thead tr { background: #eaf2fb; display: table; width: 100%; }
-    .items-table tbody { display: block; overflow: visible; }
-    .items-table tr { display: table; width: 100%; table-layout: auto; border-bottom: 1px solid #cfe3f0; }
-    .items-table th { padding: 6px 6px; font-size: 8px; }
-    .items-table td { padding: 4px 4px; font-size: 10px; }
-    .items-table input { font-size: 11px; padding: 6px 8px; }
-    .row-total { font-size: 10px; }
-    .btn-rm { width: 20px; height: 20px; font-size: 10px; }
+    .items-wrap { margin-top: 2px; overflow: visible; }
+    .items-table { display: block; width: 100%; min-width: 0; border-collapse: separate; }
+    .items-table thead { display: none; }
+    .items-table tbody { display: grid; gap: 12px; }
+    .items-table tr {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      width: 100%;
+      padding: 10px;
+      padding-top: 30px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+      box-shadow: 0 8px 20px rgba(26, 60, 110, 0.06);
+    }
+    .items-table td { display: block; padding: 0; font-size: 11px; }
+    .items-table td:nth-child(1) { grid-column: 1 / -1; }
+    .items-table td:nth-child(5) {
+      align-self: end;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--light-bg);
+      text-align: right;
+    }
+    .items-table td:nth-child(6) {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      z-index: 2;
+    }
+    .items-table td::before {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--text-muted);
+      font-size: 8px;
+      font-weight: 800;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .items-table td:nth-child(1)::before { content: 'Description'; }
+    .items-table td:nth-child(2)::before { content: 'Unit'; }
+    .items-table td:nth-child(3)::before { content: 'Qty'; }
+    .items-table td:nth-child(4)::before { content: 'Unit Price'; }
+    .items-table td:nth-child(5)::before { content: 'Total'; text-align: right; }
+    .items-table td:nth-child(6)::before { display: none; }
+    .items-table input { font-size: 12px; padding: 8px 9px; min-height: 34px; }
+    .row-total { display: block; font-size: 14px; padding-right: 0; }
+    .btn-rm {
+      width: 22px;
+      height: 22px;
+      min-width: 22px;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 11px;
+      line-height: 1;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      pointer-events: auto;
+    }
 
 
     /* TABLE FOOTER */
@@ -451,7 +560,6 @@
       setTimeout(() => { btn.innerText = '📋 Copy'; }, 2000);
     }).catch(() => document.execCommand('copy'));
   }
-
 </script>
 <script src="/etl-auth.js"></script>
 </head>
@@ -460,7 +568,7 @@
 <!-- TOP NAV -->
 <div class="top-nav">
   <div class="top-nav-brand">
-<a href="/" aria-label="Go to ETL main site" style="display:inline-flex;align-items:center;text-decoration:none;"><img src="/etl-images/etl-logo.png" alt="ETL" alt="ETL"  style="width:74px;height:74px;object-fit:contain;display:block;"></a>
+<a href="/" aria-label="Go to ETL main site" style="display:inline-flex;align-items:center;text-decoration:none;"><img src="/etl-images/etl-logo.png" alt="ETL" class="top-nav-sq" style="width:74px;height:74px;object-fit:contain;display:block;"></a>
     <div>
       <span class="top-nav-title">Quotation Generator</span>
       <span class="top-nav-sub">Operations Portal</span>
@@ -1106,7 +1214,19 @@ Click the link below to view, download and print your quotation:`;
 
   function removeRow(btn) {
     const rows = document.querySelectorAll('#items-list tr');
-    if(rows.length > 1) { btn.closest('tr').remove(); updateTotals(); }
+    if(rows.length > 1) {
+      btn.closest('tr').remove();
+      updateTotals();
+      return;
+    }
+
+    const row = btn.closest('tr');
+    row.querySelector('.i-desc').value = '';
+    row.querySelector('.i-unit').value = '';
+    row.querySelector('.i-qty').value = '1';
+    row.querySelector('.i-price').value = '0';
+    row.querySelector('.row-total').innerText = '0';
+    updateTotals();
   }
 
   async function generatePreview() {
@@ -1185,6 +1305,83 @@ Click the link below to view, download and print your quotation:`;
     window.scrollTo(0, 0);
     await saveQuotationToSupabase(ref);
   }
+
+  const categoryMediaQuery = window.matchMedia('(max-width: 600px)');
+  function closeMobileCategoryPicker(picker) {
+    if(picker) picker.classList.remove('open');
+  }
+  function renderMobileCategoryPicker(select) {
+    const existing = select.nextElementSibling?.classList?.contains('mobile-category-picker') ? select.nextElementSibling : null;
+    if(existing) existing.remove();
+
+    select.removeAttribute('size');
+    select.classList.add('mobile-native-hidden');
+
+    const picker = document.createElement('div');
+    picker.className = 'mobile-category-picker';
+
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'mobile-category-button';
+
+    const menu = document.createElement('div');
+    menu.className = 'mobile-category-menu';
+
+    const syncButton = () => {
+      const selected = select.options[select.selectedIndex];
+      button.textContent = selected ? selected.textContent : '-- Select Category --';
+      menu.querySelectorAll('.mobile-category-option').forEach(btn => {
+        btn.classList.toggle('selected', btn.dataset.value === select.value);
+      });
+    };
+
+    Array.from(select.options).forEach(option => {
+      const item = document.createElement('button');
+      item.type = 'button';
+      item.className = 'mobile-category-option';
+      item.dataset.value = option.value;
+      item.textContent = option.textContent;
+      item.addEventListener('click', event => {
+        event.preventDefault();
+        event.stopPropagation();
+        select.value = option.value;
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+        syncButton();
+        closeMobileCategoryPicker(picker);
+      });
+      menu.appendChild(item);
+    });
+
+    button.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      picker.classList.toggle('open');
+    });
+    select.addEventListener('change', syncButton);
+    document.addEventListener('click', event => {
+      if(!picker.contains(event.target)) closeMobileCategoryPicker(picker);
+    });
+
+    picker.appendChild(button);
+    picker.appendChild(menu);
+    select.insertAdjacentElement('afterend', picker);
+    syncButton();
+  }
+  function syncMobileCategoryPicker() {
+    const select = document.getElementById('p-cat');
+    if(!select) return;
+    if(categoryMediaQuery.matches) {
+      if(!select.nextElementSibling?.classList?.contains('mobile-category-picker')) renderMobileCategoryPicker(select);
+    } else {
+      select.removeAttribute('size');
+      select.classList.remove('mobile-native-hidden');
+      const picker = select.nextElementSibling?.classList?.contains('mobile-category-picker') ? select.nextElementSibling : null;
+      if(picker) picker.remove();
+    }
+  }
+  syncMobileCategoryPicker();
+  if(categoryMediaQuery.addEventListener) categoryMediaQuery.addEventListener('change', syncMobileCategoryPicker);
+  else categoryMediaQuery.addListener(syncMobileCategoryPicker);
 </script>
 
 

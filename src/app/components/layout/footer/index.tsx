@@ -95,14 +95,10 @@ const Footer = () => {
 
       {/* Bottom bar */}
       <div className="border-t border-border dark:border-dark_border py-6">
-        <div className="container flex flex-col lg:flex-row justify-between items-center mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 gap-4">
-          <p className="text-gray text-sm text-center lg:text-left">
+        <div className="container flex justify-center items-center mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
+          <p className="text-gray text-sm text-center">
             © {new Date().getFullYear()} Engineering Trade Links Co. Ltd. All rights reserved.
           </p>
-          <div className="flex gap-4">
-            <Link href="/contact" className="text-sm text-gray hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/contact" className="text-sm text-gray hover:text-white transition-colors">Terms of Use</Link>
-          </div>
         </div>
       </div>
     </footer>

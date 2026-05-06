@@ -113,6 +113,15 @@
     .doc-wrap { margin:0; padding:0; }
     .invoice-doc { box-shadow:none; border-radius:0; }
   }
+  @media(max-width:600px){
+    .top-nav { height:auto; min-height:72px; padding:8px 4%; gap:8px; }
+    .top-nav-brand { flex:1 1 auto; min-width:0; gap:8px; }
+    .top-nav-brand > div { min-width:0; }
+    .nav-sq { width:50px !important; height:50px !important; flex-shrink:0; }
+    .nav-title { font-size:12px; line-height:1.05; white-space:normal; overflow-wrap:anywhere; }
+    .nav-sub { font-size:8px; letter-spacing:1px; }
+    .top-nav > a:last-child { flex:0 0 auto; max-width:126px; font-size:10px !important; line-height:1.15; text-align:center; }
+  }
   @media (max-width:600px) {
     .doc-ref-bar { grid-template-columns:1fr 1fr; }
     .doc-parties, .doc-bank-grid, .doc-sig { grid-template-columns:1fr; }

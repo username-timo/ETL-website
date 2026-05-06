@@ -80,6 +80,13 @@ const Header: React.FC = () => {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    document.body.style.overflow = navbarOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [navbarOpen]);
+
 
   const handleSignOut = () => {
     localStorage.removeItem("user");
@@ -164,13 +171,13 @@ const Header: React.FC = () => {
         </div>
       </div>
       {navbarOpen && (
-        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-40" />
+        <div className="fixed inset-0 z-[9998] bg-black/65 lg:hidden" />
       )}
       <div
         ref={mobileMenuRef}
-        className={`lg:hidden fixed top-0 z-50 right-0 h-full w-full bg-white dark:bg-darkmode shadow-lg transform transition-transform duration-300 max-w-xs ${navbarOpen ? "translate-x-0" : "translate-x-full"}`}
+        className={`lg:hidden fixed inset-y-0 right-0 z-[9999] h-dvh w-full overflow-y-auto bg-white dark:bg-darkmode shadow-2xl transform transition-transform duration-300 sm:max-w-sm ${navbarOpen ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="flex items-center justify-between p-4">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-white p-5 shadow-sm dark:border-dark_border dark:bg-darkmode">
           <h2 className="text-lg font-bold text-midnight_text dark:text-white">Menu</h2>
           <button onClick={() => setNavbarOpen(false)} aria-label="Close mobile menu">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" className="dark:text-white">
@@ -185,9 +192,9 @@ const Header: React.FC = () => {
             </svg>
           </button>
         </div>
-        <nav className="flex flex-col items-start p-4">
+        <nav className="flex flex-col items-start gap-1 p-5">
           {data.map((item:any, index:any) => (
-            <MobileHeaderLink key={index} item={item} />
+            <MobileHeaderLink key={index} item={item} onNavigate={() => setNavbarOpen(false)} />
           ))}
           <div className="mt-4 flex flex-col space-y-4 w-full">
             {user?.user || session?.user ? (

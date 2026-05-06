@@ -225,7 +225,7 @@
 
   @media(max-width:480px) {
     body { font-size: 13px; }
-    .top-nav { height: 56px; padding: 0 2%; }
+    .top-nav { height: auto; min-height: 72px; padding: 8px 4%; gap: 8px; }
     .form-container { padding: 0 2% 32px; }
     .form-grid, .form-grid3 { grid-template-columns: 1fr; gap: 10px; padding: 12px; }
     .field { gap: 4px; }
@@ -297,11 +297,14 @@
   /* MOBILE RESPONSIVE - PHONES (480px and below) */
   @media(max-width:480px) {
     body { font-size: 13px; }
-    .top-nav { height: 56px; padding: 0 2%; }
-    .top-nav-brand { gap: 8px; }
-    .top-nav-sq { width: 30px; height: 30px; font-size: 13px; }
-    .top-nav-title { font-size: 13px; }
-    .top-nav-back { font-size: 9px; padding: 5px 10px; }
+    .top-nav { height: auto; min-height: 72px; padding: 8px 4%; gap: 8px; }
+    .top-nav-brand { flex: 1 1 auto; min-width: 0; gap: 8px; }
+    .top-nav-brand > div { min-width: 0; }
+    .top-nav-sq { width: 50px !important; height: 50px !important; flex-shrink: 0; }
+    .top-nav-title { font-size: 12px; line-height: 1.05; white-space: normal; overflow-wrap: anywhere; }
+    .top-nav-sub { font-size: 8px; letter-spacing: 1px; }
+    .top-nav > div:last-child { flex: 0 0 auto; max-width: 48%; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+    .top-nav-back { font-size: 9px; padding: 6px 8px; line-height: 1.15; text-align: center; }
     .page-header { padding: 20px 2%; }
     .page-header h1 { font-size: 20px; }
     .page-header p { font-size: 11px; }
@@ -337,7 +340,7 @@
 <!-- TOP NAV -->
 <div class="top-nav">
   <div class="top-nav-brand">
-<a href="/" aria-label="Go to ETL main site" style="display:inline-flex;align-items:center;text-decoration:none;"><img src="/etl-images/etl-logo.png" alt="ETL" alt="ETL"  style="width:74px;height:74px;object-fit:contain;display:block;"></a>
+<a href="/" aria-label="Go to ETL main site" style="display:inline-flex;align-items:center;text-decoration:none;"><img src="/etl-images/etl-logo.png" alt="ETL" class="top-nav-sq" style="width:74px;height:74px;object-fit:contain;display:block;"></a>
     <div>
       <span class="top-nav-title">Outward LPO — Supplier</span>
       <span class="top-nav-sub">ETL Internal Use Only</span>

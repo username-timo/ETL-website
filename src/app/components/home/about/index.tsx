@@ -46,27 +46,29 @@ export default function About() {
     <section id="about" className="pt-24 pb-8 bg-white dark:bg-darkmode">
       <div className="container lg:max-w-screen-xl md:max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div className="relative flex flex-col items-start text-left mb-16">
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none" aria-hidden="true">
+        <div className="relative flex flex-col items-start text-left mb-12 sm:mb-16 pt-16 pb-6 sm:pt-20 sm:pb-10">
+          <div
+            className="absolute -right-10 -top-14 sm:right-8 sm:-top-4 pointer-events-none select-none"
+            aria-hidden="true"
+          >
             <Image
               src="/etl-images/etl-logo.png"
               alt=""
-              width={340}
-              height={340}
-              className="object-contain"
-              style={{ opacity: 0.7 }}
+              width={280}
+              height={280}
+              className="object-contain opacity-[0.58] sm:opacity-[0.46] dark:opacity-[0.28]"
             />
           </div>
 
-          <h2 className="relative font-black text-midnight_text dark:text-white mb-3 mt-8"
+          <h2 className="relative z-10 font-black text-midnight_text dark:text-white mb-3"
             style={{ fontFamily: "var(--font-barlow, sans-serif)", fontSize: "clamp(2rem,4vw,3rem)", lineHeight: 1.1 }}>
             About ETL
           </h2>
-          <span className="relative inline-block text-xs font-bold uppercase tracking-widest mb-3 px-4 py-1.5 rounded-full border"
+          <span className="relative z-10 inline-block text-xs font-bold uppercase tracking-widest mb-3 px-4 py-1.5 rounded-full border"
             style={{ color: "#4fa3d1", borderColor: "#cfe3f0", background: "#f0f6fb" }}>
             Who We Are
           </span>
-          <div className="relative w-16 h-1 rounded-full mb-6" style={{ background: "linear-gradient(90deg,#1a3c6e,#4fa3d1)" }} />
+          <div className="relative z-10 w-16 h-1 rounded-full mb-6" style={{ background: "linear-gradient(90deg,#1a3c6e,#4fa3d1)" }} />
         </div>
 
         <div className="grid lg:grid-cols-2 gap-12 items-stretch">

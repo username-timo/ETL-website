@@ -74,6 +74,43 @@ function getOrigin(request: NextRequest) {
   return request.headers.get("origin") || "";
 }
 
+function isPrivateHostname(hostname: string) {
+  if (
+    hostname === "localhost" ||
+    hostname === "127.0.0.1" ||
+    hostname === "::1" ||
+    hostname === "[::1]"
+  ) {
+    return true;
+  }
+
+  if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(hostname)) return true;
+  if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(hostname)) return true;
+
+  const match = hostname.match(/^172\.(\d{1,2})\.\d{1,3}\.\d{1,3}$/);
+  if (match) {
+    const secondOctet = Number(match[1]);
+    return secondOctet >= 16 && secondOctet <= 31;
+  }
+
+  return false;
+}
+
+function shouldBypassTurnstileForLocalDev(request: NextRequest, origin: string) {
+  if (process.env.NODE_ENV === "production") return false;
+
+  const requestHost = new URL(request.url).hostname;
+  if (isPrivateHostname(requestHost)) return true;
+
+  if (!origin) return false;
+
+  try {
+    return isPrivateHostname(new URL(origin).hostname);
+  } catch {
+    return false;
+  }
+}
+
 function getConfiguredOrigins(request: NextRequest) {
   const configured = process.env.EMAIL_ALLOWED_ORIGINS
     ?.split(",")
@@ -217,9 +254,13 @@ async function verifyTurnstileToken(
   return { ok: true };
 }
 
-export const GET = async () => {
+export const GET = async (request: NextRequest) => {
+  const origin = getOrigin(request);
+  const bypassTurnstile = shouldBypassTurnstileForLocalDev(request, origin);
   const turnstileEnabled = Boolean(
-    process.env.TURNSTILE_SITE_KEY && process.env.TURNSTILE_SECRET_KEY
+    !bypassTurnstile &&
+      process.env.TURNSTILE_SITE_KEY &&
+      process.env.TURNSTILE_SECRET_KEY
   );
 
   return NextResponse.json({
@@ -239,6 +280,7 @@ export const POST = async (request: NextRequest) => {
   );
   const ip = getClientIp(request);
   const origin = getOrigin(request);
+  const bypassTurnstile = shouldBypassTurnstileForLocalDev(request, origin);
 
   if (!brevoApiKey) {
     console.error("[email] Missing BREVO_API_KEY");
@@ -304,7 +346,7 @@ export const POST = async (request: NextRequest) => {
     );
   }
 
-  if (flowConfig.requiresTurnstile && turnstileEnabled) {
+  if (flowConfig.requiresTurnstile && turnstileEnabled && !bypassTurnstile) {
     const turnstile = await verifyTurnstileToken(request, turnstileToken, ip);
     if (!turnstile.ok) {
       console.warn("[email] Turnstile failed", { ip, flow, context });
@@ -313,6 +355,13 @@ export const POST = async (request: NextRequest) => {
         { status: 403 }
       );
     }
+  } else if (flowConfig.requiresTurnstile && bypassTurnstile) {
+    console.info("[email] Skipping Turnstile for local development", {
+      ip,
+      flow,
+      context,
+      origin: origin || "n/a",
+    });
   }
 
   console.info("[email] Sending", {
