@@ -10,6 +10,7 @@
 <script src="/etl-auth.js"></script>
 <script src="/etl-utils.js"></script>
 <script src="/etl-email.js"></script>
+<script src="/etl-dashboard.js"></script>
 <style>
   :root {
     --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
@@ -736,38 +737,10 @@
       return;
     }
 
-    let rows = filtered.map((r,i) => `
-      <tr data-id="${r.id}" class="${r.status==='approved'?'row-approved':r.status==='pending_approval'||r.status==='pending'?'row-pending':''}">
-        <td><strong>${escapeHtml(r.client_name || '—')}</strong></td>
-        <td>${escapeHtml(r.contact_person || '—')}</td>
-        <td>${escapeHtml(r.project_title || '—')}</td>
-        <td>${escapeHtml(r.client_email || '—')}</td>
-        <td>${fmtDate(r.created_at)}</td>
-        <td><span class="badge badge-${r.status}" id="req-badge-${r.id}">${r.status}</span></td>
-        <td>
-          <button class="action-btn" onclick="showRequest(${i})">View</button>
-          ${r.status === 'approved' ? '<button class="action-btn gold" onclick="openGenerator(' + i + ')">📋 Generate Quotation</button>' : r.status === 'pending_approval' ? '<span style="font-size:11px;color:var(--warning);font-weight:700;">⏳ Awaiting Approval</span>' : r.status === 'rejected' ? '<span style="font-size:11px;color:var(--danger);font-weight:700;">❌ Rejected</span>' : '<button class="action-btn gold" onclick="openGenerator(' + i + ')">📋 Generate Quotation</button>'}
-${(()=>{
-            const mg = currentRole==='management';
-            return `<select class="status-select" onchange="updateStatus('${r.id}', this.value)">
-              ${mg?`<option value="pending_approval" ${r.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${r.status==='approved'?'selected':''}>✅ Approved</option>`:''}
-              <option value="in_progress" ${r.status==='in_progress'?'selected':''}>🔄 In Progress</option>
-              <option value="responded" ${r.status==='responded'?'selected':''}>📤 Responded</option>
-              ${mg?`<option value="rejected" ${r.status==='rejected'?'selected':''}>❌ Rejected</option>`:''}
-              <option value="closed" ${r.status==='closed'?'selected':''}>🔒 Closed</option>
-            </select>`;
-          })()}
-        </td>
-      </tr>`).join('');
-
-    body.innerHTML = `
-      <table>
-        <thead><tr>
-          <th>Organisation</th><th>Contact</th><th>Project</th>
-          <th>Email</th><th>Date</th><th>Status</th><th>Actions</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    body.innerHTML = ETLDashboard.renderRequestTable(filtered, {
+      role: currentRole,
+      fmtDate
+    });
   }
 
   function filterLPOs(data) {
@@ -798,44 +771,10 @@ ${(()=>{
       return;
     }
 
-    let rows = filtered.map((l,i) => `
-      <tr data-lpo-id="${l.id}" class="${l.status==='approved'?'row-approved':l.status==='pending_approval'?'row-pending':''}">
-        <td><strong>${escapeHtml(l.lpo_number || '—')}</strong></td>
-        <td>${escapeHtml(l.entity_name || '—')}</td>
-        <td><span class="badge badge-${l.direction}">${l.direction}</span></td>
-        <td>${escapeHtml(l.entity_email || '—')}</td>
-        <td>UGX ${(l.total||0).toLocaleString()}</td>
-        <td>${fmtDate(l.created_at)}</td>
-        <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
-        <td><div class="lpo-actions">
-          <button class="action-btn" onclick="showLPO(${i})">View</button>
-          ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">⏳ Awaiting Approval</span>`}
-          ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
-          ${l.status === 'approved' && l.direction === 'inward' ? `<button class="action-btn" onclick="checkStock(${i})" style="background:var(--light-bg);color:var(--secondary);border-color:var(--secondary)">📦 Check Stock</button>` : ''}
-${(()=>{
-            const mg = currentRole==='management';
-            const isApproved = l.status === 'approved';
-            return `<select class="status-select" onchange="updateLPOStatus('${l.id}', this.value)" ${!isApproved && !mg ? 'disabled' : ''} style="${!isApproved && !mg ? 'opacity:0.5;cursor:not-allowed;' : ''}">
-              ${mg?`<option value="pending_approval" ${l.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${l.status==='approved'?'selected':''}>✅ Approved</option>`:''}
-              ${isApproved ? `<option value="active" ${l.status==='active'?'selected':''}>📋 Active</option>` : `<option value="active" disabled>📋 Active</option>`}
-              ${isApproved ? `<option value="issued" ${l.status==='issued'?'selected':''}>📤 Issued</option>` : `<option value="issued" disabled>📤 Issued</option>`}
-              ${isApproved ? `<option value="delivered" ${l.status==='delivered'?'selected':''}>✅ Delivered</option>` : `<option value="delivered" disabled>✅ Delivered</option>`}
-              ${isApproved ? `<option value="paid" ${l.status==='paid'?'selected':''}>💰 Paid</option>` : `<option value="paid" disabled>💰 Paid</option>`}
-              ${isApproved ? `<option value="disputed" ${l.status==='disputed'?'selected':''}>⚠  Disputed</option>` : `<option value="disputed" disabled>⚠  Disputed</option>`}
-              ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>🔒 Closed</option>` : `<option value="closed" disabled>🔒 Closed</option>`}
-            </select>`;
-          })()}
-        </div></td>
-      </tr>`).join('');
-
-    body.innerHTML = `
-      <table>
-        <thead><tr>
-          <th>LPO Number</th><th>Entity</th><th>Direction</th>
-          <th>Email</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th>
-        </tr></thead>
-        <tbody>${rows}</tbody>
-      </table>`;
+    body.innerHTML = ETLDashboard.renderLpoTable(filtered, {
+      role: currentRole,
+      fmtDate
+    });
   }
 
   async function loadRequests() {
@@ -858,44 +797,8 @@ ${(()=>{
         document.getElementById('stat-pending').innerText = data.filter(r => r.status === 'pending_approval' || r.status === 'pending').length;
       });
 
-      if(!data.length) {
-        document.getElementById('requests-body').innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No quotation requests yet. Share the request form link with clients!</p></div>';
-        return;
-      }
-
       window._reqData = data;
-      let rows = data.map((r,i) => `
-        <tr data-id="${r.id}" class="${r.status==='approved'?'row-approved':r.status==='pending_approval'||r.status==='pending'?'row-pending':''}">
-          <td><strong>${r.client_name || '—'}</strong></td>
-          <td>${r.contact_person || '—'}</td>
-          <td>${r.project_title || '—'}</td>
-          <td>${r.client_email || '—'}</td>
-          <td>${fmtDate(r.created_at)}</td>
-          <td><span class="badge badge-${r.status}" id="req-badge-${r.id}">${r.status}</span></td>
-          <td>
-            <button class="action-btn" onclick="showRequest(${i})">View</button>
-            ${r.status === 'approved' ? '<button class="action-btn gold" onclick="openGenerator(' + i + ')">📋 Generate Quotation</button>' : r.status === 'pending_approval' ? '<span style="font-size:11px;color:var(--warning);font-weight:700;">⏳ Awaiting Approval</span>' : r.status === 'rejected' ? '<span style="font-size:11px;color:var(--danger);font-weight:700;">❌ Rejected</span>' : '<button class="action-btn gold" onclick="openGenerator(' + i + ')">📋 Generate Quotation</button>'}
-${(()=>{
-              const mg = currentRole==='management';
-              return `<select class="status-select" onchange="updateStatus('${r.id}', this.value)">
-                ${mg?`<option value="pending_approval" ${r.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${r.status==='approved'?'selected':''}>✅ Approved</option>`:''}
-                <option value="in_progress" ${r.status==='in_progress'?'selected':''}>🔄 In Progress</option>
-                <option value="responded" ${r.status==='responded'?'selected':''}>📤 Responded</option>
-                ${mg?`<option value="rejected" ${r.status==='rejected'?'selected':''}>❌ Rejected</option>`:''}
-                <option value="closed" ${r.status==='closed'?'selected':''}>🔒 Closed</option>
-              </select>`;
-            })()}
-          </td>
-        </tr>`).join('');
-
-      document.getElementById('requests-body').innerHTML = `
-        <table>
-          <thead><tr>
-            <th>Organisation</th><th>Contact</th><th>Project</th>
-            <th>Email</th><th>Date</th><th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
+      renderRequestsTable(data);
     } catch(e) {
       document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
     }
@@ -912,50 +815,8 @@ ${(()=>{
       document.getElementById('stat-total-lpo').innerText = data.length;
       document.getElementById('stat-outward').innerText = data.filter(l => l.direction === 'outward').length;
 
-      if(!data.length) {
-        document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>No LPOs recorded yet.</p></div>';
-        return;
-      }
-
       window._lpoData = data;
-      let rows = data.map((l,i) => `
-        <tr data-lpo-id="${l.id}" class="${l.status==='approved'?'row-approved':l.status==='pending_approval'?'row-pending':''}">
-          <td><strong>${l.lpo_number || '—'}</strong></td>
-          <td>${l.entity_name || '—'}</td>
-          <td><span class="badge badge-${l.direction}">${l.direction}</span></td>
-          <td>${l.entity_email || '—'}</td>
-          <td>UGX ${(l.total||0).toLocaleString()}</td>
-          <td>${fmtDate(l.created_at)}</td>
-          <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
-          <td><div class="lpo-actions">
-            <button class="action-btn" onclick="showLPO(${i})">View</button>
-            ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">⏳ Awaiting Approval</span>`}
-            ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
-            ${l.status === 'approved' && l.direction === 'inward' ? `<button class="action-btn" onclick="checkStock(${i})" style="background:var(--light-bg);color:var(--secondary);border-color:var(--secondary)">📦 Check Stock</button>` : ''}
-${(()=>{
-              const mg = currentRole==='management';
-              const isApproved = l.status === 'approved';
-              return `<select class="status-select" onchange="updateLPOStatus('${l.id}', this.value)" ${!isApproved && !mg ? 'disabled' : ''} style="${!isApproved && !mg ? 'opacity:0.5;cursor:not-allowed;' : ''}">
-                ${mg?`<option value="pending_approval" ${l.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${l.status==='approved'?'selected':''}>✅ Approved</option>`:''}
-                ${isApproved ? `<option value="active" ${l.status==='active'?'selected':''}>📋 Active</option>` : `<option value="active" disabled>📋 Active</option>`}
-                ${isApproved ? `<option value="issued" ${l.status==='issued'?'selected':''}>📤 Issued</option>` : `<option value="issued" disabled>📤 Issued</option>`}
-                ${isApproved ? `<option value="delivered" ${l.status==='delivered'?'selected':''}>✅ Delivered</option>` : `<option value="delivered" disabled>✅ Delivered</option>`}
-                ${isApproved ? `<option value="paid" ${l.status==='paid'?'selected':''}>💰 Paid</option>` : `<option value="paid" disabled>💰 Paid</option>`}
-                ${isApproved ? `<option value="disputed" ${l.status==='disputed'?'selected':''}>⚠️ Disputed</option>` : `<option value="disputed" disabled>⚠️ Disputed</option>`}
-                ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>🔒 Closed</option>` : `<option value="closed" disabled>🔒 Closed</option>`}
-              </select>`;
-            })()}
-          </div></td>
-        </tr>`).join('');
-
-      document.getElementById('lpos-body').innerHTML = `
-        <table>
-          <thead><tr>
-            <th>LPO Number</th><th>Entity</th><th>Direction</th>
-            <th>Email</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
+      renderLPOTable(data);
     } catch(e) {
       document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
     }
@@ -1486,52 +1347,7 @@ tradelinks.ltd@gmail.com`);
       });
 
       window._reqData = data;
-      const filtered = filterRequests(data);
-      window._reqViewData = filtered;
-      renderReqFilterBanner();
-
-      if (!data.length) {
-        document.getElementById('requests-body').innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No quotation requests yet. Share the request form link with clients!</p></div>';
-        return;
-      }
-
-      if (!filtered.length) {
-        document.getElementById('requests-body').innerHTML = '<div class="empty-state"><div class="icon">🔗</div><p>No quotation requests match the current dashboard filter.</p></div>';
-        return;
-      }
-
-      const rows = filtered.map((r) => `
-        <tr data-id="${r.id}" class="${r.status==='approved'?'row-approved':r.status==='pending_approval'||r.status==='pending'?'row-pending':''}">
-          <td><strong>${escapeHtml(r.client_name || '—')}</strong></td>
-          <td>${escapeHtml(r.contact_person || '—')}</td>
-          <td>${escapeHtml(r.project_title || '—')}</td>
-          <td>${escapeHtml(r.client_email || '—')}</td>
-          <td>${fmtDate(r.created_at)}</td>
-          <td><span class="badge badge-${r.status}" id="req-badge-${r.id}">${r.status}</span></td>
-          <td>
-            <button class="action-btn" onclick="showRequestById('${r.id}')">View</button>
-            ${r.status === 'approved' ? '<button class="action-btn gold" onclick="openGeneratorById(\'' + r.id + '\')">📋 Generate Quotation</button>' : r.status === 'pending_approval' ? '<span style="font-size:11px;color:var(--warning);font-weight:700;">⏳ Awaiting Approval</span>' : r.status === 'rejected' ? '<span style="font-size:11px;color:var(--danger);font-weight:700;">❌ Rejected</span>' : '<button class="action-btn gold" onclick="openGeneratorById(\'' + r.id + '\')">📋 Generate Quotation</button>'}
-${(()=>{
-              const mg = currentRole==='management';
-              return `<select class="status-select" onchange="updateStatus('${r.id}', this.value)">
-                ${mg?`<option value="pending_approval" ${r.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${r.status==='approved'?'selected':''}>✅ Approved</option>`:''}
-                <option value="in_progress" ${r.status==='in_progress'?'selected':''}>🔄 In Progress</option>
-                <option value="responded" ${r.status==='responded'?'selected':''}>📤 Responded</option>
-                ${mg?`<option value="rejected" ${r.status==='rejected'?'selected':''}>❌ Rejected</option>`:''}
-                <option value="closed" ${r.status==='closed'?'selected':''}>🔒 Closed</option>
-              </select>`;
-            })()}
-          </td>
-        </tr>`).join('');
-
-      document.getElementById('requests-body').innerHTML = `
-        <table>
-          <thead><tr>
-            <th>Organisation</th><th>Contact</th><th>Project</th>
-            <th>Email</th><th>Date</th><th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
+      renderRequestsTable(data);
     } catch (e) {
       document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
     }
@@ -1549,58 +1365,7 @@ ${(()=>{
       document.getElementById('stat-outward').innerText = data.filter(l => l.direction === 'outward').length;
 
       window._lpoData = data;
-      const filtered = filterLPOs(data);
-      window._lpoViewData = filtered;
-      renderLPOFilterBanner();
-
-      if (!data.length) {
-        document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><div class="icon">📦</div><p>No LPOs recorded yet.</p></div>';
-        return;
-      }
-
-      if (!filtered.length) {
-        document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><div class="icon">🔗</div><p>No LPO records match the current dashboard filter.</p></div>';
-        return;
-      }
-
-      const rows = filtered.map((l) => `
-        <tr data-lpo-id="${l.id}" class="${l.status==='approved'?'row-approved':l.status==='pending_approval'?'row-pending':''}">
-          <td><strong>${escapeHtml(l.lpo_number || '—')}</strong></td>
-          <td>${escapeHtml(l.entity_name || '—')}</td>
-          <td><span class="badge badge-${l.direction}">${l.direction}</span></td>
-          <td>${escapeHtml(l.entity_email || '—')}</td>
-          <td>UGX ${(l.total||0).toLocaleString()}</td>
-          <td>${fmtDate(l.created_at)}</td>
-          <td><span class="badge badge-lpo-${l.status}" id="lpo-status-${l.id}">${l.status}</span></td>
-          <td><div class="lpo-actions">
-            <button class="action-btn" onclick="showLPOById('${l.id}')">View</button>
-            ${l.status === 'approved' ? '' : `<span style="font-size:11px;color:var(--gold);font-weight:700;">⏳ Awaiting Approval</span>`}
-            ${l.status === 'approved' && l.direction === 'outward' && l.unique_link ? `<button class="action-btn gold" onclick="copyLink('${l.unique_link}')">Copy Link</button>` : ''}
-            ${l.status === 'approved' && l.direction === 'inward' ? `<button class="action-btn" onclick="checkStockById('${l.id}')" style="background:var(--light-bg);color:var(--secondary);border-color:var(--secondary)">📦 Check Stock</button>` : ''}
-${(()=>{
-              const mg = currentRole==='management';
-              const isApproved = l.status === 'approved';
-              return `<select class="status-select" onchange="updateLPOStatus('${l.id}', this.value)" ${!isApproved && !mg ? 'disabled' : ''} style="${!isApproved && !mg ? 'opacity:0.5;cursor:not-allowed;' : ''}">
-                ${mg?`<option value="pending_approval" ${l.status==='pending_approval'?'selected':''}>⏳ Pending Approval</option><option value="approved" ${l.status==='approved'?'selected':''}>✅ Approved</option>`:''}
-                ${isApproved ? `<option value="active" ${l.status==='active'?'selected':''}>📋 Active</option>` : `<option value="active" disabled>📋 Active</option>`}
-                ${isApproved ? `<option value="issued" ${l.status==='issued'?'selected':''}>📤 Issued</option>` : `<option value="issued" disabled>📤 Issued</option>`}
-                ${isApproved ? `<option value="delivered" ${l.status==='delivered'?'selected':''}>✅ Delivered</option>` : `<option value="delivered" disabled>✅ Delivered</option>`}
-                ${isApproved ? `<option value="paid" ${l.status==='paid'?'selected':''}>💰 Paid</option>` : `<option value="paid" disabled>💰 Paid</option>`}
-                ${isApproved ? `<option value="disputed" ${l.status==='disputed'?'selected':''}>⚠  Disputed</option>` : `<option value="disputed" disabled>⚠  Disputed</option>`}
-                ${isApproved ? `<option value="closed" ${l.status==='closed'?'selected':''}>🔒 Closed</option>` : `<option value="closed" disabled>🔒 Closed</option>`}
-              </select>`;
-            })()}
-          </div></td>
-        </tr>`).join('');
-
-      document.getElementById('lpos-body').innerHTML = `
-        <table>
-          <thead><tr>
-            <th>LPO Number</th><th>Entity</th><th>Direction</th>
-            <th>Email</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th>
-          </tr></thead>
-          <tbody>${rows}</tbody>
-        </table>`;
+      renderLPOTable(data);
     } catch (e) {
       document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
     }

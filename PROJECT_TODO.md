@@ -18,8 +18,13 @@ Recommended refactor workload:
   - Started: quotation generator, LPO system, and invoice generator now share add/remove/recalculate/update-total behavior through `public/etl-items.js`.
 - Continue using `public/etl-utils.js` for escaping, validation, formatting, and response parsing.
 - Continue using `public/etl-auth.js` for shared Supabase authentication behavior.
+- Centralize Supabase public config and reduce repeated inline anon-key declarations.
+  - Note: the Supabase anon key is visible in public HTML by design, so safety depends on strict RLS policies. Do not expose `service_role` keys in public files.
+  - Later option: move public submissions through Next.js API routes for tighter validation, rate limiting, and less browser-side Supabase wiring.
 - Move repeated email POST/error handling into shared helpers.
   - Started: dashboard, quotation request, quotation generator, LPO system, and invoice generator now send through `public/etl-email.js`.
+- Move repeated dashboard table rendering into shared helpers.
+  - Started: request and LPO row/action/status-select markup now renders through `public/etl-dashboard.js`.
 - Keep each HTML page focused on page structure and page-specific logic only.
 - Eventually consider moving the largest tools into proper Next.js pages/components.
 
