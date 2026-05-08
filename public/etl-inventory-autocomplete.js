@@ -4,7 +4,7 @@
  *
  * Used by:
  *   - ETL-Quotation-generator.html
- *   - ETL-LPO-Outward.html
+ *   - ETL-LPO-System.html
  *   - ETL-Invoice.html
  *
  * Requires on the page before this script:

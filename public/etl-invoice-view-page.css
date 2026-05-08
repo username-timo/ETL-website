@@ -1,0 +1,127 @@
+/* Extracted from ETL-Invoice-View.html. */
+  :root {
+    --primary:#1a3c6e; --secondary:#4fa3d1; --gold:#c8860a;
+    --light-bg:#eaf2fb; --lighter-bg:#f5f9fd; --white:#ffffff;
+    --text:#1e293b; --text-muted:#64748b; --border:#cfe3f0;
+    --success:#0f7a4a; --success-bg:#e6f7ef;
+  }
+  *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'DM Sans',sans-serif; background:var(--lighter-bg); color:var(--text); min-height:100vh; }
+
+  .top-nav { background:var(--white); height:60px; display:flex; align-items:center; justify-content:space-between; padding:0 5%; border-bottom:3px solid var(--secondary); box-shadow:0 2px 12px rgba(79,163,209,0.1); position:sticky; top:0; z-index:100; }
+  .top-nav-brand { display:flex; align-items:center; gap:10px; }
+  .nav-sq { background:transparent; width:34px; height:34px; border-radius:6px; display:flex; align-items:center; justify-content:center; }
+  .nav-title { font-family:'Barlow Condensed',sans-serif; font-size:16px; font-weight:800; color:var(--primary); text-transform:uppercase; }
+  .nav-sub { font-size:9px; color:var(--secondary); font-weight:700; text-transform:uppercase; letter-spacing:1.5px; display:block; }
+
+  .state-box { max-width:480px; margin:80px auto; text-align:center; padding:0 5%; }
+  .state-icon { font-size:52px; margin-bottom:16px; }
+  .state-box h2 { font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:900; color:var(--primary); text-transform:uppercase; margin-bottom:10px; }
+  .state-box p { color:var(--text-muted); font-size:14px; line-height:1.7; }
+  .spinner-wrap { display:flex; flex-direction:column; align-items:center; gap:16px; margin-top:80px; }
+  .spinner { width:40px; height:40px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 0.8s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+
+  .preview-controls { background:var(--white); border-bottom:1px solid var(--border); padding:14px 5%; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .btn-ctrl { padding:9px 20px; border-radius:8px; font-family:'DM Sans',sans-serif; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; cursor:pointer; border:none; transition:all 0.2s; }
+  .btn-pdf { background:var(--primary); color:#fff; }
+  .btn-pdf:hover { background:var(--secondary); }
+  .btn-print { background:var(--lighter-bg); color:var(--primary); border:1.5px solid var(--border); }
+  .ctrl-info { font-size:12px; color:var(--text-muted); margin-left:auto; }
+
+  .doc-wrap { max-width:860px; margin:32px auto; padding:0 5% 60px; }
+  .invoice-doc { background:var(--white); border-radius:12px; box-shadow:0 4px 32px rgba(26,60,110,0.10); overflow:hidden; }
+
+  /* Header */
+  .doc-header { background:var(--primary); padding:32px 36px; display:flex; justify-content:space-between; align-items:flex-start; color:#fff; }
+  .doc-header h1 { font-family:'Barlow Condensed',sans-serif; font-size:26px; font-weight:900; margin-bottom:6px; }
+  .doc-header p { font-size:12px; opacity:0.75; line-height:1.6; }
+  .doc-header-right { text-align:right; }
+  .doc-header-right h2 { font-family:'Barlow Condensed',sans-serif; font-size:32px; font-weight:900; letter-spacing:3px; margin-bottom:8px; }
+  .doc-header-right p { font-size:12px; opacity:0.8; line-height:1.8; }
+
+  /* Ref bar */
+  .doc-ref-bar { display:grid; grid-template-columns:repeat(4,1fr); border-bottom:1px solid var(--border); }
+  .doc-ref-item { padding:14px 20px; border-right:1px solid var(--border); }
+  .doc-ref-item:last-child { border-right:none; }
+  .doc-ref-item label { display:block; font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:4px; }
+  .doc-ref-item span { font-family:'Barlow Condensed',sans-serif; font-size:15px; font-weight:800; color:var(--primary); }
+
+  /* Parties */
+  .doc-parties { display:grid; grid-template-columns:1fr 1fr; gap:0; border-bottom:1px solid var(--border); }
+  .doc-party { padding:20px 24px; }
+  .doc-party:first-child { border-right:1px solid var(--border); }
+  .doc-party h3 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:10px; }
+  .doc-party-name { font-family:'Barlow Condensed',sans-serif; font-size:20px; font-weight:800; color:var(--primary); margin-bottom:6px; }
+  .doc-party-detail { font-size:13px; color:var(--text-muted); line-height:1.7; }
+
+  /* Items */
+  .doc-items { padding:24px; }
+  .doc-items table { width:100%; border-collapse:collapse; font-size:13px; }
+  .doc-items th { background:var(--primary); color:#fff; padding:10px 12px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; }
+  .doc-items th:last-child { text-align:right; }
+  .doc-items td { padding:11px 12px; border-bottom:1px solid var(--border); vertical-align:top; }
+  .doc-items td:last-child { text-align:right; font-weight:700; font-family:'Barlow Condensed',sans-serif; font-size:15px; }
+  .doc-items tr:nth-child(even) td { background:var(--lighter-bg); }
+
+  /* Totals */
+  .doc-totals { display:flex; justify-content:flex-end; padding:0 24px 24px; }
+  .totals-inner { width:260px; }
+  .totals-row { display:flex; justify-content:space-between; padding:7px 0; font-size:13px; border-bottom:1px solid var(--border); }
+  .totals-row:last-child { border-bottom:none; }
+  .totals-row.grand { border-top:2px solid var(--primary); border-bottom:none; margin-top:4px; padding-top:12px; }
+  .totals-row.grand span:last-child { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; color:var(--primary); }
+
+  /* Bank & payment */
+  .doc-bank { background:var(--light-bg); border-top:1px solid var(--border); padding:20px 24px; }
+  .doc-bank h3 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-muted); margin-bottom:12px; }
+  .doc-bank-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px 24px; font-size:13px; }
+  .doc-bank-grid span:first-child { color:var(--text-muted); }
+  .doc-bank-grid span:last-child { font-weight:700; }
+
+  /* Notes */
+  .doc-notes { padding:16px 24px; border-top:1px solid var(--border); font-size:13px; color:var(--text-muted); }
+
+  /* Signatures */
+  .doc-sig { display:grid; grid-template-columns:1fr 1fr; gap:40px; padding:24px; border-top:1px solid var(--border); }
+  .sig-box { text-align:center; }
+  .sig-area { height:52px; border-bottom:1.5px solid var(--text); margin-bottom:6px; margin-top:16px; }
+  .sig-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+
+  /* Footer */
+  .doc-stamp { background:var(--primary); color:rgba(255,255,255,0.7); text-align:center; padding:14px; font-size:10px; letter-spacing:0.5px; }
+
+  /* CTA */
+  .doc-cta { border:2px solid var(--secondary); border-radius:12px; padding:20px 24px; margin:24px; text-align:center; }
+  .doc-cta h3 { font-family:'Barlow Condensed',sans-serif; font-size:18px; font-weight:900; color:var(--primary); margin-bottom:6px; }
+  .doc-cta p { font-size:13px; color:var(--text-muted); margin-bottom:14px; }
+  .doc-cta a { display:inline-block; background:var(--primary); color:#fff; padding:11px 24px; border-radius:8px; font-weight:700; font-size:13px; text-decoration:none; }
+
+  @media print {
+    .top-nav, .preview-controls, .doc-cta, .no-print { display:none !important; }
+    body { background:#fff; }
+    .doc-wrap { margin:0; padding:0; }
+    .invoice-doc { box-shadow:none; border-radius:0; }
+  }
+  @media(max-width:600px){
+    .top-nav { height:auto; min-height:72px; padding:8px 4%; gap:8px; }
+    .top-nav-brand { flex:1 1 auto; min-width:0; gap:8px; }
+    .top-nav-brand > div { min-width:0; }
+    .nav-sq { width:50px !important; height:50px !important; flex-shrink:0; }
+    .nav-title { font-size:12px; line-height:1.05; white-space:normal; overflow-wrap:anywhere; }
+    .nav-sub { font-size:8px; letter-spacing:1px; }
+    .top-nav > a:last-child { flex:0 0 auto; max-width:126px; font-size:10px !important; line-height:1.15; text-align:center; }
+  }
+  @media (max-width:600px) {
+    .doc-ref-bar { grid-template-columns:1fr 1fr; }
+    .doc-parties, .doc-bank-grid, .doc-sig { grid-template-columns:1fr; }
+    .doc-party:first-child { border-right:none; border-bottom:1px solid var(--border); }
+    .doc-wrap { padding: 0 3% 40px; }
+    .doc-header { padding: 20px 24px; flex-direction: column; }
+    .doc-header-right { text-align: left; margin-top: 12px; }
+    .doc-items { padding: 16px; }
+    .doc-items table { font-size: 11px; }
+    .doc-items th, .doc-items td { padding: 8px 10px; }
+    .doc-totals { padding: 0 12px 16px; }
+    .totals-inner { width: 100%; }
+  }

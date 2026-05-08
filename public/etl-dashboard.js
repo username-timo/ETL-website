@@ -309,6 +309,136 @@
       ${paymentRows}`;
   }
 
+  function renderLpoDetail(record, options) {
+    const opts = options || {};
+    const role = opts.role || '';
+    const fmtDate = opts.fmtDate || formatLongDate;
+    const direction = safeClass(record.direction);
+    const status = safeClass(record.status);
+    const items = (record.items || []).map((item, index) => `
+      <tr>
+        <td>${index + 1}</td>
+        <td>${escapeHtml(item.desc || '')}</td>
+        <td>${escapeHtml(item.unit || '')}</td>
+        <td>${escapeHtml(item.qty ?? 0)}</td>
+        <td>${fmtMoney(item.price || 0)}</td>
+        <td>${fmtMoney(item.total || 0)}</td>
+      </tr>`).join('');
+
+    return `
+      <h2>LPO Details</h2>
+      <div class="modal-grid">
+        <div class="modal-field"><label>LPO Number</label><p>${escapeHtml(record.lpo_number || '-')}</p></div>
+        <div class="modal-field"><label>Direction</label><p><span class="badge badge-${direction}">${escapeHtml(record.direction || '-')}</span></p></div>
+        <div class="modal-field"><label>Entity Name</label><p>${escapeHtml(record.entity_name || '-')}</p></div>
+        <div class="modal-field"><label>Email</label><p>${escapeHtml(record.entity_email || '-')}</p></div>
+        <div class="modal-field"><label>Issue Date</label><p>${fmtDate(record.issue_date)}</p></div>
+        <div class="modal-field"><label>Delivery Date</label><p>${fmtDate(record.delivery_date)}</p></div>
+        <div class="modal-field"><label>Total Amount</label><p><strong>${fmtMoney(record.total || 0)}</strong></p></div>
+        <div class="modal-field"><label>Status</label><p><span class="badge badge-${status}">${escapeHtml(record.status || '-')}</span></p></div>
+        ${record.project_name ? `<div class="modal-field full"><label>Project / Contract Title</label><p>${escapeHtml(record.project_name)}</p></div>` : ''}
+        ${record.delivery_location ? `<div class="modal-field"><label>Delivery Location</label><p>${escapeHtml(record.delivery_location)}</p></div>` : ''}
+        ${record.notes ? `<div class="modal-field full"><label>Notes</label><p>${escapeHtml(record.notes)}</p></div>` : ''}
+      </div>
+      ${items ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:var(--lighter-bg)"><th style="padding:8px;text-align:left">#</th><th style="padding:8px;text-align:left">Description</th><th style="padding:8px">Unit</th><th style="padding:8px">Qty</th><th style="padding:8px">Price</th><th style="padding:8px">Total</th></tr></thead><tbody>${items}</tbody></table>` : ''}
+      <div class="modal-actions">
+        <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+        ${record.direction === 'outward' && record.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${escapeJs(record.unique_link)}')">Copy Supplier Link</button>` : ''}
+        ${record.status === 'pending_approval' && role === 'management'
+          ? `<button class="modal-btn green" onclick="approveLPO('${escapeJs(record.id)}');closeModal()">Approve</button>
+             <button class="modal-btn danger" onclick="rejectLPO('${escapeJs(record.id)}');closeModal()">Reject</button>`
+          : ''}
+      </div>`;
+  }
+
+  function renderRequestDetail(record, options) {
+    const opts = options || {};
+    const role = opts.role || '';
+    const fmtDate = opts.fmtDate || formatLongDate;
+    return `
+      <h2>Quotation Request</h2>
+      <div class="modal-grid">
+        <div class="modal-field"><label>Organisation</label><p>${escapeHtml(record.client_name || '—')}</p></div>
+        <div class="modal-field"><label>Contact Person</label><p>${escapeHtml(record.contact_person || '—')}</p></div>
+        <div class="modal-field"><label>Email</label><p>${escapeHtml(record.client_email || '—')}</p></div>
+        <div class="modal-field"><label>Phone</label><p>${escapeHtml(record.client_phone || '—')}</p></div>
+        <div class="modal-field"><label>Project Title</label><p>${escapeHtml(record.project_title || '—')}</p></div>
+        <div class="modal-field"><label>Location</label><p>${escapeHtml(record.project_location || '—')}</p></div>
+        <div class="modal-field"><label>Budget</label><p>${escapeHtml(record.estimated_budget || '—')}</p></div>
+        <div class="modal-field"><label>Timeline</label><p>${escapeHtml(record.timeline || '—')}</p></div>
+        <div class="modal-field full"><label>Services Needed</label><p>${escapeHtml(record.services_category || '—')}</p></div>
+        <div class="modal-field full"><label>Description</label><p>${escapeHtml(record.project_description || '—')}</p></div>
+        <div class="modal-field"><label>Status</label><p><span class="badge badge-${safeClass(record.status)}">${escapeHtml(record.status || '—')}</span></p></div>
+        <div class="modal-field"><label>Submitted</label><p>${fmtDate(record.created_at)}</p></div>
+        ${record.approved_by ? `<div class="modal-field"><label>Reviewed By</label><p>${escapeHtml(record.approved_by)}</p></div>` : ''}
+        ${record.rejection_reason ? `<div class="modal-field full"><label>Rejection Reason</label><p style="color:var(--danger)">${escapeHtml(record.rejection_reason)}</p></div>` : ''}
+      </div>
+      <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+        ${record.status === 'approved' ? '<button class="modal-btn primary" onclick="openGeneratorFromModal()">Generate Quotation</button>' : ''}
+        ${record.status === 'pending_approval' && role === 'management'
+          ? `<button class="modal-btn green" onclick="doApproveById('${escapeJs(record.id)}','${escapeJs(record.client_email)}','${escapeJs(record.client_name)}','${escapeJs(record.project_title)}')">Approve</button><button class="modal-btn danger" onclick="doRejectById('${escapeJs(record.id)}','${escapeJs(record.client_email)}','${escapeJs(record.client_name)}','${escapeJs(record.project_title)}')">Reject</button>`
+          : ''}
+        <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+      </div>`;
+  }
+
+  function renderStockCheck(record, inventory) {
+    let allInStock = true;
+    let html = '<div class="stock-check-list">';
+
+    (record.items || []).forEach((item) => {
+      const desc = String(item.desc || '');
+      const inv = (inventory || []).find((stockItem) => {
+        const stockName = String(stockItem.name || '').toLowerCase();
+        const itemName = desc.toLowerCase();
+        return stockName && itemName && (stockName.includes(itemName) || itemName.includes(stockName));
+      });
+      let statusHtml = '';
+      if (inv) {
+        if (Number(inv.current_stock || 0) >= Number(item.qty || 0)) {
+          statusHtml = `<span style="color:var(--success);font-weight:700;">In Stock (${Math.round(Number(inv.current_stock) || 0).toLocaleString()} ${escapeHtml(inv.unit || '')})</span>`;
+        } else if (Number(inv.current_stock || 0) > 0) {
+          statusHtml = `<span style="color:var(--warning);font-weight:700;">Low (${Math.round(Number(inv.current_stock) || 0).toLocaleString()} / ${escapeHtml(item.qty || 0)} needed)</span>`;
+          allInStock = false;
+        } else {
+          statusHtml = '<span style="color:var(--danger);font-weight:700;">Out of Stock</span>';
+          allInStock = false;
+        }
+      } else {
+        statusHtml = '<span style="color:var(--text-muted);font-weight:700;">Not in Inventory</span>';
+        allInStock = false;
+      }
+      html += `<div class="stock-check-item">
+        <span><strong>${escapeHtml(desc)}</strong> - ${escapeHtml(item.qty || 0)} ${escapeHtml(item.unit || '')}</span>
+        ${statusHtml}
+      </div>`;
+    });
+
+    html += '</div>';
+    if (allInStock) {
+      html += `<div style="padding:16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <p style="font-size:13px;color:var(--success);font-weight:600;flex:1;">All items are in stock. You can proceed.</p>
+        <button class="modal-btn primary" onclick="window.open('ETL-Invoice.html?lpo_id=${escapeJs(record.id)}','_blank');closeModal()">Generate Invoice</button>
+      </div>`;
+    } else {
+      html += `<div style="padding:16px;border-top:1px solid var(--border);">
+        <p style="font-size:13px;color:var(--warning);font-weight:600;margin-bottom:12px;">Some items are not in stock. Generate a supplier LPO first, then invoice when ready.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="modal-btn primary" onclick="window.open('ETL-LPO-System.html','_blank');closeModal()">Generate Supplier LPO</button>
+          <button class="modal-btn" style="background:var(--gold);color:#fff;" onclick="window.open('ETL-Invoice.html?lpo_id=${escapeJs(record.id)}','_blank');closeModal()">Generate Invoice Anyway</button>
+        </div>
+      </div>`;
+    }
+
+    return `
+      <h2>Stock Check - ${escapeHtml(record.lpo_number || '')}</h2>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Client: <strong>${escapeHtml(record.entity_name || '')}</strong> | Checking ${(record.items || []).length} item(s) against inventory</p>
+      ${html}
+      <div style="padding:0 16px 16px;">
+        <button class="modal-btn secondary" onclick="closeModal()" style="margin-top:8px;">Close</button>
+      </div>`;
+  }
+
   function summarizeReceivables(invoices) {
     return invoices.reduce((summary, invoice) => {
       const status = invoiceStatus(invoice);
@@ -330,6 +460,9 @@
     renderPaymentSummary,
     renderPaymentHistoryTitle,
     renderPaymentHistory,
+    renderLpoDetail,
+    renderRequestDetail,
+    renderStockCheck,
     summarizeReceivables,
     invoiceStatus,
     fmtShort

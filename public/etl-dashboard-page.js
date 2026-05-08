@@ -111,79 +111,12 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
     });
   }
 
-  async function loadRequests() {
-    document.getElementById('requests-body').innerHTML = '<div class="loading-state">Loading...</div>';
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotations?order=created_at.desc`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
-      });
-      const data = await res.json();
-
-      // Update stats
-      document.getElementById('stat-total-req').innerText = data.length;
-      // Count pending quotations + pending LPOs for the stat card
-      fetch(`${SUPABASE_URL}/rest/v1/lpos?status=eq.pending_approval&select=id`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
-      }).then(r => r.json()).then(lpoPending => {
-        const qPending = data.filter(r => r.status === 'pending_approval' || r.status === 'pending').length;
-        document.getElementById('stat-pending').innerText = qPending + (lpoPending.length || 0);
-      }).catch(() => {
-        document.getElementById('stat-pending').innerText = data.filter(r => r.status === 'pending_approval' || r.status === 'pending').length;
-      });
-
-      window._reqData = data;
-      renderRequestsTable(data);
-    } catch(e) {
-      document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
-    }
-  }
-
-  async function loadLPOs() {
-    document.getElementById('lpos-body').innerHTML = '<div class="loading-state">Loading...</div>';
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos?order=created_at.desc`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
-      });
-      const data = await res.json();
-
-      document.getElementById('stat-total-lpo').innerText = data.length;
-      document.getElementById('stat-outward').innerText = data.filter(l => l.direction === 'outward').length;
-
-      window._lpoData = data;
-      renderLPOTable(data);
-    } catch(e) {
-      document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
-    }
-  }
-
   function showLPO(i, directRecord) {
     const l = directRecord || window._lpoData[i];
-    const esc = ETLUtils.escapeHtml;
-    const direction = esc(l.direction || '');
-    const status = esc(l.status || '');
-    const items = (l.items || []).map((item,n) => `<tr><td>${n+1}</td><td>${esc(item.desc || '')}</td><td>${esc(item.unit || '')}</td><td>${esc(item.qty ?? 0)}</td><td>${ETLUtils.fmtMoney(item.price || 0)}</td><td>${ETLUtils.fmtMoney(item.total || 0)}</td></tr>`).join('');
-    document.getElementById('modal-content').innerHTML = `
-      <h2>LPO Details</h2>
-      <div class="modal-grid">
-        <div class="modal-field"><label>LPO Number</label><p>${esc(l.lpo_number || '-')}</p></div>
-        <div class="modal-field"><label>Direction</label><p><span class="badge badge-${direction}">${direction}</span></p></div>
-        <div class="modal-field"><label>Entity Name</label><p>${esc(l.entity_name || '-')}</p></div>
-        <div class="modal-field"><label>Email</label><p>${esc(l.entity_email || '-')}</p></div>
-        <div class="modal-field"><label>Issue Date</label><p>${fmtDate(l.issue_date)}</p></div>
-        <div class="modal-field"><label>Delivery Date</label><p>${fmtDate(l.delivery_date)}</p></div>
-        <div class="modal-field"><label>Total Amount</label><p><strong>${ETLUtils.fmtMoney(l.total || 0)}</strong></p></div>
-        <div class="modal-field"><label>Status</label><p><span class="badge badge-${status}">${status}</span></p></div>
-        ${l.project_name ? `<div class="modal-field full"><label>Project / Contract Title</label><p>${esc(l.project_name)}</p></div>` : ''}${l.delivery_location ? `<div class="modal-field"><label>Delivery Location</label><p>${esc(l.delivery_location)}</p></div>` : ''}${l.notes ? `<div class="modal-field full"><label>Notes</label><p>${esc(l.notes)}</p></div>` : ''}
-      </div>
-      ${items ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:var(--lighter-bg)"><th style="padding:8px;text-align:left">#</th><th style="padding:8px;text-align:left">Description</th><th style="padding:8px">Unit</th><th style="padding:8px">Qty</th><th style="padding:8px">Price</th><th style="padding:8px">Total</th></tr></thead><tbody>${items}</tbody></table>` : ''}
-      <div class="modal-actions">
-        <button class="modal-btn secondary" onclick="closeModal()">Close</button>
-        ${l.direction === 'outward' && l.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${esc(l.unique_link)}')">Copy Supplier Link</button>` : ''}
-        ${l.status === 'pending_approval' && currentRole === 'management'
-          ? `<button class="modal-btn green" onclick="approveLPO('${esc(l.id)}');closeModal()">Approve</button>
-             <button class="modal-btn danger" onclick="rejectLPO('${esc(l.id)}');closeModal()">Reject</button>`
-          : ''}
-      </div>`;
+    document.getElementById('modal-content').innerHTML = ETLDashboard.renderLpoDetail(l, {
+      role: currentRole,
+      fmtDate
+    });
     document.getElementById('detail-modal').classList.add('open');
   }
 
@@ -504,6 +437,9 @@ tradelinks.ltd@gmail.com`);
       headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
     });
     const inventory = await res.json();
+    document.getElementById('modal-content').innerHTML = ETLDashboard.renderStockCheck(l, inventory);
+    document.getElementById('detail-modal').classList.add('open');
+    return;
 
     // Check each LPO item against inventory
     let html = '<div class="stock-check-list">';
@@ -547,7 +483,7 @@ tradelinks.ltd@gmail.com`);
       html += `<div style="padding:16px;border-top:1px solid var(--border);">
         <p style="font-size:13px;color:var(--warning);font-weight:600;margin-bottom:12px;">⚠️ Some items are not in stock. Generate a supplier LPO first, then invoice when ready.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="modal-btn primary" onclick="window.open('ETL-LPO-Outward.html','_blank');closeModal()">📦 Generate Supplier LPO</button>
+          <button class="modal-btn primary" onclick="window.open('ETL-LPO-System.html','_blank');closeModal()">📦 Generate Supplier LPO</button>
           <button class="modal-btn" style="background:var(--gold);color:#fff;" onclick="window.open('ETL-Invoice.html?lpo_id=${l.id}','_blank');closeModal()">🧾 Generate Invoice Anyway</button>
         </div>
       </div>`;
@@ -849,6 +785,12 @@ tradelinks.ltd@gmail.com`);
     const r = directRecord || (data ? data[i] : window._reqData[i]);
     if(!r) return;
     window._currentRequest = r; // store for modal buttons
+    document.getElementById('modal-content').innerHTML = ETLDashboard.renderRequestDetail(r, {
+      role: currentRole,
+      fmtDate
+    });
+    document.getElementById('detail-modal').classList.add('open');
+    return;
     document.getElementById('modal-content').innerHTML = `
       <h2>📋 Quotation Request</h2>
       <div class="modal-grid">
