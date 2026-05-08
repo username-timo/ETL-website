@@ -17,7 +17,7 @@ const rawProjects: Project[] = [
     client: "National Housing & Construction Co.",
     location: "Lweza, Lubowa, Kampala", year: "2025", value: "UGX 7.9B",
     desc: "Bush clearing, deep excavation, cut & fill, heavy grading, gravelling, compactions, paving, gardening, temporary drainage and fencing.",
-    imgs: ["/images/etl/electoral-commission-01.jpg","/images/etl/electoral-commission-02.jpg","/images/etl/electoral-commission-03.jpg","/images/etl/electoral-commission-04.jpg","/images/etl/electoral-commission-05.jpg","/images/etl/electoral-commission-06.jpg","/images/etl/electoral-commission-07.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/09/engineering-tradelinks-53.jpg"], ...DONE,
+    imgs: ["/etl-images/electoral-commission-01.jpg","/etl-images/electoral-commission-02.jpg","/etl-images/electoral-commission-03.jpg","/etl-images/electoral-commission-04.jpg","/etl-images/electoral-commission-05.jpg","/etl-images/electoral-commission-06.jpg","/etl-images/electoral-commission-07.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/09/engineering-tradelinks-53.jpg"], ...DONE,
   },
   {
     title: "Asphalt Parking & Drainage — Naguru (Phaneroo Grounds)",
@@ -25,7 +25,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 2-4, 6, 18-22 Naguru, Nakawa, Kampala", year: "2025", value: "UGX 4.2B",
     desc: "Shaping, back-sloping, heavy grading, gravelling, compactions, priming and asphalt laying for the Phaneroo Naguru compound.",
-    imgs: ["/images/etl/naguru-asphalt-01.jpg","/images/etl/naguru-asphalt-02.jpg","/images/etl/naguru-asphalt-03.jpg","/images/etl/naguru-asphalt-04.jpg","/images/etl/naguru-asphalt-05.jpg","/images/etl/naguru-asphalt-06.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-15.jpg"], ...DONE,
+    imgs: ["/etl-images/naguru-asphalt-01.jpg","/etl-images/naguru-asphalt-02.jpg","/etl-images/naguru-asphalt-03.jpg","/etl-images/naguru-asphalt-04.jpg","/etl-images/naguru-asphalt-05.jpg","/etl-images/naguru-asphalt-06.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-15.jpg"], ...DONE,
   },
   {
     title: "Proposed Warehouses — Namanve, Mukono District",
@@ -33,7 +33,7 @@ const rawProjects: Project[] = [
     client: "Trident Infratech Limited",
     location: "Namanve Industrial Area, Mukono", year: "2017", value: "UGX 3.6B",
     desc: "General construction: earthworks, retaining walls, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/images/etl/warehouse-mukono-01.jpg","/images/etl/warehouse-mukono-02.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-18.jpg"], ...DONE,
+    imgs: ["/etl-images/warehouse-mukono-01.jpg","/etl-images/warehouse-mukono-02.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-18.jpg"], ...DONE,
   },
   {
     title: "Kisozi-Kifamba Road — Low-Cost Sealing, Lot 3 (9.0km)",
@@ -41,7 +41,7 @@ const rawProjects: Project[] = [
     client: "Mogen Enterprises Limited",
     location: "Gomba District", year: "2021", value: "UGX 3.1B",
     desc: "Low-cost sealing: bush clearing, shaping, back-sloping, heavy grading, gravelling, compactions and drainage (culverts, stone boulders).",
-    imgs: ["/images/etl/svc-grader-road.jpg","/images/etl/svc-road-construction.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-grader-road.jpg","/etl-images/svc-road-construction.jpg"], ...DONE,
   },
   {
     title: "Nancy Hursey Students' Centre — Soroti",
@@ -49,7 +49,7 @@ const rawProjects: Project[] = [
     client: "Rev. Father Pius Richard Okiria",
     location: "Soroti Municipality", year: "2019", value: "UGX 2.2B",
     desc: "Design & build: 2 dormitory blocks, dining hall, chapel, admin block, perimeter wall, external works, access road and septic tank.",
-    imgs: ["/images/etl/nancy-hursey-soroti-01.jpg","/images/etl/nancy-hursey-soroti-02.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-32.jpg"], ...DONE,
+    imgs: ["/etl-images/nancy-hursey-soroti-01.jpg","/etl-images/nancy-hursey-soroti-02.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-32.jpg"], ...DONE,
   },
   {
     title: "Makindye Family Court Building",
@@ -57,7 +57,7 @@ const rawProjects: Project[] = [
     client: "Republic of Uganda — Courts of Judicature",
     location: "Makindye, Kampala", year: "2018", value: "UGX 1.1B",
     desc: "General construction: earthworks, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/images/etl/makindye-court-01.jpg","/images/etl/makindye-court-02.jpg","/images/etl/makindye-court-03.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-13.jpg"], ...DONE,
+    imgs: ["/etl-images/makindye-court-01.jpg","/etl-images/makindye-court-02.jpg","/etl-images/makindye-court-03.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-13.jpg"], ...DONE,
   },
   {
     title: "Ciforo Market Building — Adjumani District",
@@ -65,7 +65,7 @@ const rawProjects: Project[] = [
     client: "United Nations Development Programme (UNDP)",
     location: "Adjumani District", year: "2024", value: "UGX 1.0B",
     desc: "General construction: earthworks, retaining walls, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-21.jpg","/images/etl/ciforo-market-01.jpg","/images/etl/ciforo-market-02.jpg","/images/etl/ciforo-market-03.jpg","/images/etl/ciforo-market-04.jpg","/images/etl/ciforo-market-05.jpg","/images/etl/ciforo-market-06.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-21.jpg","/etl-images/ciforo-market-01.jpg","/etl-images/ciforo-market-02.jpg","/etl-images/ciforo-market-03.jpg","/etl-images/ciforo-market-04.jpg","/etl-images/ciforo-market-05.jpg","/etl-images/ciforo-market-06.jpg"], ...DONE,
   },
   {
     title: "Shallow Wells Construction — Budaka District",
@@ -73,7 +73,7 @@ const rawProjects: Project[] = [
     client: "United Nations Development Programme (UNDP)",
     location: "Budaka District", year: "2014", value: "UGX 180M",
     desc: "Construction of 4 No. shallow wells: surveying water source, excavation/drilling, pump testing, hand pump installation and concrete drainage.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-28.jpg","/images/etl/shallow-wells-budaka-01.jpg","/images/etl/shallow-wells-budaka-02.jpg","/images/etl/shallow-wells-budaka-03.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-28.jpg","/etl-images/shallow-wells-budaka-01.jpg","/etl-images/shallow-wells-budaka-02.jpg","/etl-images/shallow-wells-budaka-03.jpg"], ...DONE,
   },
   {
     title: "Rural Electrification — Rwakai-Isingiro & Buganago (REA)",
@@ -81,7 +81,7 @@ const rawProjects: Project[] = [
     client: "LTL Projects (Pvt) Limited / REA",
     location: "Rwakai-Isingiro, Uganda", year: "2015", value: "USD 298,000",
     desc: "Construction of 84km MV lines, 31km LV lines and installation of 13 MV/LV transformers under the Government Rural Electrification programme.",
-    imgs: ["/images/etl/svc-05-electro-mechanical.jpg","/images/etl/power-sector-04.jpg","/images/etl/power-sector-05.jpg","/images/etl/power-sector-06.jpg","/images/etl/power-sector-07.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-05-electro-mechanical.jpg","/etl-images/power-sector-04.jpg","/etl-images/power-sector-05.jpg","/etl-images/power-sector-06.jpg","/etl-images/power-sector-07.jpg"], ...DONE,
   },
 
   // ── REMAINING PROJECTS ──
@@ -91,7 +91,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 2-4, 6, 12-16, 18-22 Naguru, Nakawa, Kampala", year: "2025", value: "UGX 1.8B",
     desc: "Addendum contract for additional asphalt laying, cut and fill, heavy grading, gravelling and compaction works on Phaneroo grounds.",
-    imgs: ["/images/etl/naguru-asphalt-02.jpg","/images/etl/naguru-asphalt-01.jpg","/images/etl/naguru-asphalt-07.jpg","/images/etl/naguru-asphalt-08.jpg"], ...DONE,
+    imgs: ["/etl-images/naguru-asphalt-02.jpg","/etl-images/naguru-asphalt-01.jpg","/etl-images/naguru-asphalt-07.jpg","/etl-images/naguru-asphalt-08.jpg"], ...DONE,
   },
   {
     title: "Earthworks — Naguru Estates (Plots 2-4, 6, 18-12)",
@@ -99,7 +99,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Naguru Estates, Kampala", year: "2025", value: "UGX 566M",
     desc: "General earthworks: bush clearing, deep excavation, cut and fill, heavy grading, gravelling and compactions.",
-    imgs: ["/images/etl/naguru-virginia-01.jpg","/images/etl/naguru-virginia-02.jpg","/images/etl/naguru-virginia-03.jpg"], ...DONE,
+    imgs: ["/etl-images/naguru-virginia-01.jpg","/etl-images/naguru-virginia-02.jpg","/etl-images/naguru-virginia-03.jpg"], ...DONE,
   },
   {
     title: "Earth Works & Boundary Wall — Plot 76-80 Naguru",
@@ -107,7 +107,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 76-80, Naguru, Nakawa Division, Kampala", year: "2025", value: "UGX 491M",
     desc: "Bush clearing, cut and fill, heavy grading, gravelling, compactions, stone masonry boundary wall, temporary drainage and fencing.",
-    imgs: ["/images/etl/svc-earthworks-site.jpg","/images/etl/naguru-virginia-04.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-earthworks-site.jpg","/etl-images/naguru-virginia-04.jpg"], ...DONE,
   },
   {
     title: "Earth Retention with Stone Pitching — Virginia Plot",
@@ -115,7 +115,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 2-4, 6, 12-16, 18-22 Naguru, Nakawa, Kampala", year: "2025", value: "UGX 121M",
     desc: "Earth retention works including cut and fill, stone pitching, column cutting, and concrete works.",
-    imgs: ["/images/etl/svc-excavation.jpg","/images/etl/naguru-virginia-05.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-excavation.jpg","/etl-images/naguru-virginia-05.jpg"], ...DONE,
   },
   {
     title: "Paved Parking Area — Virginia Hospital",
@@ -123,7 +123,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Virginia Hospital, Naguru, Kampala", year: "2025", value: "UGX 283M",
     desc: "Laying of pavers, kerbstones and compacting for the Virginia Hospital parking area.",
-    imgs: ["/images/etl/ura-nakawa-parking-02.jpg","/images/etl/ura-nakawa-parking-03.jpg"], ...DONE,
+    imgs: ["/etl-images/ura-nakawa-parking-02.jpg","/etl-images/ura-nakawa-parking-03.jpg"], ...DONE,
   },
   {
     title: "Senda-Abari-Nagoke Road — Lot 112",
@@ -131,7 +131,7 @@ const rawProjects: Project[] = [
     client: "Ministry of Works and Transport",
     location: "Tororo District", year: "2024", value: "UGX 591M",
     desc: "Rehabilitation: bush clearing, shaping, back-sloping, heavy grading, gravelling, compactions, culvert laying and stone boulder drainage.",
-    imgs: ["/images/etl/unra-road-01.jpg","/images/etl/unra-road-02.jpg"], ...DONE,
+    imgs: ["/etl-images/unra-road-01.jpg","/etl-images/unra-road-02.jpg"], ...DONE,
   },
   {
     title: "URA Nakawa Parking Yard — Repair",
@@ -139,7 +139,7 @@ const rawProjects: Project[] = [
     client: "Uganda Revenue Authority",
     location: "Nakawa, Kampala", year: "2023", value: "UGX 600M",
     desc: "Repair of NIP parking yard: general earthworks, drainage works and asphalt concrete resurfacing.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-6.jpg","/images/etl/ura-nakawa-parking-01.jpg","/images/etl/ura-nakawa-parking-02.jpg","/images/etl/ura-nakawa-parking-03.jpg","/images/etl/ura-nakawa-parking-04.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-6.jpg","/etl-images/ura-nakawa-parking-01.jpg","/etl-images/ura-nakawa-parking-02.jpg","/etl-images/ura-nakawa-parking-03.jpg","/etl-images/ura-nakawa-parking-04.jpg"], ...DONE,
   },
   {
     title: "Seed Secondary School — Mwelo Sub-county (UGIFT)",
@@ -147,7 +147,7 @@ const rawProjects: Project[] = [
     client: "Tororo District Local Government",
     location: "Mwelo Sub-county, Tororo District", year: "2023", value: "UGX 702M",
     desc: "Construction under UGIFT: earthworks, blockwork, concrete slabs, roofing, doors, windows, metal fabrication, plumbing and electrical installations.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-30.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-25.jpg","/images/etl/seed-school-mwelo-01.jpg","/images/etl/seed-school-mwelo-02.jpg","/images/etl/seed-school-mwelo-03.jpg","/images/etl/seed-school-mwelo-04.jpg","/images/etl/seed-school-mwelo-05.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-30.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-25.jpg","/etl-images/seed-school-mwelo-01.jpg","/etl-images/seed-school-mwelo-02.jpg","/etl-images/seed-school-mwelo-03.jpg","/etl-images/seed-school-mwelo-04.jpg","/etl-images/seed-school-mwelo-05.jpg"], ...DONE,
   },
   {
     title: "Lamer Residences — Garuga",
@@ -155,7 +155,7 @@ const rawProjects: Project[] = [
     client: "LAMER",
     location: "Garuga, Entebbe Municipality", year: "2022", value: "UGX 1.8B",
     desc: "General construction works: earthworks, retaining walls, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-22.jpg","/images/etl/garuga-apartments-01.jpg"], ...HOLD,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-22.jpg","/etl-images/garuga-apartments-01.jpg"], ...HOLD,
   },
   {
     title: "NTC Mubende — Multipurpose Hall, Dormitory & Latrines",
@@ -163,7 +163,7 @@ const rawProjects: Project[] = [
     client: "Enabel Uganda / Davrich Company Ltd",
     location: "National Teachers College, Mubende", year: "2022", value: "UGX 669M",
     desc: "Sub-contract: construction of a multipurpose hall, boys' dormitory and 4 No. 5-stance latrines at NTC Mubende.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-34.jpg","/images/etl/ntc-mubende-01.jpg","/images/etl/ntc-mubende-02.jpg","/images/etl/ntc-mubende-03.jpg","/images/etl/ntc-mubende-04.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-34.jpg","/etl-images/ntc-mubende-01.jpg","/etl-images/ntc-mubende-02.jpg","/etl-images/ntc-mubende-03.jpg","/etl-images/ntc-mubende-04.jpg"], ...DONE,
   },
   {
     title: "Busia Municipal Main Office Block",
@@ -171,7 +171,7 @@ const rawProjects: Project[] = [
     client: "Busia Municipal Council",
     location: "Busia Municipality", year: "2021", value: "UGX 810M",
     desc: "General construction works: earthworks, retaining walls, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/images/etl/tororo-municipal-02.jpg","/images/etl/tororo-municipal-01.jpg"], ...DONE,
+    imgs: ["/etl-images/tororo-municipal-02.jpg","/etl-images/tororo-municipal-01.jpg"], ...DONE,
   },
   {
     title: "Waswanaba-Kabatunda & Kamayenje Road Works (16.2km)",
@@ -179,7 +179,7 @@ const rawProjects: Project[] = [
     client: "TODAF Engineering and Civil Works Limited",
     location: "Western Uganda", year: "2020", value: "UGX 2.0B",
     desc: "Maintenance of Waswanaba-Kabatunda (5.5km), Kamayenje road junction (5.7km) and Kyarusozi-Kyobukama (5.0km) roads.",
-    imgs: ["/images/etl/svc-road-construction.jpg","/images/etl/svc-road-construction2.jpg","/images/etl/unra-road-02.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-road-construction.jpg","/etl-images/svc-road-construction2.jpg","/etl-images/unra-road-02.jpg"], ...DONE,
   },
   {
     title: "Kisozi-Nawanyango Road — Low-Cost Sealing (4.6km)",
@@ -187,7 +187,7 @@ const rawProjects: Project[] = [
     client: "Mogen Enterprises Limited",
     location: "Kamuli District", year: "2019", value: "UGX 2.2B",
     desc: "Low-cost sealing of Kisozi-Nawanyango road section B (4.6km): bush clearing, shaping, grading, gravelling and compactions.",
-    imgs: ["/images/etl/svc-road-construction2.jpg","/images/etl/svc-road-construction3.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-road-construction2.jpg","/etl-images/svc-road-construction3.jpg"], ...DONE,
   },
   {
     title: "Mbarara High School & Bweranyangi Girls S.S — Rehabilitation",
@@ -195,7 +195,7 @@ const rawProjects: Project[] = [
     client: "Lexman Limited / Ministry of Education and Sport",
     location: "Mbarara, Uganda", year: "2018", value: "USD 1.1M",
     desc: "Rehabilitation and expansion: demolitions, earthworks, blockwork, concrete slabs, roofing, plumbing, electrical and all external works.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-10.jpg","/images/etl/mbarara-school-01.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/engineering-tradelinks-10.jpg","/etl-images/mbarara-school-01.jpg"], ...DONE,
   },
   {
     title: "Access Roads — 220KV Transmission Line, Nkenda-Hoima",
@@ -203,7 +203,7 @@ const rawProjects: Project[] = [
     client: "KEC International Limited",
     location: "Nkenda to Hoima, Uganda", year: "2016", value: "USD 1.7M",
     desc: "Construction of access roads in 3 layers of murram: bush clearing, shaping, grading, gravelling, compactions, culverts and stone boulders.",
-    imgs: ["/images/etl/svc-road-construction3.jpg","/images/etl/svc-road-construction.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-road-construction3.jpg","/etl-images/svc-road-construction.jpg"], ...DONE,
   },
   {
     title: "Industrial Warehouses — Mukono District (35,569 sq.m)",
@@ -211,7 +211,7 @@ const rawProjects: Project[] = [
     client: "Halcons Limited",
     location: "Mukono District", year: "2017", value: "USD 883,000",
     desc: "Construction of large-scale industrial warehouses including earthworks, blockwork, concrete slabs, roofing and all services.",
-    imgs: ["/images/etl/warehouse-mukono-02.jpg","/images/etl/warehouse-mukono-01.jpg"], ...DONE,
+    imgs: ["/etl-images/warehouse-mukono-02.jpg","/etl-images/warehouse-mukono-01.jpg"], ...DONE,
   },
   {
     title: "Bukasa Primary School — Chain-Link Fencing & Paving (KCCA)",
@@ -219,7 +219,7 @@ const rawProjects: Project[] = [
     client: "Dynasty Contractors (U) Limited / KCCA",
     location: "Makindye Division, Kampala", year: "2016", value: "UGX 422M",
     desc: "Construction of chain-link fence with concrete poles, paving works: bush clearing, grading, gravelling, pavers, kerb stones and drainage.",
-    imgs: ["/images/etl/svc-concrete-products.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-concrete-products.jpg"], ...DONE,
   },
   {
     title: "UNHCR Iraji Bridge — Ayilo I, Adjumani",
@@ -227,7 +227,7 @@ const rawProjects: Project[] = [
     client: "Danish Refugee Council",
     location: "Ayilo I, Adjumani District", year: "2015", value: "UGX 760M",
     desc: "Infrastructure development: construction of Iraji Bridge — earthworks, blockwork, concrete slabs, mechanical works and reinforcement.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-10.jpg","/images/etl/iraji-bridge-01.jpg","/images/etl/iraji-bridge-02.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-10.jpg","/etl-images/iraji-bridge-01.jpg","/etl-images/iraji-bridge-02.jpg"], ...DONE,
   },
   {
     title: "UNHCR Kiryandongo — OPM Accommodation & Office Block",
@@ -235,7 +235,7 @@ const rawProjects: Project[] = [
     client: "UNHCR / Office of the Prime Minister",
     location: "Kiryandongo Refugee Settlement", year: "2014", value: "UGX 386M",
     desc: "Two-roomed accommodation for OPM commandant and ten-roomed OPM office block for UNHCR at Kiryandongo refugee settlement.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-7.jpg","/images/etl/unhcr-kiryandongo-01.jpg","/images/etl/unhcr-kiryandongo-02.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-7.jpg","/etl-images/unhcr-kiryandongo-01.jpg","/etl-images/unhcr-kiryandongo-02.jpg"], ...DONE,
   },
   {
     title: "Tororo Municipal Main Office Block Extension",
@@ -243,7 +243,7 @@ const rawProjects: Project[] = [
     client: "Tororo Municipal Council",
     location: "Tororo Municipality", year: "2014", value: "UGX 997M",
     desc: "Extension of main office block: earthworks, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-2.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/09/engineering-tradelinks-42.jpg","/images/etl/tororo-municipal-01.jpg","/images/etl/tororo-municipal-02.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-2.jpg","https://engineeringtradelinks.com/wp-content/uploads/2025/09/engineering-tradelinks-42.jpg","/etl-images/tororo-municipal-01.jpg","/etl-images/tororo-municipal-02.jpg"], ...DONE,
   },
   {
     title: "Murchison Falls Conservation Area — Hostel Block",
@@ -251,7 +251,7 @@ const rawProjects: Project[] = [
     client: "Uganda Wildlife Authority",
     location: "Murchison Falls Conservation Area", year: "2014", value: "UGX 570M",
     desc: "Construction of a one hostel block for Education Centre including all civil, mechanical and electrical works.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-11.jpg","/images/etl/murchison-falls-01.jpg","/images/etl/murchison-falls-02.jpg","/images/etl/murchison-falls-03.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-11.jpg","/etl-images/murchison-falls-01.jpg","/etl-images/murchison-falls-02.jpg","/etl-images/murchison-falls-03.jpg"], ...DONE,
   },
   {
     title: "Adhola Cultural Union — Palace Construction",
@@ -259,7 +259,7 @@ const rawProjects: Project[] = [
     client: "Adhola Cultural Union",
     location: "Tororo District", year: "2013", value: "UGX 886M",
     desc: "General construction of the Adhola Cultural Union Palace: earthworks, blockwork, concrete slabs, roofing and all installations.",
-    imgs: ["/images/etl/svc-architectural.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-architectural.jpg"], ...DONE,
   },
   {
     title: "Abim Police Station",
@@ -267,7 +267,7 @@ const rawProjects: Project[] = [
     client: "Internal Affairs / Uganda Police Force",
     location: "Abim District", year: "2012", value: "UGX 444M",
     desc: "General construction of a police station: earthworks, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/images/etl/svc-civil-building.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-civil-building.jpg"], ...DONE,
   },
   {
     title: "Bunagana Border Post — Office Block",
@@ -275,7 +275,7 @@ const rawProjects: Project[] = [
     client: "Uganda Revenue Authority",
     location: "Bunagana Border, Western Uganda", year: "2012", value: "UGX 168M",
     desc: "General construction of border post office block: earthworks, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-5.jpg","/images/etl/bunagana-border-01.jpg","/images/etl/bunagana-border-02.jpg","/images/etl/bunagana-border-03.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-5.jpg","/etl-images/bunagana-border-01.jpg","/etl-images/bunagana-border-02.jpg","/etl-images/bunagana-border-03.jpg"], ...DONE,
   },
   {
     title: "UNRA — Ami-Ki Lane-Atapara Road (39km) Maintenance",
@@ -283,7 +283,7 @@ const rawProjects: Project[] = [
     client: "Uganda National Roads Authority (UNRA)",
     location: "Amuru / Kitgum Districts", year: "2012", value: "UGX 246M",
     desc: "Routine mechanised maintenance: bush clearing, shaping, back-sloping, heavy grading, gravelling, compactions and drainage works.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-4.jpg","/images/etl/unra-road-01.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-4.jpg","/etl-images/unra-road-01.jpg"], ...DONE,
   },
   {
     title: "Ankole Tea Estates — Pipe Water Extension (49.2km)",
@@ -291,7 +291,7 @@ const rawProjects: Project[] = [
     client: "James Finlays (U) Ltd",
     location: "Bushenyi District", year: "2007", value: "UGX 250M",
     desc: "Extension of pipe water to the neighbourhoods of Ankole Tea Estates and periodic maintenance of James Finlays estate roads.",
-    imgs: ["/images/etl/svc-water-pipes.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-water-pipes.jpg"], ...DONE,
   },
   {
     title: "MTN Tower — Bubada, Buwesa Tororo",
@@ -299,7 +299,7 @@ const rawProjects: Project[] = [
     client: "MTN Uganda / ATC Uganda",
     location: "Bubada, Buwesa, Tororo District", year: "2019", value: "UGX 98M",
     desc: "Construction of MTN telecommunications tower site including civil, electro-mechanical supply and installation works.",
-    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-20.jpg","/images/etl/mtn-bubada-01.jpg","/images/etl/mtn-bubada-02.jpg","/images/etl/power-sector-01.jpg"], ...DONE,
+    imgs: ["https://engineeringtradelinks.com/wp-content/uploads/2025/06/Asset-20.jpg","/etl-images/mtn-bubada-01.jpg","/etl-images/mtn-bubada-02.jpg","/etl-images/power-sector-01.jpg"], ...DONE,
   },
   {
     title: "Tororo Solar North — 10MWp Solar Project",
@@ -307,7 +307,7 @@ const rawProjects: Project[] = [
     client: "Building Energy Uganda",
     location: "Tororo District", year: "2017", value: "USD 98,000",
     desc: "Installation of communication cable (RS-485) and fibre optic multimode cable (20/125 micron, 12 strands) for 10MWp solar plant.",
-    imgs: ["/images/etl/mtn-bubada-02.jpg","/images/etl/mtn-bubada-05.jpg","/images/etl/power-sector-02.jpg","/images/etl/power-sector-03.jpg"], ...DONE,
+    imgs: ["/etl-images/mtn-bubada-02.jpg","/etl-images/mtn-bubada-05.jpg","/etl-images/power-sector-02.jpg","/etl-images/power-sector-03.jpg"], ...DONE,
   },
   {
     title: "NWSC Project — Trenching & Manholes",
@@ -315,7 +315,7 @@ const rawProjects: Project[] = [
     client: "National Water & Sewerage Corporation (NWSC)",
     location: "Uganda", year: "2018", value: "USD 70,614",
     desc: "Trenching, backfilling, compaction and manhole construction works for the National Water & Sewerage Corporation.",
-    imgs: ["/images/etl/svc-water-engineering.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-water-engineering.jpg"], ...DONE,
   },
   {
     title: "MTN Project — Trenching & Manholes",
@@ -323,14 +323,12 @@ const rawProjects: Project[] = [
     client: "13C Limited / MTN Uganda",
     location: "Uganda", year: "2015", value: "USD 25,614",
     desc: "Trenching, backfilling, compaction and manhole construction works for MTN Uganda telecommunications infrastructure.",
-    imgs: ["/images/etl/mtn-bubada-05.jpg","/images/etl/mtn-bubada-01.jpg"], ...DONE,
+    imgs: ["/etl-images/mtn-bubada-05.jpg","/etl-images/mtn-bubada-01.jpg"], ...DONE,
   },
 ];
 
 const toUsableProjectImages = (project: Project): string[] => {
-  // Project assets are stored in /public/etl-images. Normalize legacy aliases.
-  const normalized = project.imgs.map((img) => (img.startsWith("/images/etl/") ? img.replace("/images/etl/", "/etl-images/") : img));
-  return [...new Set(normalized)];
+  return [...new Set(project.imgs)];
 };
 
 export const projects: Project[] = rawProjects

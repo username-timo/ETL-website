@@ -25,7 +25,7 @@ const services: Service[] = [
     cat: "Civil & Building",
     tag: null,
     desc: "New building works for commercial and residential sectors. Schools, hospitals, offices and government facilities constructed to international standards.",
-    image: "/images/etl/makindye-court-01.jpg",
+    image: "/etl-images/makindye-court-01.jpg",
     deliverables: [
       "Commercial offices & retail buildings",
       "Schools, dormitories & student hostels",
@@ -42,7 +42,7 @@ const services: Service[] = [
     cat: "Roads",
     tag: null,
     desc: "Comprehensive road construction, maintenance, rehabilitation and low-cost sealing of district and community access roads across Uganda.",
-    image: "/images/etl/naguru-asphalt-01.jpg",
+    image: "/etl-images/naguru-asphalt-01.jpg",
     deliverables: [
       "Asphalt & bituminous surfacing",
       "Low-cost sealing of access roads",
@@ -58,7 +58,7 @@ const services: Service[] = [
     cat: "Water",
     tag: null,
     desc: "Full water supply infrastructure — borehole drilling, pump testing, pipe laying, tank installation and drainage construction for communities.",
-    image: "/images/etl/shallow-wells-budaka-01.jpg",
+    image: "/etl-images/shallow-wells-budaka-01.jpg",
     deliverables: [
       "Borehole drilling & pump testing",
       "Shallow wells construction",
@@ -74,7 +74,7 @@ const services: Service[] = [
     cat: null,
     tag: "Precast",
     desc: "Supply of precast concrete products: pavers, road kerbs, culverts, slabs and drainage components for roads, parking and landscaping.",
-    image: "/images/etl/ura-nakawa-parking-02.jpg",
+    image: "/etl-images/ura-nakawa-parking-02.jpg",
     deliverables: [
       "Interlocking & standard pavers",
       "Road kerbstones & edge restraints",
@@ -89,7 +89,7 @@ const services: Service[] = [
     cat: "Electrical",
     tag: null,
     desc: "Installation of plumbing, HVAC, industrial machinery, power transmission lines and rural electrification for urban and rural areas.",
-    image: "/images/etl/mtn-bubada-01.jpg",
+    image: "/etl-images/mtn-bubada-01.jpg",
     deliverables: [
       "Industrial plumbing & HVAC",
       "Power transmission (MV & LV)",
@@ -120,7 +120,7 @@ const services: Service[] = [
     cat: null,
     tag: "Design",
     desc: "In-house architectural and engineering design services covering structural, civil, mechanical and electrical disciplines — from concept drawings to full working drawings.",
-    image: "/images/etl/makindye-court-01.jpg",
+    image: "/etl-images/makindye-court-01.jpg",
     deliverables: [
       "Architectural concept & working drawings",
       "Structural engineering design",
@@ -136,7 +136,7 @@ const services: Service[] = [
     cat: null,
     tag: "Distributorship",
     desc: "Authorised distributor of Belgotex (South Africa) floor finishing products — carpets, vinyl and commercial flooring systems supplied and installed across Uganda.",
-    image: "/images/etl/naguru-asphalt-01.jpg",
+    image: "/etl-images/naguru-asphalt-01.jpg",
     deliverables: [
       "Commercial carpet tiles & broadloom",
       "Vinyl flooring (sheet & plank)",
@@ -151,7 +151,7 @@ const services: Service[] = [
     cat: null,
     tag: "Distributorship",
     desc: "Authorised distributor of Instarmac (United Kingdom) premixed road repair and reinstatement products for durable pothole and utility cut repairs.",
-    image: "/images/etl/ura-nakawa-parking-02.jpg",
+    image: "/etl-images/ura-nakawa-parking-02.jpg",
     deliverables: [
       "Permanent cold-lay pothole repair premix",
       "Utility cut reinstatement products",

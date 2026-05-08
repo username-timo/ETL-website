@@ -44,6 +44,7 @@ Recommended refactor workload:
   - Started: dashboard, quotation generator, LPO system, invoice, and inventory now use `public/etl-*-page.css` files instead of large inline `<style>` blocks.
   - Continued: quotation request, site stock, and public document view pages now use their own `public/etl-*-page.css` files too.
 - Eventually consider moving the largest tools into proper Next.js pages/components.
+- Cleanup completed: removed old template auth/docs files, removed the tracked `.chrome-turnstile-deployed` browser profile from git, and consolidated duplicate image folders into `public/etl-images`.
 
 Important note:
 - Refactor gradually and test one tool page at a time. These pages are actively used for quotations, LPOs, invoices, stock, and dashboard operations.

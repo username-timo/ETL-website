@@ -1,5 +1,8 @@
 // LPO system page controller extracted from ETL-LPO-System.html.
   let currentMode = 'outward';
+  let inventoryItems = [];
+  let inventoryLoaded = false;
+  let inventoryAutocompleteEnabled = false;
 
   const today = new Date();
   document.getElementById('date-issue').value = today.toISOString().split('T')[0];
@@ -52,6 +55,8 @@
     document.getElementById('mode-hint').innerText = isOut
       ? 'Use Outward when ETL is purchasing goods or services from a supplier.'
       : 'Use Inward when a client has awarded ETL a contract and issued an LPO to ETL.';
+
+    configureInventoryAutocomplete(!isOut && !IS_ANON && !!SESSION_TOKEN);
   }
 
   const lpoItems = ETLItems.createController({
@@ -397,14 +402,32 @@ ${DASHBOARD_URL}`, emailOpts);
     } catch(e) { console.warn('Could not pre-fill from quotation:', e); }
   }
 
-  // Load inventory for autocomplete
-  let inventoryItems = [];
+  // Inventory autocomplete is only useful for inward LPOs, where ETL checks a
+  // client's requested items against internal stock.
+  function configureInventoryAutocomplete(enabled) {
+    inventoryAutocompleteEnabled = !!enabled;
+    document.querySelectorAll('.i-desc').forEach((input) => {
+      input.placeholder = inventoryAutocompleteEnabled
+        ? 'Search inventory or type item...'
+        : 'Type item or service description...';
+      const list = input.closest('.desc-wrap')?.querySelector('.autocomplete-list');
+      if(list) {
+        list.classList.remove('show');
+        if(!inventoryAutocompleteEnabled) list.innerHTML = '';
+      }
+    });
+    if(inventoryAutocompleteEnabled) loadInventoryItems();
+  }
+
   async function loadInventoryItems() {
+    if(inventoryLoaded || !SESSION_TOKEN) return;
     try {
       const res = await fetch(`${SUPABASE_URL}/rest/v1/inventory_items?select=name,unit,unit_cost,category&order=name.asc`, {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN}` }
       });
+      if(!res.ok) throw new Error(await ETLUtils.readResponseError(res));
       inventoryItems = await res.json();
+      inventoryLoaded = true;
     } catch(e) { console.warn('Could not load inventory:', e); }
   }
 
@@ -415,6 +438,7 @@ ${DASHBOARD_URL}`, emailOpts);
   (async function bootstrap() {
     const params = new URLSearchParams(window.location.search);
     const forcePublic = params.get('public') === '1';
+    const requestedMode = params.get('mode') === 'inward' || params.has('from_quotation') ? 'inward' : 'outward';
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = !forcePublic && session ? session.access_token : '';
@@ -436,10 +460,7 @@ ${DASHBOARD_URL}`, emailOpts);
         if(TURNSTILE_ENABLED && TURNSTILE_SITE_KEY) waitForTurnstile();
       } catch(e) { console.warn('Turnstile config fetch failed:', e); }
     } else {
-      // Authenticated staff start from outward LPOs.
-      setMode('outward');
-      // Staff-only features
-      loadInventoryItems();
+      setMode(requestedMode);
     }
 
     // Quote prefill works for both (quote link is unguessable UUID via anon SELECT)
@@ -456,6 +477,10 @@ ${DASHBOARD_URL}`, emailOpts);
   function showAC(input) {
     const wrap = input.closest('.desc-wrap');
     const list = wrap.querySelector('.autocomplete-list');
+    if(!inventoryAutocompleteEnabled) {
+      list.classList.remove('show');
+      return;
+    }
     const val = input.value.trim().toLowerCase();
     if(!val) { list.classList.remove('show'); return; }
     const matches = inventoryItems.filter(i => i.name.toLowerCase().includes(val));
@@ -506,6 +531,7 @@ ${DASHBOARD_URL}`, emailOpts);
   }
 
   function handleACKey(e, input) {
+    if(!inventoryAutocompleteEnabled) return;
     const wrap = input.closest('.desc-wrap');
     const list = wrap.querySelector('.autocomplete-list');
     const items = list.querySelectorAll('.ac-item');
