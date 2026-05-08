@@ -21,10 +21,12 @@ Recommended refactor workload:
 - Centralize Supabase public config and reduce repeated inline anon-key declarations.
   - Note: the Supabase anon key is visible in public HTML by design, so safety depends on strict RLS policies. Do not expose `service_role` keys in public files.
   - Later option: move public submissions through Next.js API routes for tighter validation, rate limiting, and less browser-side Supabase wiring.
+  - Started: `public/etl-config.js` now centralizes the public Supabase URL/anon key and site URLs; dashboard, request, generator, LPO, invoice, inventory, site stock, and public view pages now use it.
 - Move repeated email POST/error handling into shared helpers.
   - Started: dashboard, quotation request, quotation generator, LPO system, and invoice generator now send through `public/etl-email.js`.
 - Move repeated dashboard table rendering into shared helpers.
   - Started: request and LPO row/action/status-select markup now renders through `public/etl-dashboard.js`.
+  - Continued: invoice list filtering/status/row markup now renders through `public/etl-dashboard.js`.
 - Keep each HTML page focused on page structure and page-specific logic only.
 - Eventually consider moving the largest tools into proper Next.js pages/components.
 

@@ -7,6 +7,7 @@
 <title>ETL | Operations Dashboard</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="/etl-config.js"></script>
 <script src="/etl-auth.js"></script>
 <script src="/etl-utils.js"></script>
 <script src="/etl-email.js"></script>
@@ -663,9 +664,7 @@
 </div>
 
 <script>
-  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
-  const SITE_BASE_URL = window.location.origin;
-  const DASHBOARD_URL = `${window.location.origin}/ETL-Dashboard.html`;
+const { SUPABASE_URL, SITE_BASE_URL, DASHBOARD_URL } = window.ETLConfig;
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body) {
@@ -676,7 +675,7 @@
     return result.ok;
   }
 
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
 
   function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'"); }
 
@@ -1413,17 +1412,7 @@ tradelinks.ltd@gmail.com`);
   }
 
   function invoiceStatus(inv) {
-    const paid = (inv.invoice_payments || []).reduce((s, p) => s + Number(p.amount || 0), 0);
-    const total = Number(inv.total) || 0;
-    const balance = Math.max(0, total - paid);
-    const today = new Date(); today.setHours(0, 0, 0, 0);
-    const due = inv.due_date ? new Date(inv.due_date) : null;
-    const daysOverdue = (due && due < today) ? Math.floor((today - due) / 86400000) : 0;
-    let state;
-    if (total - paid <= 0.009) state = 'paid';
-    else if (paid > 0) state = (due && due < today) ? 'overdue' : 'partial';
-    else state = (due && due < today) ? 'overdue' : 'unpaid';
-    return { paid, balance, state, daysOverdue };
+    return ETLDashboard.invoiceStatus(inv);
   }
 
   function fmtShort(n) {
@@ -1438,75 +1427,7 @@ tradelinks.ltd@gmail.com`);
     if (!body) return;
     const q = (document.getElementById('inv-list-search').value || '').trim().toLowerCase();
     INV_FILTER = document.getElementById('inv-list-filter').value;
-
-    const now = Date.now();
-    const rows = INVOICES_CACHE.filter(inv => {
-      // Date window filters
-      if (INV_FILTER === 'last30'  && new Date(inv.created_at).getTime() < now - 30  * 86400000) return false;
-      if (INV_FILTER === 'last90'  && new Date(inv.created_at).getTime() < now - 90  * 86400000) return false;
-      if (INV_FILTER === 'last365' && new Date(inv.created_at).getTime() < now - 365 * 86400000) return false;
-
-      const s = invoiceStatus(inv);
-      if (INV_FILTER === 'outstanding' && s.balance <= 0.009) return false;
-      if (INV_FILTER === 'overdue'     && s.state !== 'overdue') return false;
-      if (INV_FILTER === 'aged90'      && !(s.state === 'overdue' && s.daysOverdue > 90)) return false;
-
-      if (q) {
-        const hay = `${inv.invoice_number || ''} ${inv.client_name || ''}`.toLowerCase();
-        if (!hay.includes(q)) return false;
-      }
-      return true;
-    });
-
-    if (rows.length === 0) {
-      body.innerHTML = '<div class="empty-state"><div class="icon">🧾</div><p>No invoices match the current filter.</p></div>';
-      return;
-    }
-
-    const badgeMap = { paid: 'badge-paid', partial: 'badge-partial', unpaid: 'badge-unpaid', overdue: 'badge-overdue' };
-    const labelMap = { paid: 'Paid', partial: 'Partial', unpaid: 'Unpaid', overdue: 'Overdue' };
-
-    const html = `
-      <table class="inv-list-table">
-        <thead>
-          <tr>
-            <th>Invoice #</th>
-            <th>Client</th>
-            <th class="num">Total (UGX)</th>
-            <th class="num">Paid (UGX)</th>
-            <th class="num">Balance (UGX)</th>
-            <th>Due</th>
-            <th>Status</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${rows.map(inv => {
-            const s = invoiceStatus(inv);
-            const dueStr = inv.due_date
-              ? new Date(inv.due_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' })
-              : '—';
-            const payCount = (inv.invoice_payments || []).length;
-            const viewUrl = inv.unique_link ? `/ETL-Invoice-View.html?inv=${inv.unique_link}` : '';
-            const rowOnClick = viewUrl ? `onclick="window.open('${viewUrl}','_blank')"` : '';
-            return `
-              <tr class="inv-row" ${rowOnClick} title="${viewUrl ? 'Click to open invoice view' : ''}">
-                <td><strong>${(inv.invoice_number || '—').replace(/</g, '&lt;')}</strong></td>
-                <td>${(inv.client_name || '—').replace(/</g, '&lt;')}</td>
-                <td class="num">${fmtShort(Number(inv.total) || 0)}</td>
-                <td class="num">${fmtShort(s.paid)}</td>
-                <td class="num"><strong>${fmtShort(s.balance)}</strong></td>
-                <td>${dueStr}</td>
-                <td><span class="badge ${badgeMap[s.state]}">${labelMap[s.state]}</span></td>
-                <td style="white-space:nowrap;" onclick="event.stopPropagation()">
-                  ${s.state !== 'paid' ? `<button class="btn-sm btn-sm-primary" onclick="openPaymentModal('${inv.id}')">+ Pay</button>` : ''}
-                  ${payCount > 0 ? `<button class="btn-sm btn-sm-secondary" onclick="openHistoryModal('${inv.id}')" style="margin-left:4px;">${payCount} ${payCount === 1 ? 'Payment' : 'Payments'}</button>` : ''}
-                </td>
-              </tr>`;
-          }).join('')}
-        </tbody>
-      </table>`;
-    body.innerHTML = html;
+    body.innerHTML = ETLDashboard.renderInvoiceTable(INVOICES_CACHE, { filter: INV_FILTER, search: q });
   }
 
   function openPaymentModal(invoiceId) {

@@ -6,6 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ETL | Professional Quotation System</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="/etl-config.js"></script>
 <script src="/etl-utils.js"></script>
 <script src="/etl-email.js"></script>
 <script src="/etl-items.js"></script>
@@ -814,8 +815,7 @@
 <script>
 
   // ── SUPABASE ──
-  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
-  const SITE_BASE_URL = window.location.origin;
+const { SUPABASE_URL, SITE_BASE_URL } = window.ETLConfig;
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body, options = {}) {
@@ -827,7 +827,7 @@
     });
   }
 
-  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
   let SESSION_TOKEN = '';
 
   async function ensureSessionToken() {

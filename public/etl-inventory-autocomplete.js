@@ -8,8 +8,7 @@
  *   - ETL-Invoice.html
  *
  * Requires on the page before this script:
- *   - SUPABASE_URL  (const)
- *   - SUPABASE_KEY  (const)
+ *   - window.ETLConfig or legacy SUPABASE_URL/SUPABASE_KEY globals
  *   - SESSION_TOKEN (let — must be set before calling loadInventoryItems())
  *   - recalc(el)    (function — called after a row is filled)
  *
@@ -36,9 +35,18 @@ let inventoryItems = [];
 // ── Load ───────────────────────────────────────────────────────────────────
 async function loadInventoryItems() {
   try {
+    const cfg = window.ETLConfig || {};
+    const supabaseUrl = cfg.SUPABASE_URL || window.SUPABASE_URL;
+    const supabaseKey = cfg.SUPABASE_ANON_KEY || window.SUPABASE_KEY || window.SUPABASE_ANON_KEY;
+    const bearer = window.SESSION_TOKEN || supabaseKey;
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Missing Supabase public config');
+    }
+
     const res = await fetch(
-      `${SUPABASE_URL}/rest/v1/inventory_items?select=name,unit,unit_cost,category&order=name.asc`,
-      { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SESSION_TOKEN}` } }
+      `${supabaseUrl}/rest/v1/inventory_items?select=name,unit,unit_cost,category&order=name.asc`,
+      { headers: { apikey: supabaseKey, Authorization: `Bearer ${bearer}` } }
     );
     const data = await res.json();
     if (Array.isArray(data)) inventoryItems = data;

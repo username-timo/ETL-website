@@ -285,8 +285,8 @@
 </div><!-- end doc-wrap -->
 
 <script>
-const SUPABASE_URL = window.ETLConfig.SUPABASE_URL;
-const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
+  const SUPABASE_URL = window.ETLConfig.SUPABASE_URL;
+  const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
 
   function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'"); }
   function fmt(n) { return 'UGX ' + Math.round(n||0).toLocaleString(); }
