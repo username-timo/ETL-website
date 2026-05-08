@@ -30,6 +30,7 @@ Recommended refactor workload:
   - Continued: invoice list filtering/status/row markup now renders through `public/etl-dashboard.js`.
   - Continued: invoice payment modal summary/history and receivables KPI calculations now share `public/etl-dashboard.js` helpers.
   - Continued: LPO detail, quotation request detail, and stock-check modal rendering moved into `public/etl-dashboard.js`; dashboard controller now delegates to shared render helpers.
+  - Continued: dashboard Supabase record access moved into `public/etl-dashboard-api.js`; request/LPO filters and approvals table rendering now live in `public/etl-dashboard.js`.
 - Keep each HTML page focused on page structure and page-specific logic only.
   - Started: dashboard page controller JavaScript moved from `public/ETL-Dashboard.html` into `public/etl-dashboard-page.js`, cutting the dashboard HTML down significantly.
   - Started: quotation generator page controller JavaScript moved from `public/ETL-Quotation-generator.html` into `public/etl-quotation-generator-page.js`.

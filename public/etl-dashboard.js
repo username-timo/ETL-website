@@ -62,6 +62,11 @@
     return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
   }
 
+  function isWithinDays(dateValue, days) {
+    if (!dateValue) return false;
+    return new Date(dateValue).getTime() >= Date.now() - (days * 86400000);
+  }
+
   function fmtMoney(value) {
     return 'UGX ' + Math.round(Number(value) || 0).toLocaleString();
   }
@@ -200,6 +205,69 @@
         </tr></thead>
         <tbody>${renderLpoRows(records, options)}</tbody>
       </table>`;
+  }
+
+  function filterRequests(records, filter) {
+    const mode = filter || 'all';
+    if (mode === 'last30') return records.filter((record) => isWithinDays(record.created_at, 30));
+    return records;
+  }
+
+  function filterLpos(records, filter) {
+    const mode = filter || 'all';
+    if (mode === 'outward') return records.filter((record) => record.direction === 'outward');
+    if (mode === 'last30') return records.filter((record) => isWithinDays(record.created_at, 30));
+    return records;
+  }
+
+  function renderApprovalRequestRows(records, options) {
+    const fmtDate = (options && options.fmtDate) || formatLongDate;
+    return records.map((record, index) => `
+      <tr>
+        <td><strong>${escapeHtml(record.client_name || 'â€”')}</strong></td>
+        <td>${escapeHtml(record.contact_person || 'â€”')}</td>
+        <td>${escapeHtml(record.project_title || 'â€”')}</td>
+        <td>${escapeHtml(record.client_email || 'â€”')}</td>
+        <td>${escapeHtml(record.estimated_budget || 'â€”')}</td>
+        <td>${fmtDate(record.created_at)}</td>
+        <td>
+          <button class="action-btn" onclick="showRequest(${index},'approval')">View</button>
+          <button class="action-btn approve" onclick="doApprove(${index})">âœ… Approve</button>
+          <button class="action-btn reject" onclick="doReject(${index})">âŒ Reject</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  function renderApprovalLpoRows(records, options) {
+    const fmtDate = (options && options.fmtDate) || formatLongDate;
+    return records.map((record) => {
+      const id = escapeJs(record.id);
+      return `
+        <tr class="row-pending">
+          <td data-label="LPO Number"><strong>${escapeHtml(ETLUtils.decodeHtml(record.lpo_number) || 'â€”')}</strong></td>
+          <td data-label="Entity">${escapeHtml(record.entity_name || 'â€”')}</td>
+          <td data-label="Direction"><span class="badge badge-${safeClass(record.direction)}">${escapeHtml(record.direction || 'â€”')}</span></td>
+          <td data-label="Email">${escapeHtml(record.entity_email || 'â€”')}</td>
+          <td data-label="Total">${fmtMoney(record.total)}</td>
+          <td data-label="Date">${fmtDate(record.created_at)}</td>
+          <td data-label="Actions">
+            <button class="action-btn" onclick="showLPOById('${id}')">View</button>
+            <button class="action-btn approve" onclick="approveLPO('${id}')">âœ… Approve</button>
+            <button class="action-btn reject" onclick="rejectLPO('${id}')">âŒ Reject</button>
+          </td>
+        </tr>`;
+    }).join('');
+  }
+
+  function renderApprovals(quotations, lpos, options) {
+    const sections = [];
+    if (quotations.length) {
+      sections.push(`<div style="margin-bottom:24px;"><h3 style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:var(--primary);text-transform:uppercase;padding:0 4px 8px;border-bottom:2px solid var(--border);margin-bottom:12px;">â³ Pending Quotation Requests (${quotations.length})</h3><table><thead><tr><th>Organisation</th><th>Contact</th><th>Project</th><th>Email</th><th>Budget</th><th>Date</th><th>Actions</th></tr></thead><tbody>${renderApprovalRequestRows(quotations, options)}</tbody></table></div>`);
+    }
+    if (lpos.length) {
+      sections.push(`<div><h3 style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:var(--primary);text-transform:uppercase;padding:0 4px 8px;border-bottom:2px solid var(--border);margin-bottom:12px;">â³ Pending LPOs (${lpos.length})</h3><table><thead><tr><th>LPO Number</th><th>Entity</th><th>Direction</th><th>Email</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead><tbody>${renderApprovalLpoRows(lpos, options)}</tbody></table></div>`);
+    }
+    return sections.join('');
   }
 
   function filterInvoices(records, options) {
@@ -456,6 +524,9 @@
   window.ETLDashboard = {
     renderRequestTable,
     renderLpoTable,
+    filterRequests,
+    filterLpos,
+    renderApprovals,
     renderInvoiceTable,
     renderPaymentSummary,
     renderPaymentHistoryTitle,
