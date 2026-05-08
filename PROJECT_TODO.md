@@ -27,7 +27,13 @@ Recommended refactor workload:
 - Move repeated dashboard table rendering into shared helpers.
   - Started: request and LPO row/action/status-select markup now renders through `public/etl-dashboard.js`.
   - Continued: invoice list filtering/status/row markup now renders through `public/etl-dashboard.js`.
+  - Continued: invoice payment modal summary/history and receivables KPI calculations now share `public/etl-dashboard.js` helpers.
 - Keep each HTML page focused on page structure and page-specific logic only.
+  - Started: dashboard page controller JavaScript moved from `public/ETL-Dashboard.html` into `public/etl-dashboard-page.js`, cutting the dashboard HTML down significantly.
+  - Started: quotation generator page controller JavaScript moved from `public/ETL-Quotation-generator.html` into `public/etl-quotation-generator-page.js`.
+  - Started: LPO system page controller JavaScript moved from `public/ETL-LPO-System.html` into `public/etl-lpo-system-page.js`.
+  - Started: invoice generator page controller JavaScript moved from `public/ETL-Invoice.html` into `public/etl-invoice-page.js`.
+  - Started: inventory page controller JavaScript moved from `public/ETL-Inventory.html` into `public/etl-inventory-page.js`.
 - Eventually consider moving the largest tools into proper Next.js pages/components.
 
 Important note:

@@ -57,6 +57,15 @@
     return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
   }
 
+  function formatLongDate(value) {
+    if (!value) return '—';
+    return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function fmtMoney(value) {
+    return 'UGX ' + Math.round(Number(value) || 0).toLocaleString();
+  }
+
   function requestRowClass(record) {
     if (record.status === 'approved') return 'row-approved';
     if (record.status === 'pending_approval' || record.status === 'pending') return 'row-pending';
@@ -264,10 +273,65 @@
       </table>`;
   }
 
+  function renderPaymentSummary(invoice) {
+    const status = invoiceStatus(invoice);
+    return `
+      <div><strong>${escapeHtml(invoice.invoice_number || '')}</strong> - ${escapeHtml(invoice.client_name || '')}</div>
+      <div>Total: ${fmtMoney(invoice.total)} &middot; Paid: ${fmtMoney(status.paid)} &middot; <strong>Balance: ${fmtMoney(status.balance)}</strong></div>`;
+  }
+
+  function renderPaymentHistoryTitle(invoice) {
+    return `Payments - ${invoice.invoice_number || ''}`;
+  }
+
+  function renderPaymentHistory(invoice) {
+    const payments = [...(invoice.invoice_payments || [])].sort((a, b) => new Date(b.payment_date) - new Date(a.payment_date));
+    const total = Number(invoice.total) || 0;
+    const paid = payments.reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
+    const balance = Math.max(0, total - paid);
+    const paymentRows = payments.length === 0
+      ? '<div class="inv-list-empty">No payments recorded yet.</div>'
+      : `<ul class="payment-history">${payments.map((payment) => `
+          <li>
+            <div style="flex:1;">
+              <div class="ph-date">${formatLongDate(payment.payment_date)}</div>
+              ${payment.note ? `<div class="ph-note">${escapeHtml(payment.note)}</div>` : ''}
+              <div class="ph-meta">Recorded ${formatLongDate(payment.created_at)}</div>
+            </div>
+            <div class="ph-amount">${fmtMoney(payment.amount)}</div>
+          </li>`).join('')}</ul>`;
+
+    return `
+      <div class="pm-summary">
+        <div><strong>${escapeHtml(invoice.client_name || '')}</strong></div>
+        <div>Total: ${fmtMoney(total)} &middot; Paid: ${fmtMoney(paid)} &middot; Balance: ${fmtMoney(balance)}</div>
+      </div>
+      ${paymentRows}`;
+  }
+
+  function summarizeReceivables(invoices) {
+    return invoices.reduce((summary, invoice) => {
+      const status = invoiceStatus(invoice);
+      if (status.balance <= 0.009) return summary;
+      summary.outstanding += status.balance;
+      if (status.state === 'overdue') {
+        summary.overdueCount += 1;
+        summary.overdueAmount += status.balance;
+        if (status.daysOverdue > 90) summary.aging90 += status.balance;
+      }
+      return summary;
+    }, { outstanding: 0, overdueCount: 0, overdueAmount: 0, aging90: 0 });
+  }
+
   window.ETLDashboard = {
     renderRequestTable,
     renderLpoTable,
     renderInvoiceTable,
-    invoiceStatus
+    renderPaymentSummary,
+    renderPaymentHistoryTitle,
+    renderPaymentHistory,
+    summarizeReceivables,
+    invoiceStatus,
+    fmtShort
   };
 })();
