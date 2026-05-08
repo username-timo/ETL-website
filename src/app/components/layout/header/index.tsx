@@ -3,27 +3,26 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
-import { signOut, useSession } from "next-auth/react";
-import Image from "next/image";
 import Logo from "./logo";
 import HeaderLink from "./navigation/HeaderLink";
 import MobileHeaderLink from "./navigation/MobileHeaderLink";
 
+const headerData = [
+  { label: "Home", href: "/" },
+  { label: "About Us", href: "/#about" },
+  { label: "Services", href: "/#services" },
+  { label: "Projects", href: "/projects" },
+  { label: "Contact Us", href: "/contact" },
+  { label: "Portal", href: "/#portal" },
+];
+
 const Header: React.FC = () => {
   const pathUrl = usePathname();
-  const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
 
-  const [data, setData] = useState<any[]>([]);
-  const [user, setUser] = useState<{ user: any } | null>(null);
   const [navbarOpen, setNavbarOpen] = useState(false);
   const [sticky, setSticky] = useState(false);
-  const [isSignInOpen, setIsSignInOpen] = useState(false);
-  const [isSignUpOpen, setIsSignUpOpen] = useState(false);
 
-  const navbarRef = useRef<HTMLDivElement>(null);
-  const signInRef = useRef<HTMLDivElement>(null);
-  const signUpRef = useRef<HTMLDivElement>(null);
   const mobileMenuRef = useRef<HTMLDivElement>(null);
 
   // Function to handle scroll to set sticky class
@@ -33,12 +32,6 @@ const Header: React.FC = () => {
 
   // Function to handle click outside
   const handleClickOutside = (event: MouseEvent) => {
-    if (signInRef.current && !signInRef.current.contains(event.target as Node)) {
-      setIsSignInOpen(false);
-    }
-    if (signUpRef.current && !signUpRef.current.contains(event.target as Node)) {
-      setIsSignUpOpen(false);
-    }
     if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node) && navbarOpen) {
       setNavbarOpen(false);
     }
@@ -51,34 +44,14 @@ const Header: React.FC = () => {
       window.removeEventListener("scroll", handleScroll);
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [navbarOpen, isSignInOpen, isSignUpOpen]);
+  }, [navbarOpen]);
 
   useEffect(() => {
     window.addEventListener("scroll", handleScroll);
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
   }, [pathUrl]);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await fetch('/api/layoutdata')
-        if (!res.ok) throw new Error('Failed to fetch')
-
-        const data = await res.json()
-        setData(data?.headerData || [])
-      } catch (error) {
-        console.error('Error fetching services:', error)
-      }
-    }
-
-    fetchData()
-  }, [])
 
   useEffect(() => {
     document.body.style.overflow = navbarOpen ? "hidden" : "";
@@ -86,13 +59,6 @@ const Header: React.FC = () => {
       document.body.style.overflow = "";
     };
   }, [navbarOpen]);
-
-
-  const handleSignOut = () => {
-    localStorage.removeItem("user");
-    signOut();
-    setUser(null);
-  };
 
   const solidHeader = sticky;
 
@@ -103,7 +69,7 @@ const Header: React.FC = () => {
       <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md flex h-full items-center justify-between px-4 py-3">
         <Logo sticky={solidHeader} />
         <nav className={`hidden lg:flex flex-grow items-center justify-center space-x-5 ${!solidHeader ? '[&_a:not(.lpo-btn)]:!text-white [&_a:not(.lpo-btn)]:hover:!text-secondary' : ''}`}>
-          {data.map((item:any, index:any) => (
+          {headerData.map((item, index) => (
             <HeaderLink key={index} item={item} sticky={solidHeader} />
           ))}
         </nav>
@@ -127,35 +93,12 @@ const Header: React.FC = () => {
             </svg>
           </button>
 
-          {user?.user || session?.user ? (
-            <>
-              <div className="relative group flex items-center justify-center">
-                <div className="w-9 h-9 rounded-full bg-primary flex items-center justify-center">
-                  <span className="text-white font-bold text-xs">
-                    {(user?.user || session?.user?.name || "U").toString().charAt(0).toUpperCase()}
-                  </span>
-                </div>
-                <p className="absolute w-fit text-sm font-medium text-center z-10 invisible opacity-0 group-hover:visible group-hover:opacity-100 transition-opacity duration-200 bg-primary text-white py-1 px-2 min-w-28 rounded-lg shadow-2xl top-full left-1/2 transform -translate-x-1/2 mt-3">
-                  {user?.user || session?.user?.name}
-                </p>
-              </div>
-              <button
-                onClick={() => handleSignOut()}
-                className="hidden lg:block bg-transparent border border-primary text-primary dark:text-white dark:border-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-primary hover:text-white transition-all"
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
-            <>
-              <a
-                href="/ETL-Dashboard.html"
-                className={`hidden lg:block px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${solidHeader ? 'border-primary text-primary hover:bg-primary hover:text-white' : 'border-white/60 text-white hover:bg-white/20'}`}
-              >
-                Staff Login
-              </a>
-            </>
-          )}
+          <a
+            href="/ETL-Dashboard.html"
+            className={`hidden lg:block px-4 py-2 rounded-lg text-sm font-semibold border transition-all ${solidHeader ? 'border-primary text-primary hover:bg-primary hover:text-white' : 'border-white/60 text-white hover:bg-white/20'}`}
+          >
+            Staff Login
+          </a>
 
 
 
@@ -193,30 +136,17 @@ const Header: React.FC = () => {
           </button>
         </div>
         <nav className="flex flex-col items-start gap-1 p-5">
-          {data.map((item:any, index:any) => (
+          {headerData.map((item, index) => (
             <MobileHeaderLink key={index} item={item} onNavigate={() => setNavbarOpen(false)} />
           ))}
           <div className="mt-4 flex flex-col space-y-4 w-full">
-            {user?.user || session?.user ? (
-              <>
-                <button
-                  className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg hover:bg-blue-600 hover:text-white"
-                  onClick={() => handleSignOut()}
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
-              <>
-                <a
-                  href="/ETL-Dashboard.html"
-                  className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg font-semibold hover:bg-primary hover:text-white transition-all"
-                  onClick={() => setNavbarOpen(false)}
-                >
-                  Staff Login
-                </a>
-              </>
-            )}
+            <a
+              href="/ETL-Dashboard.html"
+              className="bg-transparent border border-primary text-primary px-4 py-2 rounded-lg font-semibold hover:bg-primary hover:text-white transition-all"
+              onClick={() => setNavbarOpen(false)}
+            >
+              Staff Login
+            </a>
           </div>
         </nav>
       </div>

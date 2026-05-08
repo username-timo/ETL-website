@@ -40,6 +40,7 @@ yarn-error.log*
 
 # local tooling
 .claude/
+.chrome-turnstile-deployed/
 dev-err.log
 dev-out.log
 *.log

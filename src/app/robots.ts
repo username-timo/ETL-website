@@ -10,9 +10,6 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/api/",
-          "/signin",
-          "/signup",
-          "/forgot-password",
           "/ETL-Dashboard.html",
           "/ETL-Invoice.html",
           "/ETL-Invoice-View.html",

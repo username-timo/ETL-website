@@ -13,7 +13,6 @@ import NextTopLoader from 'nextjs-toploader';
 import Footer from "./components/layout/footer";
 import ScrollToTop from "./components/scroll-to-top";
 import Header from "./components/layout/header";
-import SessionProviderComp from "./provider/SessionProviderComp";
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://etluganda.com";
 
@@ -136,21 +135,19 @@ export default function RootLayout({
             type="application/ld+json"
             dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
           />
-          <SessionProviderComp>
-            <ThemeProvider
-              attribute="class"
-              enableSystem={false}
-              defaultTheme="light"
-            >
-              <Aoscompo>
-                <Header />
-                <NextTopLoader color="#1a3c6e" />
-                {children}
-                <Footer />
-              </Aoscompo>
-              <ScrollToTop />
-            </ThemeProvider>
-          </SessionProviderComp>
+          <ThemeProvider
+            attribute="class"
+            enableSystem={false}
+            defaultTheme="light"
+          >
+            <Aoscompo>
+              <Header />
+              <NextTopLoader color="#1a3c6e" />
+              {children}
+              <Footer />
+            </Aoscompo>
+            <ScrollToTop />
+          </ThemeProvider>
       </body>
     </html>
   );
