@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/etl-auth.js"></script>
 <script src="/etl-utils.js"></script>
+<script src="/etl-email.js"></script>
 <style>
   :root {
     --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
@@ -228,8 +229,8 @@
     .top-nav-sq { width: 50px !important; height: 50px !important; flex-shrink: 0; }
     .top-nav-title { font-size: 12px; font-weight: 700; line-height: 1.05; white-space: normal; overflow-wrap: anywhere; }
     .top-nav-sub { font-size: 8px; letter-spacing: 1px; }
-    .nav-actions { flex: 0 0 auto; max-width: 48%; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
-    .nav-btn { font-size: 9px; padding: 6px 8px; border-radius: 4px; }
+    .nav-actions { flex: 0 0 auto; width: 52%; max-width: 52%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+    .nav-btn { display: inline-flex; align-items: center; justify-content: center; text-align: center; font-size: 8px; padding: 6px 5px; border-radius: 4px; letter-spacing: 0.35px; }
 
     /* MAIN */
     .dash-wrap { padding: 16px 2% 32px; max-width: 100%; }
@@ -667,15 +668,11 @@
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body) {
-    if(!to || !to.includes('@')) return;
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body, flow: 'internal_ops', context: 'dashboard' })
-      });
-      if(!res.ok) throw new Error(await res.text());
-    } catch(e) { console.warn('Email error:', e); }
+    const result = await ETLEmail.send(to, subject, body, {
+      flow: 'internal_ops',
+      context: 'dashboard'
+    });
+    return result.ok;
   }
 
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
@@ -1060,7 +1057,8 @@ ${(()=>{
           const email   = r ? r.client_email   : '';
           const project = r ? r.project_title  : 'Project';
           // Notify ETL staff
-          sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved and is ready for you to generate.\n\nCLIENT DETAILS:\nName: ${name}\nEmail: ${email}\nProject: ${project}\n\nLog in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: ${DASHBOARD_URL}`);
+          const emailSent = await sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved and is ready for you to generate.\n\nCLIENT DETAILS:\nName: ${name}\nEmail: ${email}\nProject: ${project}\n\nLog in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: ${DASHBOARD_URL}`);
+          if (!emailSent) console.warn('Quotation approval saved, but staff notification email could not be sent.');
 
         }
         // Reload to reflect new button states
@@ -1254,7 +1252,7 @@ ${(()=>{
     if(res.ok) {
 
       // Email 1 → ETL Staff: Action required + confirmation
-      sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved by ${approver} and is ready for you to generate.
+      const emailSent = await sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved by ${approver} and is ready for you to generate.
 
 CLIENT DETAILS:
 Name: ${name}
@@ -1262,8 +1260,9 @@ Email: ${email}
 Project: ${project}
 
 Please log in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: ${DASHBOARD_URL}`);
+      if (!emailSent) console.warn('Quotation approval saved, but staff notification email could not be sent.');
 
-      alert('✅ Request approved! ETL staff have been notified to generate the quotation.');
+      alert(emailSent ? '✅ Request approved! ETL staff have been notified to generate the quotation.' : '✅ Request approved! Email notification could not be sent automatically.');
       loadApprovals();
       loadRequests();
     } else { alert('Could not update. Please try again.'); }
@@ -1279,7 +1278,7 @@ Please log in to the ETL Dashboard and click Generate Quotation to proceed.\n\nD
     });
     if(res.ok) {
       // Notify client via EmailJS
-      sendEmail(email, `Re: Your Quotation Request — ${project}`, `Dear ${name},
+      const emailSent = await sendEmail(email, `Re: Your Quotation Request — ${project}`, `Dear ${name},
 
 Thank you for reaching out to Engineering Trade Links Co. Ltd.
 
@@ -1293,7 +1292,8 @@ Kind regards,
 Engineering Trade Links Co. Ltd
 +256 776 566 522
 tradelinks.ltd@gmail.com`);
-      alert('Request rejected and client has been notified by email.');
+      if (!emailSent) console.warn('Quotation rejected, but client email could not be sent.');
+      alert(emailSent ? 'Request rejected and client has been notified by email.' : 'Request rejected, but the client email could not be sent automatically.');
       loadApprovals();
       loadRequests();
     } else { alert('Could not update. Please try again.'); }

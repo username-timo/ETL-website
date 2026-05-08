@@ -81,11 +81,11 @@
         <div class="etl-auth-sub">Engineering Trade Links Co. Ltd</div>
         <div class="etl-auth-field">
           <label for="etl-auth-email">Email</label>
-          <input type="email" id="etl-auth-email" autocomplete="username" required>
+          <input type="email" id="etl-auth-email" name="email" autocomplete="username" required>
         </div>
         <div class="etl-auth-field">
           <label for="etl-auth-password">Password</label>
-          <input type="password" id="etl-auth-password" autocomplete="current-password" required>
+          <input type="password" id="etl-auth-password" name="password" autocomplete="current-password" required>
         </div>
         <button type="submit" class="etl-auth-btn" id="etl-auth-submit">Sign In</button>
         <div class="etl-auth-err" id="etl-auth-err"></div>
@@ -224,6 +224,10 @@
     return await loadProfile();
   }
 
+  function getClient() {
+    return ensureClient();
+  }
+
   // Drop-in replacement for old fetch(`${SUPABASE_URL}/rest/v1/...`, {headers: {apikey, Authorization}})
   // Pass either a path like '/rest/v1/quotation_requests?...' or a full URL; headers attached automatically.
   async function supabaseFetch(pathOrUrl, options) {
@@ -258,6 +262,7 @@
     getRole,
     getUser,
     getProfile,
+    getClient,
     fetch: supabaseFetch,
     SUPABASE_URL,
     SUPABASE_ANON_KEY,

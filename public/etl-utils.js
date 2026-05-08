@@ -28,6 +28,20 @@
     return 'UGX ' + fmtNumber(value);
   }
 
+  function createReference(type) {
+    const yr = new Date().getFullYear();
+    const now = new Date();
+    const stamp = [
+      String(now.getMonth() + 1).padStart(2, '0'),
+      String(now.getDate()).padStart(2, '0'),
+      String(now.getHours()).padStart(2, '0'),
+      String(now.getMinutes()).padStart(2, '0'),
+      String(now.getSeconds()).padStart(2, '0')
+    ].join('');
+    const random = Math.random().toString(36).slice(2, 5).toUpperCase();
+    return `ETL/${type}/${yr}/${stamp}-${random}`;
+  }
+
   async function readResponseError(response) {
     try {
       const json = await response.json();
@@ -78,6 +92,7 @@
     parseAmount,
     fmtNumber,
     fmtMoney,
+    createReference,
     readResponseError,
     requireText,
     sanitizeItems

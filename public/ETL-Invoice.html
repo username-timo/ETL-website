@@ -10,6 +10,8 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="/etl-auth.js"></script>
   <script src="/etl-utils.js"></script>
+  <script src="/etl-email.js"></script>
+  <script src="/etl-items.js"></script>
   <script src="/etl-inventory-autocomplete.js"></script>
 
   <style>
@@ -205,74 +207,9 @@
     /* ============================================
        ITEMS TABLE
     ============================================ */
-    .items-wrap {
-      padding: 0 20px 20px;
-      overflow: visible;
-    }
-
-    .items-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-
-    .items-table th {
-      background: var(--primary);
-      color: #fff;
-      padding: 10px 12px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .items-table td {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-    }
-
-    .items-table input {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: 6px;
-      padding: 7px 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 13px;
-      background: var(--lighter-bg);
-      outline: none;
-    }
-
-    .items-table input:focus {
-      border-color: var(--secondary);
-      background: #fff;
-    }
-
-    .row-total {
-      font-weight: 700;
-      color: var(--primary);
-      text-align: right;
-      white-space: nowrap;
-    }
-
-    .btn-rm {
-      background: var(--danger-bg);
-      color: var(--danger);
-      border: none;
-      border-radius: 6px;
-      width: 26px;
-      height: 26px;
-      cursor: pointer;
-      font-size: 14px;
-      font-weight: 700;
-      transition: all 0.2s ease;
-    }
-
-    .btn-rm:hover {
-      background: var(--danger);
-      color: #fff;
-    }
+    .items-wrap { padding: 0 20px 20px; }
+    .items-table { --items-table-min-width: 600px; --item-remove-size: 26px; font-size: 13px; }
+    .items-table th { background: var(--primary); color: #fff; }
 
     .btn-add-row {
       background: var(--light-bg);
@@ -752,6 +689,7 @@
 
       .items-wrap {
         padding: 0 16px 16px;
+        margin-top: 2px;
       }
 
       .inv-wrap {
@@ -769,6 +707,7 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="/etl-forms.css">
 </head>
 <body>
 
@@ -884,15 +823,15 @@
             <tr>
               <td>
                 <div class="desc-wrap">
-                  <input type="text" class="i-desc" placeholder="Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
+                  <input type="text" class="i-desc" name="item_desc[]" aria-label="Line item description" placeholder="Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
                   <div class="autocomplete-list"></div>
                 </div>
               </td>
-              <td><input type="text" class="i-unit" placeholder="Unit"></td>
-              <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
-              <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
+              <td><input type="text" class="i-unit" name="item_unit[]" aria-label="Line item unit" placeholder="Unit"></td>
+              <td><input type="number" class="i-qty" name="item_qty[]" aria-label="Line item quantity" value="1" min="0" oninput="recalc(this)"></td>
+              <td><input type="number" class="i-price" name="item_price[]" aria-label="Line item unit price" value="0" min="0" oninput="recalc(this)"></td>
               <td><span class="row-total">0</span></td>
-              <td><button class="btn-rm" onclick="removeRow(this)">x</button></td>
+              <td><button class="btn-rm" onclick="removeRow(this)" title="Remove">&times;</button></td>
             </tr>
           </tbody>
         </table>
@@ -1107,28 +1046,9 @@
     document.getElementById('inv-due').value = due.toISOString().split('T')[0];
   })();
 
-  /* ============================================
-     RECALCULATE ROW TOTAL
-  ============================================ */
-  function recalc(el) {
-    const row = el.closest('tr');
-    const qty = parseFloat(row.querySelector('.i-qty').value) || 0;
-    const price = parseFloat(row.querySelector('.i-price').value) || 0;
-    row.querySelector('.row-total').innerText = fmtNum(qty * price);
-    updateTotals();
-  }
-
-  /* ============================================
-     UPDATE GLOBAL TOTALS
-  ============================================ */
-  function updateTotals() {
-    let sub = 0;
-    document.querySelectorAll('#inv-items tr').forEach(row => {
-      const qty = parseFloat(row.querySelector('.i-qty')?.value) || 0;
-      const price = parseFloat(row.querySelector('.i-price')?.value) || 0;
-      sub += qty * price;
-    });
-    
+  const invoiceItems = ETLItems.createController({
+    selectors: { list: '#inv-items' },
+    onTotals(sub) {
     const vatOn = document.getElementById('vat-toggle').checked;
     const vat = vatOn ? sub * 0.18 : 0;
     const total = sub + vat;
@@ -1137,40 +1057,13 @@
     document.getElementById('inv-vat').innerText = fmt(vat);
     document.getElementById('inv-total').innerText = fmt(total);
     document.getElementById('vat-row').style.display = vatOn ? 'flex' : 'none';
-  }
-
-  /* ============================================
-     ADD NEW ROW TO ITEMS TABLE
-  ============================================ */
-  function addRow() {
-    const tbody = document.getElementById('inv-items');
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>
-        <div class="desc-wrap">
-          <input type="text" class="i-desc" placeholder="Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
-          <div class="autocomplete-list"></div>
-        </div>
-      </td>
-      <td><input type="text" class="i-unit" placeholder="Unit"></td>
-      <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
-      <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
-      <td><span class="row-total">0</span></td>
-      <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>
-    `;
-    tbody.appendChild(tr);
-  }
-
-  /* ============================================
-     REMOVE ROW FROM ITEMS TABLE
-  ============================================ */
-  function removeRow(btn) {
-    const rows = document.querySelectorAll('#inv-items tr');
-    if (rows.length > 1) {
-      btn.closest('tr').remove();
-      updateTotals();
     }
-  }
+  });
+
+  function recalc(el) { invoiceItems.recalc(el); }
+  function updateTotals() { invoiceItems.updateTotals(); }
+  function addRow() { invoiceItems.addRow(); }
+  function removeRow(btn) { invoiceItems.removeRow(btn); }
 
   /* ============================================
      PREFILL FROM LPO (FIXED)
@@ -1240,21 +1133,12 @@
         tbody.innerHTML = '';
         
         l.items.forEach(item => {
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>
-              <div class="desc-wrap">
-                <input type="text" class="i-desc" value="${escapeHtml(item.desc || '')}" oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
-                <div class="autocomplete-list"></div>
-              </div>
-            </td>
-            <td><input type="text" class="i-unit" value="${escapeHtml(item.unit || '')}"></td>
-            <td><input type="number" class="i-qty" value="${item.qty || 1}" min="0" oninput="recalc(this)"></td>
-            <td><input type="number" class="i-price" value="${item.price || 0}" min="0" oninput="recalc(this)"></td>
-            <td><span class="row-total">${fmtNum((item.qty || 1) * (item.price || 0))}</span></td>
-            <td><button class="btn-rm" onclick="removeRow(this)">x</button></td>
-          `;
-          tbody.appendChild(tr);
+          invoiceItems.addRow({
+            desc: item.desc || '',
+            unit: item.unit || '',
+            qty: item.qty || 1,
+            price: item.price || 0
+          });
         });
         updateTotals();
       }
@@ -1417,6 +1301,7 @@
     const clientEmail = document.getElementById('inv-client-email').value.trim();
     const lpoRef = decode(document.getElementById('inv-lpo-ref').value);
 
+    let emailSent = false;
     if (clientEmail) {
       const emailBody = `Dear ${clientName},
 
@@ -1441,11 +1326,15 @@ Email: tradelinks.ltd@gmail.com
 Quality at Service,
 Engineering Trade Links Co. Ltd`;
 
-      sendEmail(clientEmail, `Invoice ${invNum} from Engineering Trade Links - UGX ${fmtNum(grand)}`, emailBody + `\n\nView your invoice online:\n${invoiceViewLink}`);
+      emailSent = await sendEmail(clientEmail, `Invoice ${invNum} from Engineering Trade Links - UGX ${fmtNum(grand)}`, emailBody + `\n\nView your invoice online:\n${invoiceViewLink}`);
+      if (!emailSent) console.warn('Invoice saved, but client email could not be sent.');
     }
 
     setTimeout(() => {
-      alert('Invoice ' + invNum + ' generated!\n\n' + (clientEmail ? 'Sent to: ' + clientEmail : 'No client email provided - please share manually.'));
+      const emailMessage = clientEmail
+        ? (emailSent ? 'Sent to: ' + clientEmail : 'Email could not be sent automatically - please share manually with: ' + clientEmail)
+        : 'No client email provided - please share manually.';
+      alert('Invoice ' + invNum + ' generated!\n\n' + emailMessage);
     }, 100);
   }
 
@@ -1453,17 +1342,11 @@ Engineering Trade Links Co. Ltd`;
      EMAIL HELPER
   ============================================ */
   async function sendEmail(to, subject, body) {
-    if (!to || !to.includes('@')) return;
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ to, subject, body, flow: 'internal_ops', context: 'invoice' })
-      });
-      if (!res.ok) throw new Error(await res.text());
-    } catch (e) {
-      console.warn('Email error:', e);
-    }
+    const result = await ETLEmail.send(to, subject, body, {
+      flow: 'internal_ops',
+      context: 'invoice'
+    });
+    return result.ok;
   }
 
   /* ============================================

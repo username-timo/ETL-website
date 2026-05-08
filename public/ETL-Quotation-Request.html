@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="/etl-utils.js"></script>
+<script src="/etl-email.js"></script>
 <style>
   :root {
     --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
@@ -383,24 +384,12 @@
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body) {
-    if(!to || !to.includes('@')) return;
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to,
-          subject,
-          body,
-          flow: 'public_quote_request',
-          context: 'quotation-request',
-          turnstileToken: TURNSTILE_TOKEN
-        })
-      });
-      if(!res.ok) throw new Error(await res.text());
-      return true;
-    } catch(e) { console.warn('Email error:', e); }
-    return false;
+    const result = await ETLEmail.send(to, subject, body, {
+      flow: 'public_quote_request',
+      context: 'quotation-request',
+      turnstileToken: TURNSTILE_TOKEN
+    });
+    return result.ok;
   }
 
   function setTurnstileMessage(message, isError) {
@@ -619,13 +608,14 @@
 
       if(result.ok) {
         // Send email notification to ETL
-        sendEmail('timookui@gmail.com', `🔔 New Request Needs Approval — ${cName} | ${pTitle}`, `A new quotation request has been submitted and requires your approval.
+        const emailSent = await sendEmail('timookui@gmail.com', `🔔 New Request Needs Approval — ${cName} | ${pTitle}`, `A new quotation request has been submitted and requires your approval.
 
 Client: ${cName}
 Email: ${cEmail}
 Project: ${pTitle}
 
 Dashboard: ${DASHBOARD_URL}`);
+        if (!emailSent) console.warn('Quotation request saved, but notification email could not be sent.');
 
         document.getElementById('request-form').style.display = 'none';
         document.getElementById('success-box').style.display = 'block';

@@ -7,6 +7,8 @@
 <title>ETL | Professional Quotation System</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="/etl-utils.js"></script>
+<script src="/etl-email.js"></script>
+<script src="/etl-items.js"></script>
 <style>
   :root {
     --primary:    #1a3c6e;
@@ -90,23 +92,7 @@
   .field.full { grid-column: 1/-1; }
 
   /* Items Table */
-  .items-wrap { overflow-x: auto; overflow-y: visible; -webkit-overflow-scrolling: touch; }
-  .items-wrap::after { content: ''; display: block; clear: both; }
-  .items-table { width: 100%; border-collapse: collapse; min-width: 600px; }
-  .items-table thead tr { background: var(--light-bg); }
-  .items-table th { padding: 12px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); font-weight: 800; text-align: left; border-bottom: 2px solid var(--border); }
-  .items-table td { padding: 6px 6px; vertical-align: middle; }
-  .items-table tbody tr { border-bottom: 1px solid var(--border); }
-  .items-table tbody tr:last-child { border-bottom: none; }
-  .items-table input {
-    width: 100%; padding: 9px 10px; border: 1.5px solid var(--border);
-    border-radius: 6px; font-size: 13px; background: var(--lighter-bg);
-    font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s;
-  }
-  .items-table input:focus { border-color: var(--secondary); background: var(--white); }
-  .row-total { font-weight: 700; font-size: 13px; color: var(--primary); text-align: right; padding-right: 8px; white-space: nowrap; }
-  .btn-rm { background: #fee2e2; color: #ef4444; border: none; width: 28px; height: 28px; border-radius: 6px; cursor: pointer; font-size: 14px; font-weight: 900; transition: all 0.2s; }
-  .btn-rm:hover { background: #ef4444; color: var(--white); }
+  .items-table { --items-table-min-width: 600px; --item-remove-size: 28px; }
 
   .table-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 12px; }
   .btn-add-row { background: var(--light-bg); color: var(--primary); border: 1.5px dashed var(--secondary); padding: 9px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
@@ -277,11 +263,6 @@
     .form-grid, .form-grid3 { grid-template-columns: 1fr; gap: 14px; }
     .field label { font-size: 9px; }
     .field input, .field select, .field textarea { font-size: 13px; padding: 9px 12px; }
-    .items-table { min-width: 100%; font-size: 12px; }
-    .items-table th { padding: 10px 8px; font-size: 9px; }
-    .items-table td { padding: 5px 5px; }
-    .row-total { font-size: 12px; }
-    .btn-rm { width: 24px; height: 24px; }
     .table-footer { margin-top: 12px; gap: 10px; }
     .btn-add-row { font-size: 11px; padding: 8px 16px; }
     .subtotal-panel { padding: 12px 16px; }
@@ -393,71 +374,6 @@
     .mobile-category-option:active { background: var(--secondary); color: var(--white); }
     .field textarea { min-height: 70px; }
 
-    /* ITEMS TABLE */
-    .items-wrap { margin-top: 2px; overflow: visible; }
-    .items-table { display: block; width: 100%; min-width: 0; border-collapse: separate; }
-    .items-table thead { display: none; }
-    .items-table tbody { display: grid; gap: 12px; }
-    .items-table tr {
-      position: relative;
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      width: 100%;
-      padding: 10px;
-      padding-top: 30px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      background: #fff;
-      box-shadow: 0 8px 20px rgba(26, 60, 110, 0.06);
-    }
-    .items-table td { display: block; padding: 0; font-size: 11px; }
-    .items-table td:nth-child(1) { grid-column: 1 / -1; }
-    .items-table td:nth-child(5) {
-      align-self: end;
-      padding: 8px 10px;
-      border-radius: 8px;
-      background: var(--light-bg);
-      text-align: right;
-    }
-    .items-table td:nth-child(6) {
-      position: absolute;
-      top: 8px;
-      right: 8px;
-      z-index: 2;
-    }
-    .items-table td::before {
-      display: block;
-      margin-bottom: 4px;
-      color: var(--text-muted);
-      font-size: 8px;
-      font-weight: 800;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-    }
-    .items-table td:nth-child(1)::before { content: 'Description'; }
-    .items-table td:nth-child(2)::before { content: 'Unit'; }
-    .items-table td:nth-child(3)::before { content: 'Qty'; }
-    .items-table td:nth-child(4)::before { content: 'Unit Price'; }
-    .items-table td:nth-child(5)::before { content: 'Total'; text-align: right; }
-    .items-table td:nth-child(6)::before { display: none; }
-    .items-table input { font-size: 12px; padding: 8px 9px; min-height: 34px; }
-    .row-total { display: block; font-size: 14px; padding-right: 0; }
-    .btn-rm {
-      width: 22px;
-      height: 22px;
-      min-width: 22px;
-      padding: 0;
-      border-radius: 999px;
-      font-size: 11px;
-      line-height: 1;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      pointer-events: auto;
-    }
-
-
     /* TABLE FOOTER */
     .table-footer { flex-direction: column; gap: 8px; margin-top: 8px; }
     .btn-add-row { width: 100%; font-size: 10px; padding: 6px 12px; }
@@ -512,6 +428,7 @@
   .btn-share-close { padding:14px 20px; background:var(--lighter-bg); color:var(--text-muted); border:1.5px solid var(--border); border-radius:10px; font-weight:700; font-size:13px; cursor:pointer; transition:all 0.2s; }
   .btn-share-close:hover { border-color:var(--secondary); color:var(--primary); }
 </style>
+<link rel="stylesheet" href="/etl-forms.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
   // ── Share Panel ──
@@ -611,24 +528,24 @@
     </div>
     <div class="form-grid">
       <div class="field">
-        <label>Client Name / Company *</label>
-        <input type="text" id="c-name" placeholder="e.g. Ministry of Works and Transport">
+        <label for="c-name">Client Name / Company *</label>
+        <input type="text" id="c-name" name="client_name" placeholder="e.g. Ministry of Works and Transport">
       </div>
       <div class="field">
-        <label>Contact Person</label>
-        <input type="text" id="c-contact" placeholder="e.g. Eng. Mukasa Joseph">
+        <label for="c-contact">Contact Person</label>
+        <input type="text" id="c-contact" name="contact_person" placeholder="e.g. Eng. Mukasa Joseph">
       </div>
       <div class="field">
-        <label>Email Address</label>
-        <input type="email" id="c-email" placeholder="e.g. info@client.go.ug">
+        <label for="c-email">Email Address</label>
+        <input type="email" id="c-email" name="client_email" placeholder="e.g. info@client.go.ug">
       </div>
       <div class="field">
-        <label>Phone Number</label>
-        <input type="text" id="c-phone" placeholder="e.g. +256 700 000 000">
+        <label for="c-phone">Phone Number</label>
+        <input type="text" id="c-phone" name="client_phone" placeholder="e.g. +256 700 000 000">
       </div>
       <div class="field full">
-        <label>Client Address / Location</label>
-        <input type="text" id="c-address" placeholder="e.g. Plot 23, Jinja Road, Kampala">
+        <label for="c-address">Client Address / Location</label>
+        <input type="text" id="c-address" name="client_address" placeholder="e.g. Plot 23, Jinja Road, Kampala">
       </div>
     </div>
   </div>
@@ -644,16 +561,16 @@
     </div>
     <div class="form-grid">
       <div class="field">
-        <label>Project / Contract Title *</label>
-        <input type="text" id="p-title" placeholder="e.g. Construction of Staff Quarters">
+        <label for="p-title">Project / Contract Title *</label>
+        <input type="text" id="p-title" name="project_title" placeholder="e.g. Construction of Staff Quarters">
       </div>
       <div class="field">
-        <label>Project Site Location</label>
-        <input type="text" id="p-location" placeholder="e.g. Gulu District, Northern Uganda">
+        <label for="p-location">Project Site Location</label>
+        <input type="text" id="p-location" name="project_location" placeholder="e.g. Gulu District, Northern Uganda">
       </div>
       <div class="field">
-        <label>Service Category</label>
-        <select id="p-cat">
+        <label for="p-cat">Service Category</label>
+        <select id="p-cat" name="service_category">
           <option value="">-- Select Category --</option>
           <option>Civil Engineering & Building</option>
           <option>Road Construction & Maintenance</option>
@@ -669,12 +586,12 @@
         </select>
       </div>
       <div class="field">
-        <label>Estimated Duration</label>
-        <input type="text" id="p-duration" placeholder="e.g. 3 Months">
+        <label for="p-duration">Estimated Duration</label>
+        <input type="text" id="p-duration" name="project_duration" placeholder="e.g. 3 Months">
       </div>
       <div class="field full">
-        <label>Scope of Works (Brief)</label>
-        <textarea id="p-scope" placeholder="Brief description of what ETL will deliver..."></textarea>
+        <label for="p-scope">Scope of Works (Brief)</label>
+        <textarea id="p-scope" name="project_scope" placeholder="Brief description of what ETL will deliver..."></textarea>
       </div>
     </div>
   </div>
@@ -704,13 +621,13 @@
           <tr>
             <td>
               <div class="desc-wrap">
-                <input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
+                <input type="text" class="i-desc" name="item_desc[]" aria-label="Line item description" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off">
                 <div class="autocomplete-list"></div>
               </div>
             </td>
-            <td><input type="text" class="i-unit" placeholder="m³"></td>
-            <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
-            <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)" title="Auto-filled from inventory" style="background:var(--lighter-bg)"></td>
+            <td><input type="text" class="i-unit" name="item_unit[]" aria-label="Line item unit" placeholder="m³"></td>
+            <td><input type="number" class="i-qty" name="item_qty[]" aria-label="Line item quantity" value="1" min="0" oninput="recalc(this)"></td>
+            <td><input type="number" class="i-price" name="item_price[]" aria-label="Line item unit price" value="0" min="0" oninput="recalc(this)" title="Auto-filled from inventory" style="background:var(--lighter-bg)"></td>
             <td><span class="row-total">0</span></td>
             <td><button class="btn-rm" onclick="removeRow(this)" title="Remove">×</button></td>
           </tr>
@@ -744,16 +661,16 @@
     </div>
     <div class="form-grid3">
       <div class="field">
-        <label>Quotation Number</label>
-        <input type="text" id="q-num" oninput="document.getElementById('q-number-display').innerText=this.value">
+        <label for="q-num">Quotation Number</label>
+        <input type="text" id="q-num" name="quotation_number" oninput="document.getElementById('q-number-display').innerText=this.value">
       </div>
       <div class="field">
-        <label>Quotation Date</label>
-        <input type="date" id="q-date">
+        <label for="q-date">Quotation Date</label>
+        <input type="date" id="q-date" name="quotation_date">
       </div>
       <div class="field">
-        <label>Valid Until</label>
-        <input type="date" id="q-expiry">
+        <label for="q-expiry">Valid Until</label>
+        <input type="date" id="q-expiry" name="valid_until">
       </div>
     </div>
 
@@ -761,8 +678,8 @@
 
   <div class="form-grid" style="padding:0 0 16px 0;">
     <div class="field full">
-      <label>Payment Terms</label>
-      <input type="text" id="q-payment" value="As per Contract Agreement" placeholder="e.g. 50% Advance, 50% on Completion">
+      <label for="q-payment">Payment Terms</label>
+      <input type="text" id="q-payment" name="payment_terms" value="As per Contract Agreement" placeholder="e.g. 50% Advance, 50% on Completion">
     </div>
   </div>
 
@@ -902,33 +819,36 @@
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body, options = {}) {
-    if(!to || !to.includes('@')) {
-      return { ok: false, error: 'No valid client email address was entered.' };
-    }
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          to,
-          subject,
-          body,
-          flow: options.flow || 'internal_ops',
-          context: options.context || 'quotation-delivery'
-        })
-      });
-      if(!res.ok) throw new Error(await ETLUtils.readResponseError(res));
-      return { ok: true };
-    } catch(e) {
-      console.warn('Email error:', e);
-      return { ok: false, error: e.message || 'Email request failed.' };
-    }
+    return ETLEmail.send(to, subject, body, {
+      ...options,
+      flow: options.flow || 'internal_ops',
+      context: options.context || 'quotation-delivery',
+      invalidMessage: 'No valid client email address was entered.'
+    });
   }
 
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
   let SESSION_TOKEN = '';
 
+  async function ensureSessionToken() {
+    if (SESSION_TOKEN) return SESSION_TOKEN;
+    try {
+      const sbClient = etlAuth.getClient();
+      const { data: { session } } = await sbClient.auth.getSession();
+      SESSION_TOKEN = session ? session.access_token : '';
+    } catch(e) {
+      console.warn('Could not refresh quotation session:', e);
+    }
+    return SESSION_TOKEN;
+  }
+
   async function saveQuotationToSupabase(ref) {
+    const sessionToken = await ensureSessionToken();
+    if (!sessionToken) {
+      alert('Your dashboard session is still loading. Please wait a moment, then generate the quotation again.');
+      return false;
+    }
+
     const rows = document.querySelectorAll('#items-list tr');
     const { items, subtotal: sub } = ETLUtils.sanitizeItems(rows, {
       desc: '.i-desc',
@@ -974,7 +894,7 @@
         headers: {
           'Content-Type': 'application/json',
           'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SESSION_TOKEN}`,
+          'Authorization': `Bearer ${sessionToken}`,
           'Prefer': 'return=minimal'
         },
         body: JSON.stringify(payload)
@@ -1012,7 +932,7 @@ Click the link below to view, download and print your quotation:`;
           headers: {
             'Content-Type': 'application/json',
             'apikey': SUPABASE_KEY,
-            'Authorization': `Bearer ${SESSION_TOKEN}`,
+            'Authorization': `Bearer ${sessionToken}`,
             'Prefer': 'return=minimal'
           },
           body: JSON.stringify({ status: 'responded', quotation_link: link, responded_at: new Date().toISOString() })
@@ -1123,19 +1043,19 @@ Click the link below to view, download and print your quotation:`;
 
   function selectAC() {}
 
-  // Auto-generate quotation number
+  function setQuotationReference(ref) {
+    document.getElementById('q-num').value = ref;
+    document.getElementById('q-number-display').innerText = ref;
+  }
+
+  // Auto-generate a collision-resistant quotation number.
   (function() {
-    const yr = new Date().getFullYear();
-    const count = parseInt(localStorage.getItem('etl_qt_count') || '0') + 1;
-    localStorage.setItem('etl_qt_count', count);
-    const num = 'ETL/QT/' + yr + '/' + String(count).padStart(3, '0');
-    document.getElementById('q-num').value = num;
-    document.getElementById('q-number-display').innerText = num;
+    setQuotationReference(ETLUtils.createReference('QT'));
   })();
 
   // Gate data loading on Supabase Auth
   etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
-    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const sbClient = etlAuth.getClient();
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = session ? session.access_token : '';
     loadInventoryItems();
@@ -1194,21 +1114,12 @@ Click the link below to view, download and print your quotation:`;
 
   function fmt(n) { return 'UGX ' + Math.round(n).toLocaleString(); }
 
-  function recalc(el) {
-    const row = el.closest('tr');
-    const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
-    const price = parseFloat(row.querySelector('.i-price').value) || 0;
-    row.querySelector('.row-total').innerText = Math.round(qty * price).toLocaleString();
-    updateTotals();
-  }
-
-  function updateTotals() {
-    let sub = 0;
-    document.querySelectorAll('#items-list tr').forEach(row => {
-      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
-      const price = parseFloat(row.querySelector('.i-price').value) || 0;
-      sub += qty * price;
-    });
+  const quoteItems = ETLItems.createController({
+    priceAttrs: {
+      title: 'Auto-filled from inventory',
+      style: 'background:var(--lighter-bg)'
+    },
+    onTotals(sub) {
     const vat = document.getElementById('vat-check').checked ? sub * 0.18 : 0;
     const grand = sub + vat;
 
@@ -1216,37 +1127,14 @@ Click the link below to view, download and print your quotation:`;
     document.getElementById('vat-display').innerText      = fmt(vat);
     document.getElementById('grand-display').innerText    = fmt(grand);
     document.getElementById('vat-row').style.display = vat > 0 ? 'flex' : 'none';
-  }
-
-  function addItem() {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><div class="desc-wrap"><input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-      <td><input type="text" class="i-unit" placeholder="Unit"></td>
-      <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
-      <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)" title="Auto-filled from inventory" style="background:var(--lighter-bg)"></td>
-      <td><span class="row-total">0</span></td>
-      <td><button class="btn-rm" onclick="removeRow(this)" title="Remove">×</button></td>
-    `;
-    document.getElementById('items-list').appendChild(tr);
-  }
-
-  function removeRow(btn) {
-    const rows = document.querySelectorAll('#items-list tr');
-    if(rows.length > 1) {
-      btn.closest('tr').remove();
-      updateTotals();
-      return;
     }
+  });
 
-    const row = btn.closest('tr');
-    row.querySelector('.i-desc').value = '';
-    row.querySelector('.i-unit').value = '';
-    row.querySelector('.i-qty').value = '1';
-    row.querySelector('.i-price').value = '0';
-    row.querySelector('.row-total').innerText = '0';
-    updateTotals();
-  }
+  function recalc(el) { quoteItems.recalc(el); }
+  function updateTotals() { quoteItems.updateTotals(); }
+
+  function addItem() { quoteItems.addRow(); }
+  function removeRow(btn) { quoteItems.removeRow(btn); }
 
   async function generatePreview() {
     const missing = [];
@@ -1410,7 +1298,7 @@ Click the link below to view, download and print your quotation:`;
     <h3>✅ Quotation Saved!</h3>
     <p>The client will receive the link by email. You can also share it directly via WhatsApp.</p>
     <div class="share-link-box">
-      <input type="text" id="share-link-input" readonly onclick="this.select()">
+      <input type="text" id="share-link-input" name="quotation_share_link" aria-label="Quotation share link" readonly onclick="this.select()">
       <button onclick="copyShareLink()">📋 Copy</button>
     </div>
     <div class="share-btns">

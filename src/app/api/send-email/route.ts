@@ -402,6 +402,17 @@ export const POST = async (request: NextRequest) => {
     );
   }
 
-  console.info("[email] Sent successfully", { flow, context, ip, to });
-  return NextResponse.json({ ok: true, flow, context });
+  const brevoResult = (await brevoResponse.json().catch(() => null)) as {
+    messageId?: string;
+  } | null;
+  const messageId = brevoResult?.messageId || "";
+
+  console.info("[email] Sent successfully", {
+    flow,
+    context,
+    ip,
+    to,
+    messageId: messageId || "n/a",
+  });
+  return NextResponse.json({ ok: true, flow, context, messageId });
 };

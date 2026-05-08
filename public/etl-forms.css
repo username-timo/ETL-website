@@ -1,0 +1,205 @@
+/*
+ * Shared ETL form styles.
+ * Keep cross-tool form/table patterns here so quotation, LPO, invoice,
+ * and inventory pages do not drift apart.
+ */
+
+.items-wrap {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+}
+
+.items-wrap::after {
+  content: '';
+  display: block;
+  clear: both;
+}
+
+.items-table {
+  width: 100%;
+  min-width: var(--items-table-min-width, 580px);
+  border-collapse: collapse;
+}
+
+.items-table thead tr {
+  background: var(--light-bg);
+}
+
+.items-table th {
+  padding: 12px 10px;
+  border-bottom: 2px solid var(--border);
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-align: left;
+  text-transform: uppercase;
+}
+
+.items-table td {
+  padding: 6px;
+  vertical-align: middle;
+}
+
+.items-table tbody tr {
+  border-bottom: 1px solid var(--border);
+}
+
+.items-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.items-table input {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: var(--lighter-bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.items-table input:focus {
+  border-color: var(--secondary);
+  background: var(--white);
+}
+
+.row-total {
+  padding-right: 8px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.btn-rm {
+  width: var(--item-remove-size, 24px);
+  height: var(--item-remove-size, 24px);
+  border: none;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 900;
+  transition: all 0.2s;
+}
+
+.btn-rm:hover {
+  background: #ef4444;
+  color: var(--white);
+}
+
+@media (max-width: 480px) {
+  .items-wrap {
+    margin-top: 2px;
+    overflow: visible;
+  }
+
+  .items-table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border-collapse: separate;
+  }
+
+  .items-table thead {
+    display: none;
+  }
+
+  .items-table tbody {
+    display: grid;
+    gap: 12px;
+  }
+
+  .items-table tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100%;
+    padding: 30px 10px 10px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 8px 20px rgba(26, 60, 110, 0.06);
+  }
+
+  .items-table td {
+    display: block;
+    padding: 0;
+    font-size: 11px;
+    border-bottom: 0;
+  }
+
+  .items-table td:nth-child(1) {
+    grid-column: 1 / -1;
+  }
+
+  .items-table td:nth-child(5) {
+    align-self: end;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--light-bg);
+    text-align: right;
+  }
+
+  .items-table td:nth-child(6) {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    z-index: 2;
+  }
+
+  .items-table td::before {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--text-muted);
+    font-size: 8px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+  }
+
+  .items-table td:nth-child(1)::before { content: 'Description'; }
+  .items-table td:nth-child(2)::before { content: 'Unit'; }
+  .items-table td:nth-child(3)::before { content: 'Qty'; }
+  .items-table td:nth-child(4)::before { content: 'Unit Price'; }
+  .items-table td:nth-child(5)::before {
+    content: 'Total';
+    text-align: right;
+  }
+  .items-table td:nth-child(6)::before {
+    display: none;
+  }
+
+  .items-table input {
+    font-size: 12px;
+    padding: 8px 9px;
+    min-height: 34px;
+  }
+
+  .row-total {
+    display: block;
+    font-size: 14px;
+    padding-right: 0;
+  }
+
+  .btn-rm {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    padding: 0;
+    border-radius: 999px;
+    font-size: 11px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+  }
+}

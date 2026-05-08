@@ -8,6 +8,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="/etl-utils.js"></script>
+<script src="/etl-email.js"></script>
+<script src="/etl-items.js"></script>
 <style>
   :root {
     --primary:    #1a3c6e;
@@ -95,21 +97,7 @@
   .field.full { grid-column: 1 / -1; }
 
   /* Items table */
-  .items-wrap { overflow: visible; }
-  .items-table { width: 100%; border-collapse: collapse; min-width: 580px; }
-  .items-table thead tr { background: var(--light-bg); }
-  .items-table th { padding: 12px 10px; font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--primary); font-weight: 800; text-align: left; border-bottom: 2px solid var(--border); }
-  .items-table td { padding: 6px 6px; vertical-align: middle; border-bottom: 1px solid var(--border); }
-  .items-table tbody tr:last-child td { border-bottom: none; }
-  .items-table input {
-    width: 100%; padding: 9px 10px; border: 1.5px solid var(--border);
-    border-radius: 6px; font-size: 13px; background: var(--lighter-bg);
-    font-family: 'DM Sans', sans-serif; outline: none; transition: border-color 0.2s;
-  }
-  .items-table input:focus { border-color: var(--secondary); background: var(--white); }
-  .row-total { font-weight: 700; font-size: 13px; color: var(--primary); text-align: right; padding-right: 8px; white-space: nowrap; }
-  .btn-rm { background: #fee2e2; color: #ef4444; border: none; width: 22px; height: 22px; border-radius: 6px; cursor: pointer; font-size: 13px; font-weight: 900; transition: all 0.2s; }
-  .btn-rm:hover { background: #ef4444; color: var(--white); }
+  .items-table { --items-table-min-width: 580px; --item-remove-size: 22px; }
 
   .table-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 12px; }
   .btn-add-row { background: var(--light-bg); color: var(--primary); border: 1.5px dashed var(--secondary); padding: 9px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; transition: all 0.2s; }
@@ -249,12 +237,6 @@
     .doc-brand-footer { padding: 12px; flex-direction: column; gap: 8px; }
     #preview-section { padding: 0; margin: 0; }
     .preview-controls { padding: 10px 2%; gap: 8px; }
-    /* Items table mobile */
-    .items-table { min-width: 100%; font-size: 10px; }
-    .items-table th { padding: 8px 6px; font-size: 8px; }
-    .items-table td { padding: 6px 4px; }
-    .items-table input { font-size: 11px; padding: 4px 6px; }
-    .row-total { font-size: 11px; padding-right: 4px; }
   }
   /* Autocomplete */
   .desc-wrap { position: relative; }
@@ -278,6 +260,7 @@
   .ac-no-results { padding: 10px 14px; font-size: 12px; color: #64748b; text-align: center; }
   .autocomplete-list * { cursor: pointer !important; }
 </style>
+<link rel="stylesheet" href="/etl-forms.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/etl-auth.js"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
@@ -418,12 +401,12 @@
         </thead>
         <tbody id="items-list">
           <tr>
-            <td><div class="desc-wrap"><input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-            <td><input type="text" class="i-unit" placeholder="Tons"></td>
-            <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
-            <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
+            <td><div class="desc-wrap"><input type="text" class="i-desc" name="item_desc[]" aria-label="Line item description" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
+            <td><input type="text" class="i-unit" name="item_unit[]" aria-label="Line item unit" placeholder="Tons"></td>
+            <td><input type="number" class="i-qty" name="item_qty[]" aria-label="Line item quantity" value="1" min="0" oninput="recalc(this)"></td>
+            <td><input type="number" class="i-price" name="item_price[]" aria-label="Line item unit price" value="0" min="0" oninput="recalc(this)"></td>
             <td><span class="row-total">0</span></td>
-            <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>
+            <td><button class="btn-rm" onclick="removeRow(this)" title="Remove">×</button></td>
           </tr>
         </tbody>
       </table>
@@ -589,7 +572,7 @@
 </div>
 
 <script>
-  let currentMode = 'inward';
+  let currentMode = 'outward';
 
   const today = new Date();
   document.getElementById('date-issue').value = today.toISOString().split('T')[0];
@@ -597,6 +580,11 @@
   document.getElementById('date-delivery').value = del.toISOString().split('T')[0];
 
   function fmt(n) { return Math.round(n).toLocaleString(); }
+
+  function setLpoReference(ref) {
+    document.getElementById('lpo-ref').value = ref;
+    document.getElementById('lpo-badge-display').innerText = decode(ref);
+  }
 
   function setMode(mode) {
     currentMode = mode;
@@ -613,9 +601,7 @@
     document.getElementById('header-sub').innerText   = isOut ? 'Issue a Local Purchase Order to a supplier or vendor' : 'Record an LPO received from a client awarding ETL a contract';
 
     // LPO ref prefix
-    const refInput = document.getElementById('lpo-ref');
-    refInput.value = isOut ? 'ETL-LPO-2026-001' : 'ETL-INLPO-2026-001';
-    document.getElementById('lpo-badge-display').innerText = decode(refInput.value);
+    setLpoReference(ETLUtils.createReference(isOut ? 'LPO' : 'INLPO'));
 
     // Card styling
     ['card1','card2','card3','card4'].forEach(id => {
@@ -641,43 +627,17 @@
       : 'Use Inward when a client has awarded ETL a contract and issued an LPO to ETL.';
   }
 
-  function recalc(el) {
-    const row   = el.closest('tr');
-    const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
-    const price = parseFloat(row.querySelector('.i-price').value) || 0;
-    row.querySelector('.row-total').innerText = fmt(qty * price);
-    updateTotals();
-  }
-
-  function updateTotals() {
-    let sub = 0;
-    document.querySelectorAll('#items-list tr').forEach(row => {
-      const qty   = parseFloat(row.querySelector('.i-qty').value)   || 0;
-      const price = parseFloat(row.querySelector('.i-price').value) || 0;
-      sub += qty * price;
-    });
+  const lpoItems = ETLItems.createController({
+    onTotals(sub) {
     document.getElementById('subtotal-display').innerText = 'UGX ' + fmt(sub);
     document.getElementById('grand-display').innerText    = 'UGX ' + fmt(sub);
-  }
-
-  function addRow() {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td><div class="desc-wrap"><input type="text" class="i-desc" placeholder="🔍 Search inventory or type..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-      <td><input type="text" class="i-unit" placeholder="Unit"></td>
-      <td><input type="number" class="i-qty" value="1" min="0" oninput="recalc(this)"></td>
-      <td><input type="number" class="i-price" value="0" min="0" oninput="recalc(this)"></td>
-      <td><span class="row-total">0</span></td>
-      <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>
-    `;
-    document.getElementById('items-list').appendChild(tr);
-  }
-
-  function removeRow(btn) {
-    if(document.querySelectorAll('#items-list tr').length > 1) {
-      btn.closest('tr').remove(); updateTotals();
     }
-  }
+  });
+
+  function recalc(el) { lpoItems.recalc(el); }
+  function updateTotals() { lpoItems.updateTotals(); }
+  function addRow() { lpoItems.addRow(); }
+  function removeRow(btn) { lpoItems.removeRow(btn); }
 
   function fmtDate(val) {
     if(!val) return '—';
@@ -789,22 +749,13 @@
   
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body, opts) {
-    if(!to || !to.includes('@')) return;
     opts = opts || {};
-    const payload = {
-      to, subject, body,
+    const result = await ETLEmail.send(to, subject, body, {
+      ...opts,
       flow: opts.flow || 'internal_ops',
       context: opts.context || 'lpo-system'
-    };
-    if(opts.turnstileToken) payload.turnstileToken = opts.turnstileToken;
-    try {
-      const res = await fetch('/api/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if(!res.ok) throw new Error(await res.text());
-    } catch(e) { console.warn('Email error:', e); }
+    });
+    return result.ok;
   }
 
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
@@ -914,7 +865,7 @@
       const emailOpts = IS_ANON
         ? { flow: 'public_lpo_submit', context: 'public-lpo-submit', turnstileToken: tsToken }
         : { flow: 'internal_ops', context: 'lpo-system' };
-      sendEmail('timookui@gmail.com', `New ${isOut ? 'Outward' : 'Inward'} LPO Pending Approval - ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and requires your approval.
+      const emailSent = await sendEmail('timookui@gmail.com', `New ${isOut ? 'Outward' : 'Inward'} LPO Pending Approval - ${cleanLpoNum} | ${payload.entity_name}`, `A new ${isOut ? 'Outward' : 'Inward'} LPO has been submitted and requires your approval.
 
 LPO Number: ${cleanLpoNum}
 Direction: ${isOut ? 'OUTWARD (ETL -> Supplier)' : 'INWARD (Client -> ETL)'}
@@ -931,6 +882,7 @@ ${link}
 
 Dashboard:
 ${DASHBOARD_URL}`, emailOpts);
+      if (!emailSent) console.warn('LPO saved, but notification email could not be sent.');
 
       setTimeout(() => {
         if(isOut) {
@@ -964,8 +916,6 @@ ${DASHBOARD_URL}`, emailOpts);
     });
   }
 
-  setMode('inward'); // Always inward for clients
-
   // Auto-fill from quotation if opened from quotation view
   async function prefillFromQuotation() {
     const params = new URLSearchParams(window.location.search);
@@ -991,10 +941,7 @@ ${DASHBOARD_URL}`, emailOpts);
 
       // Auto-generate LPO reference and dates
       const today = new Date();
-      const yr = today.getFullYear();
-      const lpoRef = 'ETL/INLPO/' + yr + '/' + String(Math.floor(Math.random()*900)+100);
-      document.getElementById('lpo-ref').value = lpoRef;
-      document.getElementById('lpo-badge-display').innerText = lpoRef;
+      setLpoReference(ETLUtils.createReference('INLPO'));
       document.getElementById('date-issue').value = today.toISOString().split('T')[0];
       // Default delivery 30 days from now
       const delivery = new Date(today); delivery.setDate(delivery.getDate() + 30);
@@ -1006,20 +953,11 @@ ${DASHBOARD_URL}`, emailOpts);
         const tbody = document.getElementById('items-list');
         tbody.innerHTML = '';
         qItems.forEach(item => {
-          const desc  = (item.desc  || item.description || item.name || '').replace(/"/g, '&quot;');
-          const unit  = (item.unit  || '').replace(/"/g, '&quot;');
+          const desc  = item.desc  || item.description || item.name || '';
+          const unit  = item.unit  || '';
           const qty   = item.qty   || item.quantity || 1;
           const price = item.price || item.unit_price || item.unitPrice || 0;
-          const total = Math.round(qty * price);
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td><div class="desc-wrap"><input type="text" class="i-desc" value="${desc}" oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-            <td><input type="text" class="i-unit" value="${unit}"></td>
-            <td><input type="number" class="i-qty" value="${qty}" min="0" oninput="recalc(this)"></td>
-            <td><input type="number" class="i-price" value="${price}" min="0" oninput="recalc(this)"></td>
-            <td><span class="row-total">${total.toLocaleString()}</span></td>
-            <td><button class="btn-rm" onclick="removeRow(this)">×</button></td>`;
-          tbody.appendChild(tr);
+          lpoItems.addRow({ desc, unit, qty, price });
         });
         updateTotals();
       }
@@ -1061,6 +999,8 @@ ${DASHBOARD_URL}`, emailOpts);
   
 
     if(IS_ANON) {
+      // Public clients can only submit inward LPOs.
+      setMode('inward');
       // Render Turnstile for the public submitter when configured.
       try {
         const res = await fetch('/api/send-email');
@@ -1071,6 +1011,8 @@ ${DASHBOARD_URL}`, emailOpts);
         if(TURNSTILE_ENABLED && TURNSTILE_SITE_KEY) waitForTurnstile();
       } catch(e) { console.warn('Turnstile config fetch failed:', e); }
     } else {
+      // Authenticated staff start from outward LPOs.
+      setMode('outward');
       // Staff-only features
       loadInventoryItems();
     }
