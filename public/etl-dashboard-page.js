@@ -1,16 +1,4 @@
 // Dashboard page controller extracted from ETL-Dashboard.html.
-const { SUPABASE_URL, SITE_BASE_URL, DASHBOARD_URL } = window.ETLConfig;
-  
-  // ─── Brevo Email Helper ───
-  async function sendEmail(to, subject, body) {
-    const result = await ETLEmail.send(to, subject, body, {
-      flow: 'internal_ops',
-      context: 'dashboard'
-    });
-    return result.ok;
-  }
-
-const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
 
   function fmtDate(d) {
     if(!d) return '—';
@@ -96,97 +84,6 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
   }
 
 
-  function copyLink(uniqueLink) {
-    const url = SITE_BASE_URL + '/ETL-LPO-View.html?lpo=' + uniqueLink;
-    prompt('✅ LPO link ready!\n\nShare this link with the supplier so they can view their LPO:', url);
-  }
-
-  async function updateLPOStatus(id, status) {
-    try {
-      await ETLDashboardApi.updateLpo(id, { status }, SESSION_TOKEN);
-        const badge = document.getElementById(`lpo-status-${id}`);
-        if(badge) {
-          const labels = {
-            active:'📋 Active', issued:'📤 Issued', delivered:'✅ Delivered',
-            paid:'💰 Paid', disputed:'⚠️ Disputed', closed:'🔒 Closed'
-          };
-          badge.className = `badge badge-lpo-${status}`;
-          badge.innerText = labels[status] || status;
-        }
-        // Update stats
-        loadLPOs();
-    } catch(e) {
-      alert('Network error: ' + e.message);
-    }
-  }
-
-  async function updateStatus(id, status) {
-    try {
-      await ETLDashboardApi.updateQuotation(id, { status }, SESSION_TOKEN);
-        // Update badge
-        const badge = document.getElementById(`req-badge-${id}`);
-        if(badge) {
-          const labels = { pending_approval:'⏳ Pending Approval', approved:'✅ Approved', in_progress:'🔄 In Progress', responded:'📤 Responded', rejected:'❌ Rejected', closed:'🔒 Closed' };
-          badge.className = `badge badge-${status}`;
-          badge.innerText = labels[status] || status;
-        }
-        // If status changed to approved, notify ETL staff
-        if(status === 'approved') {
-          const r = window._reqData && window._reqData.find(x => x.id === id);
-          const name    = r ? r.client_name    : 'Client';
-          const email   = r ? r.client_email   : '';
-          const project = r ? r.project_title  : 'Project';
-          // Notify ETL staff
-          const emailSent = await sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved and is ready for you to generate.\n\nCLIENT DETAILS:\nName: ${name}\nEmail: ${email}\nProject: ${project}\n\nLog in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: ${DASHBOARD_URL}`);
-          if (!emailSent) console.warn('Quotation approval saved, but staff notification email could not be sent.');
-
-        }
-        // Reload to reflect new button states
-        loadRequests();
-    } catch(e) {
-      alert('Network error: ' + e.message);
-    }
-  }
-
-  function openGeneratorFromModal() {
-    openGenerator(null, window._currentRequest);
-  }
-
-  function openGenerator(i, directRecord) {
-    // If called from a request row, pass the data via URL params
-    const r = directRecord || (i !== undefined && i !== null && window._reqData) ? (directRecord || window._reqData[i]) : null;
-    if(r) {
-      const params = new URLSearchParams({
-        client_name:    r.client_name    || '',
-        contact_person: r.contact_person || '',
-        client_email:   r.client_email   || '',
-        client_phone:   r.client_phone   || '',
-        client_address: r.client_address || '',
-        project_title:  r.project_title  || '',
-        project_location: r.project_location || '',
-        project_description: r.project_description || '',
-        services_category:   r.services_category   || '',
-        project_duration:    r.project_duration     || '',
-        ref_id: r.id || ''
-      });
-      window.open('ETL-Quotation-generator.html?' + params.toString(), '_blank');
-    } else {
-      window.open('ETL-Quotation-generator.html', '_blank');
-    }
-  }
-
-  function closeModal() {
-    document.getElementById('detail-modal').classList.remove('open');
-  }
-
-  function blockActionUntilApproval(actionName) {
-    if(currentRole === 'staff') {
-      alert(`⏳ ${actionName} is not available until the LPO is approved by Management.\n\nPlease ask your manager to review and approve this LPO first.`);
-      return false;
-    }
-    return true;
-  }
-
   // ─── AUTH SESSION ───
   let SESSION_TOKEN = '';
   let currentRole = '';
@@ -216,104 +113,6 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
     } catch(e) {
       document.getElementById('approvals-body').innerHTML = '<div class="empty-state"><p>Error: ' + e.message + '</p></div>';
     }
-  }
-
-  async function rejectLPO(id) {
-    const reason = prompt('Enter rejection reason (optional):');
-    if(reason === null) return;
-    try {
-      await ETLDashboardApi.updateLpo(id, { status: 'rejected', notes: reason || 'Rejected by management' }, SESSION_TOKEN);
-      alert('LPO has been rejected.');
-      loadApprovals();
-      loadLPOs();
-    } catch(e) { alert('Error: ' + e.message); }
-  }
-
-  async function approveLPO(id) {
-    if(!confirm('Approve this LPO?')) return;
-    try {
-      await ETLDashboardApi.updateLpo(id, { status: 'approved' }, SESSION_TOKEN);
-      alert('LPO approved successfully!');
-      loadApprovals();
-      loadLPOs();
-    } catch(e) { alert('Error: ' + e.message); }
-  }
-
-  function doApprove(i) {
-    const r = window._approvalData[i];
-    approveRequest(r.id, r.client_email, r.client_name, r.project_title);
-  }
-  function doReject(i) {
-    const r = window._approvalData[i];
-    rejectRequest(r.id, r.client_email, r.client_name, r.project_title);
-  }
-  function doApproveById(id, email, name, project) {
-    approveRequest(id, email, name, project);
-    closeModal();
-  }
-  function doRejectById(id, email, name, project) {
-    rejectRequest(id, email, name, project);
-    closeModal();
-  }
-
-  async function approveRequest(id, email, name, project) {
-    if(!confirm(`Approve quotation request from ${name} for ${project}?`)) return;
-    const approver = currentRole === 'management' ? 'Management' : 'ETL Staff';
-    try {
-      await ETLDashboardApi.updateQuotation(id, { status: 'approved', approved_by: approver, approved_at: new Date().toISOString() }, SESSION_TOKEN);
-
-      // Email 1 → ETL Staff: Action required + confirmation
-      const emailSent = await sendEmail('tokui@usiu.ac.ke', `✅ Action Required: Generate Quotation — ${name} | ${project}`, `A quotation request has been approved by ${approver} and is ready for you to generate.
-
-CLIENT DETAILS:
-Name: ${name}
-Email: ${email}
-Project: ${project}
-
-Please log in to the ETL Dashboard and click Generate Quotation to proceed.\n\nDashboard: ${DASHBOARD_URL}`);
-      if (!emailSent) console.warn('Quotation approval saved, but staff notification email could not be sent.');
-
-      alert(emailSent ? '✅ Request approved! ETL staff have been notified to generate the quotation.' : '✅ Request approved! Email notification could not be sent automatically.');
-      loadApprovals();
-      loadRequests();
-    } catch(e) { alert('Could not update: ' + e.message); }
-  }
-
-  async function rejectRequest(id, email, name, project) {
-    const reason = prompt(`Enter reason for rejecting ${name}'s request (this will be sent to the client):`);
-    if(!reason) return;
-    try {
-      await ETLDashboardApi.updateQuotation(id, { status: 'rejected', rejection_reason: reason, approved_by: 'Management' }, SESSION_TOKEN);
-      // Notify client via EmailJS
-      const emailSent = await sendEmail(email, `Re: Your Quotation Request — ${project}`, `Dear ${name},
-
-Thank you for reaching out to Engineering Trade Links Co. Ltd.
-
-After reviewing your quotation request for "${project}", we regret that we are unable to proceed at this time.
-
-Reason: ${reason}
-
-We encourage you to reach out again in the future. We appreciate your interest in our services.
-
-Kind regards,
-Engineering Trade Links Co. Ltd
-+256 776 566 522
-tradelinks.ltd@gmail.com`);
-      if (!emailSent) console.warn('Quotation rejected, but client email could not be sent.');
-      alert(emailSent ? 'Request rejected and client has been notified by email.' : 'Request rejected, but the client email could not be sent automatically.');
-      loadApprovals();
-      loadRequests();
-    } catch(e) { alert('Could not update: ' + e.message); }
-  }
-
-  // ─── STOCK CHECK ───
-  async function checkStock(i, directRecord) {
-    const l = directRecord || window._lpoData[i];
-    if(!l.items || !l.items.length) { alert('No items found in this LPO to check against inventory.'); return; }
-
-    const inventory = await ETLDashboardApi.fetchInventoryStock(SESSION_TOKEN);
-    document.getElementById('modal-content').innerHTML = ETLDashboard.renderStockCheck(l, inventory);
-    document.getElementById('detail-modal').classList.add('open');
   }
 
   // ─── OVERRIDE switchTab to include approvals + invoices ───
@@ -357,25 +156,7 @@ tradelinks.ltd@gmail.com`);
 
     if (tab === 'invoices') {
       switchTab(tab, null, { skipInvoiceLoad: true });
-      const sel = document.getElementById('inv-list-filter');
-      const lab = document.getElementById('inv-filter-label');
-      const labels = {
-        all: '',
-        outstanding: 'Outstanding only',
-        overdue: 'Overdue only',
-        aged90: 'Aged 90+ days',
-        last30: 'Last 30 days',
-        last90: 'Last 90 days',
-        last365: 'Last 12 months'
-      };
-      if (sel) {
-        sel.value = filter || 'all';
-        INV_FILTER = sel.value;
-      }
-      if (lab) {
-        if (labels[INV_FILTER]) { lab.style.display = ''; lab.innerText = '• ' + labels[INV_FILTER]; }
-        else { lab.style.display = 'none'; lab.innerText = ''; }
-      }
+      ETLDashboardPayments.setFilter(filter || 'all');
       await loadInvoiceList();
       const invoiceHeader = document.querySelector('#tab-invoices .table-header');
       if (invoiceHeader) invoiceHeader.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -400,19 +181,9 @@ tradelinks.ltd@gmail.com`);
     if (record) showRequest(null, null, record);
   }
 
-  function openGeneratorById(id) {
-    const record = (window._reqData || []).find(r => r.id === id);
-    if (record) openGenerator(null, record);
-  }
-
   function showLPOById(id) {
     const record = (window._lpoData || []).find(l => l.id === id);
     if (record) showLPO(null, record);
-  }
-
-  function checkStockById(id) {
-    const record = (window._lpoData || []).find(l => l.id === id);
-    if (record) checkStock(null, record);
   }
 
   async function loadRequests() {
@@ -449,126 +220,6 @@ tradelinks.ltd@gmail.com`);
       document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
     }
   }
-
-  // ─── INVOICE LIST + PAYMENT TRACKING ───
-  let INVOICES_CACHE = [];
-  let INV_FILTER = 'all';
-  let PAYMENT_MODAL_INVOICE_ID = null;
-
-  function onInvFilterChange() {
-    INV_FILTER = document.getElementById('inv-list-filter').value;
-    const labels = {
-      all: '',
-      outstanding: 'Outstanding only',
-      overdue: 'Overdue only',
-      aged90: 'Aged 90+ days',
-      last30: 'Last 30 days',
-      last90: 'Last 90 days',
-      last365: 'Last 12 months'
-    };
-    const lab = document.getElementById('inv-filter-label');
-    if (lab) {
-      if (labels[INV_FILTER]) { lab.style.display = ''; lab.innerText = '• ' + labels[INV_FILTER]; }
-      else { lab.style.display = 'none'; lab.innerText = ''; }
-    }
-    renderInvoiceList();
-  }
-
-  async function loadInvoiceList() {
-    const body = document.getElementById('inv-list-body');
-    if (!body) return;
-    body.innerHTML = '<div class="loading-state">Loading invoices…</div>';
-    try {
-      INVOICES_CACHE = await ETLDashboardApi.fetchInvoicesWithPayments(SESSION_TOKEN);
-      renderInvoiceList();
-    } catch (e) {
-      body.innerHTML = `<div class="inv-list-empty">Could not load invoices: ${e.message}</div>`;
-    }
-  }
-
-  function invoiceStatus(inv) {
-    return ETLDashboard.invoiceStatus(inv);
-  }
-
-  function fmtShort(n) {
-    return ETLDashboard.fmtShort(n);
-  }
-
-  function renderInvoiceList() {
-    const body = document.getElementById('inv-list-body');
-    if (!body) return;
-    const q = (document.getElementById('inv-list-search').value || '').trim().toLowerCase();
-    INV_FILTER = document.getElementById('inv-list-filter').value;
-    body.innerHTML = ETLDashboard.renderInvoiceTable(INVOICES_CACHE, { filter: INV_FILTER, search: q });
-  }
-
-  function openPaymentModal(invoiceId) {
-    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
-    if (!inv) return;
-    const s = invoiceStatus(inv);
-    PAYMENT_MODAL_INVOICE_ID = invoiceId;
-    document.getElementById('pm-summary').innerHTML = ETLDashboard.renderPaymentSummary(inv);
-    document.getElementById('pm-amount').value = '';
-    document.getElementById('pm-amount').setAttribute('max', s.balance);
-    document.getElementById('pm-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('pm-note').value = '';
-    document.getElementById('payment-modal').classList.add('show');
-    setTimeout(() => document.getElementById('pm-amount').focus(), 50);
-  }
-
-  function closePaymentModal() {
-    document.getElementById('payment-modal').classList.remove('show');
-    PAYMENT_MODAL_INVOICE_ID = null;
-  }
-
-  async function recordPayment() {
-    if (!PAYMENT_MODAL_INVOICE_ID) return;
-    const amount = parseFloat(document.getElementById('pm-amount').value);
-    const payDate = document.getElementById('pm-date').value;
-    const note = document.getElementById('pm-note').value.trim();
-    if (!amount || amount <= 0) { alert('Enter a positive amount.'); return; }
-    if (!payDate) { alert('Enter a payment date.'); return; }
-    const invoice = INVOICES_CACHE.find(inv => inv.id === PAYMENT_MODAL_INVOICE_ID);
-    if (invoice) {
-      const status = invoiceStatus(invoice);
-      if (amount > status.balance + 0.009) {
-        alert('Payment exceeds the remaining balance of ' + ETLUtils.fmtMoney(status.balance) + '.');
-        return;
-      }
-    }
-    try {
-      await ETLDashboardApi.createInvoicePayment({
-        invoice_id: PAYMENT_MODAL_INVOICE_ID,
-        amount,
-        payment_date: payDate,
-        note: note || null
-      }, SESSION_TOKEN);
-      closePaymentModal();
-      await loadInvoiceList();
-      await loadReceivables();
-    } catch (e) {
-      alert('Could not save payment: ' + e.message);
-    }
-  }
-
-  function openHistoryModal(invoiceId) {
-    const inv = INVOICES_CACHE.find(i => i.id === invoiceId);
-    if (!inv) return;
-    document.getElementById('hm-title').innerText = ETLDashboard.renderPaymentHistoryTitle(inv);
-    document.getElementById('hm-body').innerHTML = ETLDashboard.renderPaymentHistory(inv);
-    document.getElementById('history-modal').classList.add('show');
-  }
-
-  function closeHistoryModal() {
-    document.getElementById('history-modal').classList.remove('show');
-  }
-
-  // Close payment/history modals when clicking backdrop
-  document.addEventListener('click', (e) => {
-    if (e.target.classList && e.target.classList.contains('modal-backdrop')) {
-      e.target.classList.remove('show');
-    }
-  });
 
   // ─── UPDATE showRequest to handle approval context ───
   function showRequest(i, context, directRecord) {
@@ -615,22 +266,6 @@ tradelinks.ltd@gmail.com`);
     }
   }
 
-  // ─── Receivables (outstanding + overdue + aging) ───
-  async function loadReceivables() {
-    const ids = ['stat-outstanding','stat-overdue-count','stat-overdue-amount','stat-aging-90'];
-    const setAll = v => ids.forEach(id => document.getElementById(id).innerText = v);
-    try {
-      const rows = await ETLDashboardApi.fetchReceivableInvoices(SESSION_TOKEN);
-      const totals = ETLDashboard.summarizeReceivables(rows);
-      document.getElementById('stat-outstanding').innerText    = ETLDashboard.fmtShort(totals.outstanding);
-      document.getElementById('stat-overdue-count').innerText  = totals.overdueCount;
-      document.getElementById('stat-overdue-amount').innerText = ETLDashboard.fmtShort(totals.overdueAmount);
-      document.getElementById('stat-aging-90').innerText       = ETLDashboard.fmtShort(totals.aging90);
-    } catch {
-      setAll('—');
-    }
-  }
-
   function initClickableKpis() {
     document.querySelectorAll('.stat-card.clickable').forEach(card => {
       card.setAttribute('tabindex', '0');
@@ -652,6 +287,14 @@ tradelinks.ltd@gmail.com`);
   }
 
   initClickableKpis();
+  ETLDashboardActions.init({
+    getSessionToken: () => SESSION_TOKEN,
+    getCurrentRole: () => currentRole,
+    loadRequests,
+    loadLPOs,
+    loadApprovals
+  });
+  ETLDashboardPayments.init({ getSessionToken: () => SESSION_TOKEN });
   etlAuth.init({ forceLogin: true }).then(async () => {
     const profile = await etlAuth.getProfile();
     const user    = await etlAuth.getUser();
