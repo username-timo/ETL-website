@@ -129,7 +129,11 @@ Click the link below to view, download and print your quotation:`;
       }
 
       setTimeout(() => {
-        showSharePanel(link, clientName, clientPhone, {
+        ETLShare.openSharePanel({
+          link,
+          clientName,
+          phone: clientPhone,
+          label: 'official ETL quotation',
           title: emailResult.ok ? 'Quotation Sent' : 'Quotation Saved',
           message: emailResult.ok
             ? `The quotation link was emailed to ${cEmail}. You can also share it directly via WhatsApp.`

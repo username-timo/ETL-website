@@ -10,57 +10,10 @@
 <script src="/etl-utils.js"></script>
 <script src="/etl-email.js"></script>
 <script src="/etl-items.js"></script>
+<script src="/etl-share.js"></script>
 <link rel="stylesheet" href="/etl-forms.css">
 <link rel="stylesheet" href="/etl-quotation-generator-page.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script>
-  // ── Share Panel ──
-  let _shareLink = '';
-
-  function showSharePanel(link, clientName, clientPhone, options = {}) {
-    const title = options.title || 'Quotation Ready to Share';
-    const message = options.message || 'The client will receive the link by email. You can also share it directly via WhatsApp.';
-    const panel = document.querySelector('#share-overlay .share-panel');
-
-    _shareLink = link;
-    document.getElementById('share-link-input').value = link;
-    panel.querySelector('h3').textContent = title;
-    panel.querySelector('p').textContent = message;
-
-    // Build WhatsApp URL
-    const phone = (clientPhone || '').replace(/[^0-9+]/g, '');
-    const waPhone = phone.startsWith('0') ? '256' + phone.slice(1) : phone.replace('+', '');
-    const msg = encodeURIComponent(
-      'Hello ' + (clientName || 'there') + ', please find your official ETL quotation at the link below:\n\n' + link +
-      '\n\nKind regards,\nEngineering Trade Links Co. Ltd\n+256 776 566 522'
-    );
-    const waUrl = waPhone
-      ? 'https://wa.me/' + waPhone + '?text=' + msg
-      : 'https://wa.me/?text=' + msg;
-
-    document.getElementById('whatsapp-btn').href = waUrl;
-
-    // Also update the preview controls WhatsApp button
-    const pvBtn = document.getElementById('preview-whatsapp-btn');
-    if (pvBtn) { pvBtn.href = waUrl; pvBtn.style.display = ''; }
-
-    document.getElementById('share-overlay').classList.add('open');
-  }
-
-  function closeSharePanel() {
-    document.getElementById('share-overlay').classList.remove('open');
-  }
-
-  function copyShareLink() {
-    const inp = document.getElementById('share-link-input');
-    inp.select();
-    navigator.clipboard.writeText(_shareLink).then(() => {
-      const btn = inp.nextElementSibling;
-      btn.innerText = '✅ Copied!';
-      setTimeout(() => { btn.innerText = '📋 Copy'; }, 2000);
-    }).catch(() => document.execCommand('copy'));
-  }
-</script>
 <script src="/etl-auth.js"></script>
 </head>
 <body>
