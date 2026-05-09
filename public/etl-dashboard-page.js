@@ -1,8 +1,8 @@
 // Dashboard page controller extracted from ETL-Dashboard.html.
 
   function fmtDate(d) {
+    return ETLDashboard.formatLongDate(d);
     if(!d) return '—';
-    return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric'});
   }
 
   function updateFilterLabel(elId, text) {
