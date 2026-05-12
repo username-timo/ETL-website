@@ -25,16 +25,6 @@
     return Math.round(n || 0).toLocaleString();
   }
 
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
   /* ============================================
      AUTO-GENERATE INVOICE NUMBER & DATES
   ============================================ */
@@ -185,37 +175,33 @@
      GENERATE INVOICE
   ============================================ */
   async function generateInvoice() {
-    const missing = [];
-    const clientName = ETLUtils.requireText('inv-client-name', 'Client name', missing);
-    const invNum = decode(ETLUtils.requireText('inv-number', 'Invoice number', missing));
-    const invDate = ETLUtils.requireText('inv-date', 'Invoice date', missing);
-    const invDue = ETLUtils.requireText('inv-due', 'Due date', missing);
+    const required = ETLSubmit.validateRequired([
+      { id: 'inv-client-name', label: 'Client name', key: 'clientName' },
+      { id: 'inv-number', label: 'Invoice number', key: 'invNum' },
+      { id: 'inv-date', label: 'Invoice date', key: 'invDate' },
+      { id: 'inv-due', label: 'Due date', key: 'invDue' }
+    ]);
+    if (!required.ok) {
+      ETLSubmit.alertMissing(required.missing);
+      return;
+    }
+    const clientName = required.values.clientName;
+    const invNum = decode(required.values.invNum);
+    const invDate = required.values.invDate;
+    const invDue = required.values.invDue;
 
-    if (missing.length) {
-      alert('Please complete these required fields before generating:\n\n- ' + missing.join('\n- '));
-      return;
-    }
-    if (new Date(invDue) < new Date(invDate)) {
-      alert('The due date cannot be earlier than the invoice date.');
-      return;
-    }
+    if (!ETLSubmit.validateDateOrder(invDate, invDue, 'The due date cannot be earlier than the invoice date.')) return;
     if (!currentSession || !currentSession.access_token) {
       alert('Your session is not ready. Please refresh and try again.');
       return;
     }
 
-    const rows = document.querySelectorAll('#inv-items tr');
-    const { items, subtotal: sub } = ETLUtils.sanitizeItems(rows, {
-      desc: '.i-desc',
-      unit: '.i-unit',
-      qty: '.i-qty',
-      price: '.i-price'
+    const itemResult = ETLSubmit.collectItems({
+      rows: '#inv-items tr',
+      message: 'Please add at least one valid item/service with a description, positive quantity, and positive unit price.'
     });
-    const invalidItem = items.find(item => item.qty <= 0 || item.price <= 0 || item.total <= 0);
-    if (!items.length || invalidItem) {
-      alert('Please add at least one valid item/service with a description, positive quantity, and positive unit price.');
-      return;
-    }
+    if (!itemResult.ok) return;
+    const { items, subtotal: sub } = itemResult;
 
     const vatOn = document.getElementById('vat-toggle').checked;
     const vat = vatOn ? sub * 0.18 : 0;
@@ -226,15 +212,14 @@
     let invoiceViewLink = '';
 
     try {
-      const saveRes = await fetch(`${SUPABASE_URL}/rest/v1/invoices`, {
+      const saveResult = await ETLSubmit.sendJson(`${SUPABASE_URL}/rest/v1/invoices`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'apikey': SUPABASE_ANON_KEY,
           'Authorization': `Bearer ${currentSession.access_token}`,
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({
+        payload: {
           invoice_number: invNum,
           lpo_ref: decode(document.getElementById('inv-lpo-ref').value) || null,
           client_name: clientName,
@@ -248,11 +233,13 @@
           notes: notes || null,
           unique_link: invoiceLink,
           items: items
-        })
+        },
+        errorPrefix: 'Could not save invoice',
+        networkPrefix: 'Network error saving invoice'
       });
 
-      if (!saveRes.ok) {
-        alert('Could not save invoice: ' + await ETLUtils.readResponseError(saveRes));
+      if (!saveResult.ok) {
+        alert(saveResult.message);
         return;
       }
       invoiceViewLink = SITE_BASE_URL + '/ETL-Invoice-View.html?inv=' + invoiceLink;
@@ -262,46 +249,36 @@
     }
 
     // Fill preview after the database record exists.
-    document.getElementById('p-inv-number').innerText = invNum;
-    document.getElementById('p-inv-num2').innerText = invNum;
-    document.getElementById('p-inv-date').innerText = invDate;
-    document.getElementById('p-inv-due').innerText = invDue;
-    document.getElementById('p-due2').innerText = invDue;
-    document.getElementById('p-lpo-ref').innerText = decode(document.getElementById('inv-lpo-ref').value) || '-';
-    document.getElementById('p-project').innerText = document.getElementById('inv-project').value || '-';
-    document.getElementById('p-client-name').innerText = clientName;
-    document.getElementById('p-contact').innerText = document.getElementById('inv-contact').value || '';
-    document.getElementById('p-contact2').innerText = document.getElementById('inv-contact2').value || '';
-    document.getElementById('p-address').innerText = document.getElementById('inv-address').value || '';
-    document.getElementById('p-payment-terms').innerText = terms;
-    document.getElementById('p-preparer-name').innerText = document.getElementById('inv-preparer').value || '';
+    ETLPreview.setTexts({
+      'p-inv-number': invNum,
+      'p-inv-num2': invNum,
+      'p-inv-date': invDate,
+      'p-inv-due': invDue,
+      'p-due2': invDue,
+      'p-lpo-ref': decode(document.getElementById('inv-lpo-ref').value) || '-',
+      'p-project': document.getElementById('inv-project').value || '-',
+      'p-client-name': clientName,
+      'p-contact': document.getElementById('inv-contact').value || '',
+      'p-contact2': document.getElementById('inv-contact2').value || '',
+      'p-address': document.getElementById('inv-address').value || '',
+      'p-payment-terms': terms,
+      'p-preparer-name': document.getElementById('inv-preparer').value || ''
+    });
 
-    document.getElementById('p-inv-items').innerHTML = items.map(it => `
-      <tr>
-        <td>${it.i}</td>
-        <td>${escapeHtml(it.desc)}</td>
-        <td>${escapeHtml(it.unit)}</td>
-        <td style="text-align: right">${it.qty}</td>
-        <td style="text-align: right">${fmtNum(it.price)}</td>
-        <td style="text-align: right">${fmtNum(it.total)}</td>
-      </tr>
-    `).join('');
+    ETLPreview.renderItemRows('p-inv-items', items, {
+      priceFormatter: fmtNum,
+      totalFormatter: fmtNum,
+      alignQty: true
+    });
 
-    document.getElementById('p-subtotal').innerText = fmtNum(sub);
-    document.getElementById('p-vat').innerText = fmtNum(vat);
-    document.getElementById('p-total').innerText = 'UGX ' + fmtNum(grand);
-    document.getElementById('p-vat-row').style.display = vatOn ? 'flex' : 'none';
-
-    if (notes) {
-      document.getElementById('p-notes').innerText = notes;
-      document.getElementById('p-notes-wrap').style.display = 'block';
-    } else {
-      document.getElementById('p-notes-wrap').style.display = 'none';
-    }
-
-    document.getElementById('form-section').style.display = 'none';
-    document.getElementById('invoice-preview').style.display = 'block';
-    window.scrollTo(0, 0);
+    ETLPreview.setTexts({
+      'p-subtotal': fmtNum(sub),
+      'p-vat': fmtNum(vat),
+      'p-total': 'UGX ' + fmtNum(grand)
+    });
+    ETLPreview.setDisplay('p-vat-row', vatOn, 'flex');
+    ETLPreview.renderNotes({ wrapId: 'p-notes-wrap', textId: 'p-notes', value: notes });
+    ETLPreview.showPreview('form-section', 'invoice-preview');
 
     const clientEmail = document.getElementById('inv-client-email').value.trim();
     const lpoRef = decode(document.getElementById('inv-lpo-ref').value);

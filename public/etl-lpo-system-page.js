@@ -76,35 +76,25 @@
 
   async function generateLPO() {
     const isOut = currentMode === 'outward';
-    const missing = [];
-    const eName = ETLUtils.requireText('entity-name', isOut ? 'Supplier name' : 'Client name', missing);
-    ETLUtils.requireText('entity-email', 'Entity email', missing);
-    ETLUtils.requireText('lpo-ref', 'LPO number', missing);
-    const issueDate = ETLUtils.requireText('date-issue', 'Issue date', missing);
-    const deliveryDate = ETLUtils.requireText('date-delivery', 'Delivery date', missing);
-    ETLUtils.requireText('project-name', 'Project / contract title', missing);
+    const required = ETLSubmit.validateRequired([
+      { id: 'entity-name', label: isOut ? 'Supplier name' : 'Client name', key: 'eName' },
+      { id: 'entity-email', label: 'Entity email', key: 'entityEmail' },
+      { id: 'lpo-ref', label: 'LPO number', key: 'lpoRef' },
+      { id: 'date-issue', label: 'Issue date', key: 'issueDate' },
+      { id: 'date-delivery', label: 'Delivery date', key: 'deliveryDate' },
+      { id: 'project-name', label: 'Project / contract title', key: 'projectName' }
+    ]);
+    if (!required.ok) {
+      ETLSubmit.alertMissing(required.missing);
+      return;
+    }
+    const { eName, issueDate, deliveryDate } = required.values;
 
-    if(missing.length) {
-      alert('Please complete these required fields before generating:\n\n- ' + missing.join('\n- '));
-      return;
-    }
-    if(new Date(deliveryDate) < new Date(issueDate)) {
-      alert('The delivery date cannot be earlier than the issue date.');
-      return;
-    }
+    if(!ETLSubmit.validateDateOrder(issueDate, deliveryDate, 'The delivery date cannot be earlier than the issue date.')) return;
 
-    const rows = document.querySelectorAll('#items-list tr');
-    const { items, subtotal: grand } = ETLUtils.sanitizeItems(rows, {
-      desc: '.i-desc',
-      unit: '.i-unit',
-      qty: '.i-qty',
-      price: '.i-price'
-    });
-    const invalidItem = items.find(item => item.qty <= 0 || item.price <= 0 || item.total <= 0);
-    if(!items.length || invalidItem) {
-      alert('Please add at least one valid line item with a description, positive quantity, and positive unit price.');
-      return;
-    }
+    const itemResult = ETLSubmit.collectItems({ rows: '#items-list tr' });
+    if(!itemResult.ok) return;
+    const { items, subtotal: grand } = itemResult;
 
     // Public submitters must pass Turnstile before we save + notify
     if(IS_ANON && ETLLpoTurnstile.isEnabled()) {
@@ -120,8 +110,8 @@
     document.getElementById('p-direction-badge').innerText = isOut ? 'OUTWARD LPO' : 'INWARD LPO';
 
     document.getElementById('p-lpo-ref').innerText   = decode(document.getElementById('lpo-ref').value);
-    document.getElementById('p-date-i').innerText    = fmtDate(issueDate);
-    document.getElementById('p-date-d').innerText    = fmtDate(deliveryDate);
+    document.getElementById('p-date-i').innerText    = ETLPreview.formatDate(issueDate);
+    document.getElementById('p-date-d').innerText    = ETLPreview.formatDate(deliveryDate);
     document.getElementById('p-project').innerText   = document.getElementById('project-name').value || '-';
     document.getElementById('p-delivery-loc').innerText = document.getElementById('delivery-location').value || '-';
     document.getElementById('p-pay-terms').innerText = document.getElementById('pay-terms').value;
@@ -141,30 +131,21 @@
     const totalRow = document.getElementById('p-total-row');
     totalRow.className = 'doc-total-row ' + (isOut ? 'doc-total-out' : 'doc-total-in');
 
-    const notes = document.getElementById('special-notes').value.trim();
-    if(notes) {
-      document.getElementById('p-notes-block').style.display = 'block';
-      document.getElementById('p-notes-text').innerText = notes;
-    } else {
-      document.getElementById('p-notes-block').style.display = 'none';
-    }
+    ETLPreview.renderNotes({
+      wrapId: 'p-notes-block',
+      textId: 'p-notes-text',
+      value: document.getElementById('special-notes').value
+    });
 
-    const tbody = document.getElementById('p-items-body');
-    tbody.innerHTML = items.map((item, index) => `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${ETLUtils.escapeHtml(item.desc)}</td>
-        <td>${ETLUtils.escapeHtml(item.unit)}</td>
-        <td>${item.qty}</td>
-        <td style="text-align:right;">${fmt(item.price)}</td>
-        <td>${fmt(item.total)}</td>
-      </tr>`).join('');
+    ETLPreview.renderItemRows('p-items-body', items, {
+      priceFormatter: fmt,
+      totalFormatter: fmt,
+      alignTotal: false
+    });
 
     document.getElementById('p-grand-total').innerText = fmt(grand);
 
-    document.getElementById('form-section').style.display    = 'none';
-    document.getElementById('preview-section').style.display = 'block';
-    window.scrollTo(0, 0);
+    ETLPreview.showPreview('form-section', 'preview-section');
     await saveLPOToSupabase(items, grand);
   }
 
@@ -229,19 +210,20 @@ const { SUPABASE_URL, SITE_BASE_URL, DASHBOARD_URL } = window.ETLConfig;
     const tsToken = IS_ANON ? ETLLpoTurnstile.getToken() : '';
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/lpos`, {
+      const saveResult = await ETLSubmit.sendJson(`${SUPABASE_URL}/rest/v1/lpos`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${bearer}`,
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify(payload)
+        payload,
+        errorPrefix: 'Could not save LPO',
+        networkPrefix: 'Network error saving LPO'
       });
 
-      if(!res.ok) {
-        alert('Could not save LPO: ' + await ETLUtils.readResponseError(res));
+      if(!saveResult.ok) {
+        alert(saveResult.message);
         ETLLpoTurnstile.reset();
         return false;
       }

@@ -283,8 +283,7 @@ const rawProjects: Project[] = [
     client: "Uganda National Roads Authority (UNRA)",
     location: "Amuru / Kitgum Districts", year: "2012", value: "UGX 246M",
     desc: "Routine mechanised maintenance: bush clearing, shaping, back-sloping, heavy grading, gravelling, compactions and drainage works.",
-    imgs: ["/etl-images/unra-road-01.jpg","/etl-images/unra-road-02.jpg"],
-  },
+    imgs: ["/etl-images/unra-road-01.jpg","/etl-images/unra-road-02.jpg"],...DONE,  },
   {
     title: "Ankole Tea Estates — Pipe Water Extension (49.2km)",
     cat: "Water", role: "Main Contractor",

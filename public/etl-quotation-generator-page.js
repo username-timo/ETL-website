@@ -28,22 +28,18 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
     return SESSION_TOKEN;
   }
 
-  async function saveQuotationToSupabase(ref) {
+  async function saveQuotationToSupabase(ref, preparedTotals) {
     const sessionToken = await ensureSessionToken();
     if (!sessionToken) {
       alert('Your dashboard session is still loading. Please wait a moment, then generate the quotation again.');
       return false;
     }
 
-    const rows = document.querySelectorAll('#items-list tr');
-    const { items, subtotal: sub } = ETLUtils.sanitizeItems(rows, {
-      desc: '.i-desc',
-      unit: '.i-unit',
-      qty: '.i-qty',
-      price: '.i-price'
-    });
-    const vat   = document.getElementById('vat-check').checked ? sub * 0.18 : 0;
-    const grand = sub + vat;
+    const prepared = preparedTotals || {};
+    const items = prepared.items || [];
+    const sub = Number(prepared.subtotal) || 0;
+    const vat = Number(prepared.vat) || 0;
+    const grand = Number(prepared.grand) || sub + vat;
 
     const uniqueLink = crypto.randomUUID();
     const payload = {
@@ -75,21 +71,21 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
     const clientPhone = document.getElementById('c-phone').value.trim();
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotations_generated`, {
+      const saveResult = await ETLSubmit.sendJson(`${SUPABASE_URL}/rest/v1/quotations_generated`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'apikey': SUPABASE_KEY,
           'Authorization': `Bearer ${sessionToken}`,
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify(payload)
+        payload,
+        errorPrefix: 'Could not save quotation',
+        networkPrefix: 'Network error saving quotation'
       });
 
-      if(!res.ok) {
-        const err = await ETLUtils.readResponseError(res);
-        console.error('Supabase error:', err);
-        alert('Could not save quotation: ' + err);
+      if(!saveResult.ok) {
+        console.error('Supabase error:', saveResult.error);
+        alert(saveResult.message);
         return false;
       }
 
@@ -113,18 +109,18 @@ Click the link below to view, download and print your quotation:`;
       });
 
       if(SOURCE_REQUEST_ID) {
-        const updateRes = await fetch(`${SUPABASE_URL}/rest/v1/quotations?id=eq.${SOURCE_REQUEST_ID}`, {
+        const updateResult = await ETLSubmit.sendJson(`${SUPABASE_URL}/rest/v1/quotations?id=eq.${SOURCE_REQUEST_ID}`, {
           method: 'PATCH',
           headers: {
-            'Content-Type': 'application/json',
             'apikey': SUPABASE_KEY,
             'Authorization': `Bearer ${sessionToken}`,
             'Prefer': 'return=minimal'
           },
-          body: JSON.stringify({ status: 'responded', quotation_link: link, responded_at: new Date().toISOString() })
+          payload: { status: 'responded', quotation_link: link, responded_at: new Date().toISOString() },
+          errorPrefix: 'Could not update source request status'
         });
-        if(!updateRes.ok) {
-          console.warn('Could not update source request status:', await ETLUtils.readResponseError(updateRes));
+        if(!updateResult.ok) {
+          console.warn('Could not update source request status:', updateResult.error);
         }
       }
 
@@ -327,80 +323,60 @@ Click the link below to view, download and print your quotation:`;
   function removeRow(btn) { quoteItems.removeRow(btn); }
 
   async function generatePreview() {
-    const missing = [];
-    const cName = ETLUtils.requireText('c-name', 'Client name', missing);
-    ETLUtils.requireText('p-title', 'Project title', missing);
-    ETLUtils.requireText('p-scope', 'Project scope', missing);
-    const ref = ETLUtils.requireText('q-num', 'Quotation number', missing);
-    const quoteDate = ETLUtils.requireText('q-date', 'Quotation date', missing);
-    const expiryDate = ETLUtils.requireText('q-expiry', 'Valid-until date', missing);
-
-    if(missing.length) {
-      alert('Please complete these required fields before generating:\n\n- ' + missing.join('\n- '));
+    const required = ETLSubmit.validateRequired([
+      { id: 'c-name', label: 'Client name', key: 'cName' },
+      { id: 'p-title', label: 'Project title', key: 'pTitle' },
+      { id: 'p-scope', label: 'Project scope', key: 'pScope' },
+      { id: 'q-num', label: 'Quotation number', key: 'ref' },
+      { id: 'q-date', label: 'Quotation date', key: 'quoteDate' },
+      { id: 'q-expiry', label: 'Valid-until date', key: 'expiryDate' }
+    ]);
+    if (!required.ok) {
+      ETLSubmit.alertMissing(required.missing);
       return;
     }
-    if(new Date(expiryDate) < new Date(quoteDate)) {
-      alert('The valid-until date cannot be earlier than the quotation date.');
-      return;
-    }
+    const { cName, ref, quoteDate, expiryDate } = required.values;
 
-    const rows = document.querySelectorAll('#items-list tr');
-    const { items, subtotal: sub } = ETLUtils.sanitizeItems(rows, {
-      desc: '.i-desc',
-      unit: '.i-unit',
-      qty: '.i-qty',
-      price: '.i-price'
+    if(!ETLSubmit.validateDateOrder(quoteDate, expiryDate, 'The valid-until date cannot be earlier than the quotation date.')) return;
+
+    const itemResult = ETLSubmit.collectItems({ rows: '#items-list tr' });
+    if(!itemResult.ok) return;
+    const { items, subtotal: sub } = itemResult;
+
+    const formattedExpiry = ETLPreview.formatDate(expiryDate);
+    ETLPreview.setTexts({
+      'p-qnum': ref,
+      'p-date': ETLPreview.formatDate(quoteDate),
+      'p-expiry': formattedExpiry,
+      'p-category': document.getElementById('p-cat').value || '-',
+      'p-location-ref': document.getElementById('p-location').value || '-',
+      'p-duration-ref': document.getElementById('p-duration').value || '-',
+      'p-payment-ref': document.getElementById('q-payment').value || 'Negotiable',
+      'p-terms-payment': document.getElementById('q-payment').value || 'Negotiable',
+      'p-client-name': cName,
+      'p-contact': document.getElementById('c-contact').value,
+      'p-client-address': document.getElementById('c-address').value,
+      'p-client-email': document.getElementById('c-email').value,
+      'p-client-phone': document.getElementById('c-phone').value,
+      'p-proj-title': document.getElementById('p-title').value || '-',
+      'p-scope-text': document.getElementById('p-scope').value,
+      'p-terms-expiry': formattedExpiry
     });
-    const invalidItem = items.find(item => item.qty <= 0 || item.price <= 0 || item.total <= 0);
-    if(!items.length || invalidItem) {
-      alert('Please add at least one valid line item with a description, positive quantity, and positive unit price.');
-      return;
-    }
 
-    document.getElementById('p-qnum').innerText    = ref;
-    document.getElementById('p-date').innerText    = new Date(quoteDate).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
-    document.getElementById('p-expiry').innerText  = new Date(expiryDate).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
-
-    document.getElementById('p-category').innerText     = document.getElementById('p-cat').value || '-';
-    document.getElementById('p-location-ref').innerText = document.getElementById('p-location').value || '-';
-    document.getElementById('p-duration-ref').innerText = document.getElementById('p-duration').value || '-';
-    document.getElementById('p-payment-ref').innerText   = document.getElementById('q-payment').value || 'Negotiable';
-    document.getElementById('p-terms-payment').innerText  = document.getElementById('q-payment').value || 'Negotiable';
-
-    document.getElementById('p-client-name').innerText    = cName;
-    document.getElementById('p-contact').innerText        = document.getElementById('c-contact').value;
-    document.getElementById('p-client-address').innerText = document.getElementById('c-address').value;
-    document.getElementById('p-client-email').innerText   = document.getElementById('c-email').value;
-    document.getElementById('p-client-phone').innerText   = document.getElementById('c-phone').value;
-
-    document.getElementById('p-proj-title').innerText  = document.getElementById('p-title').value || '-';
-    document.getElementById('p-scope-text').innerText  = document.getElementById('p-scope').value;
-    document.getElementById('p-terms-expiry').innerText  = new Date(expiryDate).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'});
-
-    const tbody  = document.getElementById('p-items-body');
-    tbody.innerHTML = items.map((item, index) => `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${ETLUtils.escapeHtml(item.desc)}</td>
-        <td>${ETLUtils.escapeHtml(item.unit)}</td>
-        <td>${item.qty}</td>
-        <td style="text-align:right;">${ETLUtils.fmtNumber(item.price)}</td>
-        <td>${ETLUtils.fmtNumber(item.total)}</td>
-      </tr>`).join('');
+    ETLPreview.renderItemRows('p-items-body', items);
 
     const vatChecked = document.getElementById('vat-check').checked;
     const vat   = vatChecked ? sub * 0.18 : 0;
     const grand = sub + vat;
 
-    document.getElementById('p-subtotal').innerText   = ETLUtils.fmtNumber(sub);
-    document.getElementById('p-vat-row').style.display = vatChecked ? '' : 'none';
-    document.getElementById('p-vat-amt').innerText    = ETLUtils.fmtNumber(vat);
-    document.getElementById('p-grand-total').innerText = ETLUtils.fmtNumber(grand);
-
-    document.getElementById('form-section').style.display    = 'none';
-    document.getElementById('preview-section').style.display = 'block';
-    window.scrollTo(0, 0);
-    await saveQuotationToSupabase(ref);
+    ETLPreview.setTexts({
+      'p-subtotal': ETLUtils.fmtNumber(sub),
+      'p-vat-amt': ETLUtils.fmtNumber(vat),
+      'p-grand-total': ETLUtils.fmtNumber(grand)
+    });
+    ETLPreview.setDisplay('p-vat-row', vatChecked);
+    ETLPreview.showPreview('form-section', 'preview-section');
+    await saveQuotationToSupabase(ref, { items, subtotal: sub, vat, grand });
   }
 
   const categoryMediaQuery = window.matchMedia('(max-width: 600px)');
