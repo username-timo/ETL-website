@@ -269,10 +269,6 @@ async function recordStockOut(itemId, qty, project, notes) {
   }
 
   const newStock = item.current_stock - qty;
-  await api(`inventory_items?id=eq.${itemId}`, {
-    method: 'PATCH', body: { current_stock: newStock }
-  });
-
   await api('stock_movements', {
     method: 'POST',
     body: {
@@ -283,6 +279,10 @@ async function recordStockOut(itemId, qty, project, notes) {
       project,
       notes
     }
+  });
+
+  await api(`inventory_items?id=eq.${itemId}`, {
+    method: 'PATCH', body: { current_stock: newStock }
   });
 
   return { item, newStock };
