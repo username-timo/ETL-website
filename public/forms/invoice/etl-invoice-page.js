@@ -12,18 +12,9 @@
   /* ============================================
      UTILITY FUNCTIONS
   ============================================ */
-  function decode(s) {
-    if (!s) return '';
-    return s.replace(/&#x2F;/g, '/').replace(/&amp;/g, '&').replace(/&#x27;/g, "'").replace(/&quot;/g, '"');
-  }
-
-  function fmt(n) {
-    return 'UGX ' + Math.round(n || 0).toLocaleString();
-  }
-
-  function fmtNum(n) {
-    return Math.round(n || 0).toLocaleString();
-  }
+  const decode = ETLUtils.decodeHtml;
+  const fmt = ETLUtils.fmtMoney;
+  const fmtNum = ETLUtils.fmtNumber;
 
   /* ============================================
      AUTO-GENERATE INVOICE NUMBER & DATES
@@ -365,6 +356,7 @@ Engineering Trade Links Co. Ltd`;
     }
     
     currentSession = session;
+    window.SESSION_TOKEN = session.access_token;
     
     // Load inventory if function exists
     if (typeof loadInventoryItems === 'function') {

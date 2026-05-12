@@ -6,7 +6,8 @@
   const del = new Date(today); del.setDate(del.getDate() + 14);
   document.getElementById('date-delivery').value = del.toISOString().split('T')[0];
 
-  function fmt(n) { return Math.round(n).toLocaleString(); }
+  const fmt = ETLUtils.fmtNumber;
+  const decode = ETLUtils.decodeHtml;
 
   function setLpoReference(ref) {
     document.getElementById('lpo-ref').value = ref;
@@ -152,7 +153,6 @@
 
   // ── SUPABASE CONFIG ──
 const { SUPABASE_URL, SITE_BASE_URL, DASHBOARD_URL } = window.ETLConfig;
-  function decode(s) { return (s||'').replace(/&#x2F;/g,'/').replace(/&amp;/g,'&').replace(/&#x27;/g,"'").replace(/&quot;/g,'"'); }
 
   
   // ─── Brevo Email Helper ───
@@ -352,10 +352,8 @@ ${DASHBOARD_URL}`, emailOpts);
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = !forcePublic && session ? session.access_token : '';
+    window.SESSION_TOKEN = SESSION_TOKEN;
     IS_ANON = forcePublic || !session;
-
-   
-  
 
     if(IS_ANON) {
       // Public clients can only submit inward LPOs.

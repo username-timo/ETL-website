@@ -22,6 +22,7 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
       const sbClient = etlAuth.getClient();
       const { data: { session } } = await sbClient.auth.getSession();
       SESSION_TOKEN = session ? session.access_token : '';
+      window.SESSION_TOKEN = SESSION_TOKEN;
     } catch(e) {
       console.warn('Could not refresh quotation session:', e);
     }
@@ -144,91 +145,6 @@ Click the link below to view, download and print your quotation:`;
     }
   }
 
-  // Load inventory items for autocomplete
-  let inventoryItems = [];
-  async function loadInventoryItems() {
-    try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/inventory_items?order=name.asc&select=name,unit,unit_cost`, {
-        headers: {
-          'apikey': SUPABASE_KEY,
-          'Authorization': `Bearer ${SESSION_TOKEN}`
-        }
-      });
-      inventoryItems = await res.json();
-    } catch(e) { console.warn('Could not load inventory items:', e); }
-  }
-
-  function showAC(input) {
-    const wrap = input.closest('.desc-wrap');
-    const list = wrap.querySelector('.autocomplete-list');
-    const val = input.value.trim().toLowerCase();
-    if(!val) { list.classList.remove('show'); return; }
-    const matches = inventoryItems.filter(i => i.name.toLowerCase().includes(val));
-    if(!matches.length) {
-      list.innerHTML = '<div class="ac-no-results">No items found</div>';
-      list.classList.add('show');
-      return;
-    }
-    list.innerHTML = matches.map(i =>
-      `<div class="ac-item" tabindex="0"
-        data-name="${i.name.replace(/"/g,'&quot;')}"
-        data-unit="${i.unit}"
-        data-cost="${i.unit_cost||0}">${i.name}</div>`
-    ).join('');
-    list.querySelectorAll('.ac-item').forEach(item => {
-      item.addEventListener('mousedown', function(e) {
-        e.preventDefault();
-        fillRow(input, wrap, list, this.dataset.name, this.dataset.unit, this.dataset.cost);
-      });
-      item.addEventListener('touchstart', function(e) {
-        e.preventDefault();
-        fillRow(input, wrap, list, this.dataset.name, this.dataset.unit, this.dataset.cost);
-      });
-    });
-    list.classList.add('show');
-  }
-
-  function fillRow(input, wrap, list, name, unit, cost) {
-    const row = wrap.closest('tr');
-    input.value = name;
-    const unitEl  = row.querySelector('.i-unit');
-    const priceEl = row.querySelector('.i-price');
-    if(unitEl)  unitEl.value  = unit;
-    if(priceEl) { priceEl.value = cost; recalc(priceEl); }
-    list.classList.remove('show');
-    list.innerHTML = '';
-  }
-
-  function hideAC(input) {
-    const wrap = input.closest('.desc-wrap');
-    if(wrap) setTimeout(() => {
-      wrap.querySelector('.autocomplete-list').classList.remove('show');
-    }, 200);
-  }
-
-  function handleACKey(e, input) {
-    const wrap = input.closest('.desc-wrap');
-    const list = wrap.querySelector('.autocomplete-list');
-    const items = list.querySelectorAll('.ac-item');
-    const current = list.querySelector('.highlighted');
-    if(e.key === 'ArrowDown') {
-      e.preventDefault();
-      if(!current) { items[0] && items[0].classList.add('highlighted'); }
-      else { current.classList.remove('highlighted'); (current.nextElementSibling || items[0]).classList.add('highlighted'); }
-    } else if(e.key === 'ArrowUp') {
-      e.preventDefault();
-      if(current) { current.classList.remove('highlighted'); (current.previousElementSibling || items[items.length-1]).classList.add('highlighted'); }
-    } else if(e.key === 'Enter') {
-      e.preventDefault();
-      const hi = list.querySelector('.highlighted');
-      if(hi) hi.dispatchEvent(new MouseEvent('mousedown', {bubbles:true}));
-    } else if(e.key === 'Escape') {
-      list.classList.remove('show');
-    }
-  }
-
-  function selectAC() {}
-
   function setQuotationReference(ref) {
     document.getElementById('q-num').value = ref;
     document.getElementById('q-number-display').innerText = ref;
@@ -244,14 +160,8 @@ Click the link below to view, download and print your quotation:`;
     const sbClient = etlAuth.getClient();
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = session ? session.access_token : '';
+    window.SESSION_TOKEN = SESSION_TOKEN;
     loadInventoryItems();
-  });
-
-  // Close all dropdowns when clicking outside
-  document.addEventListener('mousedown', function(e) {
-    if(!e.target.closest('.desc-wrap')) {
-      document.querySelectorAll('.autocomplete-list.show').forEach(l => l.classList.remove('show'));
-    }
   });
 
   // ref_id: the quotations row this quotation was generated from
