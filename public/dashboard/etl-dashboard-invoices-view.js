@@ -9,6 +9,38 @@
     formatLongDate
   } = D;
 
+  const invoiceBadgeClass = {
+    paid: 'badge-paid',
+    partial: 'badge-partial',
+    unpaid: 'badge-unpaid',
+    overdue: 'badge-overdue'
+  };
+
+  const invoiceStatusLabel = {
+    paid: 'Paid',
+    partial: 'Partial',
+    unpaid: 'Unpaid',
+    overdue: 'Overdue'
+  };
+
+  function invoiceViewUrl(invoice) {
+    return invoice.unique_link ? `/ETL-Invoice-View.html?inv=${encodeURIComponent(invoice.unique_link)}` : '';
+  }
+
+  function renderInvoiceActions(invoice, status) {
+    const id = escapeJs(invoice.id);
+    const payments = invoice.invoice_payments || [];
+    const paymentCount = payments.length;
+    const payButton = status.state !== 'paid'
+      ? `<button class="btn-sm btn-sm-primary" onclick="openPaymentModal('${id}')">+ Pay</button>`
+      : '';
+    const historyButton = paymentCount > 0
+      ? `<button class="btn-sm btn-sm-secondary" onclick="openHistoryModal('${id}')" style="margin-left:4px;">${paymentCount} ${paymentCount === 1 ? 'Payment' : 'Payments'}</button>`
+      : '';
+
+    return `${payButton}${historyButton}`;
+  }
+
   function invoiceStatus(invoice) {
     const paid = (invoice.invoice_payments || []).reduce((sum, payment) => sum + Number(payment.amount || 0), 0);
     const total = Number(invoice.total) || 0;
@@ -48,12 +80,9 @@
   }
 
   function renderInvoiceRows(records) {
-    const badgeMap = { paid: 'badge-paid', partial: 'badge-partial', unpaid: 'badge-unpaid', overdue: 'badge-overdue' };
-    const labelMap = { paid: 'Paid', partial: 'Partial', unpaid: 'Unpaid', overdue: 'Overdue' };
     return records.map((invoice) => {
       const status = invoiceStatus(invoice);
-      const payCount = (invoice.invoice_payments || []).length;
-      const viewUrl = invoice.unique_link ? `/ETL-Invoice-View.html?inv=${encodeURIComponent(invoice.unique_link)}` : '';
+      const viewUrl = invoiceViewUrl(invoice);
       const rowOnClick = viewUrl ? `onclick="window.open('${escapeJs(viewUrl)}','_blank')"` : '';
       return `
         <tr class="inv-row" ${rowOnClick} title="${viewUrl ? 'Click to open invoice view' : ''}">
@@ -63,10 +92,9 @@
           <td class="num">${fmtShort(status.paid)}</td>
           <td class="num"><strong>${fmtShort(status.balance)}</strong></td>
           <td>${formatShortDate(invoice.due_date)}</td>
-          <td><span class="badge ${badgeMap[status.state]}">${labelMap[status.state]}</span></td>
+          <td><span class="badge ${invoiceBadgeClass[status.state]}">${invoiceStatusLabel[status.state]}</span></td>
           <td style="white-space:nowrap;" onclick="event.stopPropagation()">
-            ${status.state !== 'paid' ? `<button class="btn-sm btn-sm-primary" onclick="openPaymentModal('${escapeJs(invoice.id)}')">+ Pay</button>` : ''}
-            ${payCount > 0 ? `<button class="btn-sm btn-sm-secondary" onclick="openHistoryModal('${escapeJs(invoice.id)}')" style="margin-left:4px;">${payCount} ${payCount === 1 ? 'Payment' : 'Payments'}</button>` : ''}
+            ${renderInvoiceActions(invoice, status)}
           </td>
         </tr>`;
     }).join('');

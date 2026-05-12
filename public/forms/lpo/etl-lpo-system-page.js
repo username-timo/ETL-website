@@ -1,13 +1,17 @@
 // LPO system page controller extracted from ETL-LPO-System.html.
+  const { SUPABASE_URL, SITE_BASE_URL, DASHBOARD_URL } = window.ETLConfig;
+  const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
+  const fmt = ETLUtils.fmtNumber;
+  const decode = ETLUtils.decodeHtml;
+
   let currentMode = 'outward';
+  let SESSION_TOKEN = '';
+  let IS_ANON = false;
 
   const today = new Date();
   document.getElementById('date-issue').value = today.toISOString().split('T')[0];
   const del = new Date(today); del.setDate(del.getDate() + 14);
   document.getElementById('date-delivery').value = del.toISOString().split('T')[0];
-
-  const fmt = ETLUtils.fmtNumber;
-  const decode = ETLUtils.decodeHtml;
 
   function setLpoReference(ref) {
     document.getElementById('lpo-ref').value = ref;
@@ -69,12 +73,6 @@
   function addRow() { lpoItems.addRow(); }
   function removeRow(btn) { lpoItems.removeRow(btn); }
 
-  function fmtDate(val) {
-    if(!val) return '—';
-    try { return new Date(val).toLocaleDateString('en-GB', {day:'numeric',month:'long',year:'numeric'}); }
-    catch(e) { return val; }
-  }
-
   async function generateLPO() {
     const isOut = currentMode === 'outward';
     const required = ETLSubmit.validateRequired([
@@ -108,24 +106,28 @@
 
     // Header
     document.getElementById('doc-hdr').className      = 'doc-header ' + (isOut ? 'doc-header-out' : 'doc-header-in');
-    document.getElementById('p-direction-badge').innerText = isOut ? 'OUTWARD LPO' : 'INWARD LPO';
-
-    document.getElementById('p-lpo-ref').innerText   = decode(document.getElementById('lpo-ref').value);
-    document.getElementById('p-date-i').innerText    = ETLPreview.formatDate(issueDate);
-    document.getElementById('p-date-d').innerText    = ETLPreview.formatDate(deliveryDate);
-    document.getElementById('p-project').innerText   = document.getElementById('project-name').value || '-';
-    document.getElementById('p-delivery-loc').innerText = document.getElementById('delivery-location').value || '-';
-    document.getElementById('p-pay-terms').innerText = document.getElementById('pay-terms').value;
+    ETLPreview.setTexts({
+      'p-direction-badge': isOut ? 'OUTWARD LPO' : 'INWARD LPO',
+      'p-lpo-ref': decode(document.getElementById('lpo-ref').value),
+      'p-date-i': ETLPreview.formatDate(issueDate),
+      'p-date-d': ETLPreview.formatDate(deliveryDate),
+      'p-project': document.getElementById('project-name').value || '-',
+      'p-delivery-loc': document.getElementById('delivery-location').value || '-',
+      'p-pay-terms': document.getElementById('pay-terms').value,
+      'p-grand-total': fmt(grand)
+    });
 
     // Parties
-    document.getElementById('p-entity-label').innerText   = isOut ? 'VENDOR / SUPPLIER DETAILS:' : 'CLIENT / ISSUER DETAILS:';
     document.getElementById('p-entity-label').className   = 'doc-party-label ' + (isOut ? 'label-out' : 'label-in');
-    document.getElementById('p-entity-name').innerText    = eName;
-    document.getElementById('p-entity-contact').innerText = document.getElementById('entity-contact').value;
-    document.getElementById('p-entity-address').innerText = document.getElementById('entity-address').value;
-    document.getElementById('p-entity-contact2').innerText= document.getElementById('entity-contact2').value;
     const tin = document.getElementById('entity-tin').value;
-    document.getElementById('p-entity-tin').innerText = tin ? 'TIN: ' + tin : '';
+    ETLPreview.setTexts({
+      'p-entity-label': isOut ? 'VENDOR / SUPPLIER DETAILS:' : 'CLIENT / ISSUER DETAILS:',
+      'p-entity-name': eName,
+      'p-entity-contact': document.getElementById('entity-contact').value,
+      'p-entity-address': document.getElementById('entity-address').value,
+      'p-entity-contact2': document.getElementById('entity-contact2').value,
+      'p-entity-tin': tin ? 'TIN: ' + tin : ''
+    });
 
     document.getElementById('p-preparer-sig').innerText = 'Prepared By: ' + (document.getElementById('preparer').value || 'ETL Logistics');
 
@@ -143,18 +145,9 @@
       totalFormatter: fmt,
       alignTotal: false
     });
-
-    document.getElementById('p-grand-total').innerText = fmt(grand);
-
     ETLPreview.showPreview('form-section', 'preview-section');
     await saveLPOToSupabase(items, grand);
   }
-
-
-  // ── SUPABASE CONFIG ──
-const { SUPABASE_URL, SITE_BASE_URL, DASHBOARD_URL } = window.ETLConfig;
-
-  
   // ─── Brevo Email Helper ───
   async function sendEmail(to, subject, body, opts) {
     opts = opts || {};
@@ -166,9 +159,6 @@ const { SUPABASE_URL, SITE_BASE_URL, DASHBOARD_URL } = window.ETLConfig;
     return result.ok;
   }
 
-  const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
-  let SESSION_TOKEN = '';
-  let IS_ANON = false;
 
   ETLLpoInventory.init({
     getSessionToken: () => SESSION_TOKEN,

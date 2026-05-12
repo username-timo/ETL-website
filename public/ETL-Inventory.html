@@ -10,6 +10,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="/shared/etl-config.js"></script>
 <script src="/shared/etl-auth.js"></script>
+<script src="/shared/etl-utils.js"></script>
 </head>
 <body>
 
@@ -288,7 +289,7 @@
     <div class="modal-grid">
       <div class="field full">
         <label>Project Site *</label>
-        <select id="tr-site"></select>
+        <input type="text" id="tr-site" placeholder="e.g. Electoral Commission HQ">
       </div>
       <div class="field full">
         <label>Item *</label>

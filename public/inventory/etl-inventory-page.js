@@ -1,6 +1,8 @@
 // Inventory page controller extracted from ETL-Inventory.html.
 const SUPABASE_URL = window.ETLConfig.SUPABASE_URL;
 const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
+const esc = ETLUtils.escapeHtml;
+const fmt = ETLUtils.fmtNumber;
 let SESSION_TOKEN = '';
 
 let allItems = [];
@@ -10,21 +12,22 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
 }
 
-function fmt(n) { return Math.round(n||0).toLocaleString(); }
-
 async function api(table, opts = {}) {
   const { method = 'GET', filter = '', body = null } = opts;
   const url = `${SUPABASE_URL}/rest/v1/${table}${filter}`;
+  const headers = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': `Bearer ${SESSION_TOKEN}`
+  };
+  if(method === 'POST') headers.Prefer = 'return=minimal';
+
   const res = await fetch(url, {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SESSION_TOKEN}`,
-      'Prefer': method === 'POST' ? 'return=minimal' : undefined
-    },
+    headers,
     body: body ? JSON.stringify(body) : undefined
   });
+  if(!res.ok) throw new Error(await ETLUtils.readResponseError(res));
   if(method === 'GET') return res.json();
   return res;
 }
@@ -33,7 +36,12 @@ function switchTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('tab-stock').style.display = tab === 'stock' ? '' : 'none';
+  document.getElementById('tab-sites').style.display = tab === 'sites' ? '' : 'none';
   document.getElementById('tab-movements').style.display = tab === 'movements' ? '' : 'none';
+  if(tab === 'sites') {
+    loadSiteOverview();
+    loadRequests();
+  }
   if(tab === 'movements') loadMovements();
 }
 
@@ -76,19 +84,19 @@ function renderInventory(data) {
     const value = item.current_stock * (item.unit_cost || 0);
 
     return `<tr>
-      <td><strong>${item.name}</strong></td>
-      <td>${item.category}</td>
+      <td><strong>${esc(item.name)}</strong></td>
+      <td>${esc(item.category)}</td>
       <td>
         <div class="stock-bar-wrap"><div class="stock-bar ${barClass}" style="width:${pct}%"></div></div>
-        <strong>${fmt(item.current_stock)}</strong> ${item.unit}
+        <strong>${fmt(item.current_stock)}</strong> ${esc(item.unit)}
       </td>
-      <td>${fmt(item.min_stock)} ${item.unit}</td>
+      <td>${fmt(item.min_stock)} ${esc(item.unit)}</td>
       <td>UGX ${fmt(item.unit_cost)}</td>
       <td>UGX ${fmt(value)}</td>
       <td><span class="badge ${badgeClass}">${badgeText}</span></td>
       <td>
-        <button class="action-btn green" onclick="openStockInFor('${item.id}','${item.name}')">+ In</button>
-        <button class="action-btn danger" onclick="openStockOutFor('${item.id}','${item.name}')">- Out</button>
+        <button class="action-btn green" onclick="openStockInFor('${esc(item.id)}')">+ In</button>
+        <button class="action-btn danger" onclick="openStockOutFor('${esc(item.id)}')">- Out</button>
         <button class="action-btn" onclick="openAdjust(${JSON.stringify(item).replace(/"/g,'&quot;')})">⚙️</button>
       </td>
     </tr>`;
@@ -183,9 +191,11 @@ function filterItems() {
 function populateItemSelects(data) {
   const inSel = document.getElementById('in-item');
   const outSel = document.getElementById('out-item');
-  const opts = data.map(i => `<option value="${i.id}" data-name="${i.name}" data-supplier="${i.supplier||''}" data-cost="${i.unit_cost||0}">${i.name} (${fmt(i.current_stock)} ${i.unit})</option>`).join('');
+  const transferSel = document.getElementById('tr-item');
+  const opts = data.map(i => `<option value="${esc(i.id)}" data-name="${esc(i.name)}" data-supplier="${esc(i.supplier||'')}" data-cost="${i.unit_cost||0}">${esc(i.name)} (${fmt(i.current_stock)} ${esc(i.unit)})</option>`).join('');
   inSel.innerHTML = opts;
   outSel.innerHTML = opts;
+  if(transferSel) transferSel.innerHTML = opts;
 }
 
 // MODALS
@@ -235,6 +245,70 @@ function openAdjust(item) {
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function loadSiteOverview() {
+  document.getElementById('sites-body').innerHTML = '<div class="empty-state"><p>Use "Transfer to Site" to issue stock to a project site. Site transfer history is recorded under Movement History.</p></div>';
+}
+
+function loadRequests() {
+  document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>No site stock request feed is connected yet.</p></div>';
+}
+
+function openTransfer() {
+  document.getElementById('tr-site').value = '';
+  document.getElementById('tr-qty').value = '';
+  document.getElementById('tr-notes').value = '';
+  document.getElementById('transfer-modal').classList.add('open');
+}
+
+async function recordStockOut(itemId, qty, project, notes) {
+  const item = allItems.find(i => i.id === itemId);
+  if(!item) throw new Error('Selected item was not found in inventory.');
+  if(qty > item.current_stock) {
+    throw new Error(`Insufficient stock. Requested ${qty} ${item.unit}, available ${fmt(item.current_stock)} ${item.unit}.`);
+  }
+
+  const newStock = item.current_stock - qty;
+  await api(`inventory_items?id=eq.${itemId}`, {
+    method: 'PATCH', body: { current_stock: newStock }
+  });
+
+  await api('stock_movements', {
+    method: 'POST',
+    body: {
+      item_id: itemId,
+      item_name: item.name,
+      movement_type: 'out',
+      quantity: qty,
+      project,
+      notes
+    }
+  });
+
+  return { item, newStock };
+}
+
+async function submitTransfer() {
+  const itemId = document.getElementById('tr-item').value;
+  const site = document.getElementById('tr-site').value.trim();
+  const qty = parseFloat(document.getElementById('tr-qty').value);
+  if(!itemId || !site || !qty || qty <= 0) {
+    alert('Please select an item, enter a project site, and enter a valid quantity.');
+    return;
+  }
+
+  try {
+    const notes = document.getElementById('tr-notes').value.trim() || `Transferred to ${site}`;
+    const { item, newStock } = await recordStockOut(itemId, qty, site, notes);
+
+    closeModal('transfer-modal');
+    await loadInventory();
+    await loadMovements();
+    alert(`Stock transferred to site!\n\n${item.name}: -${qty} ${item.unit}\nSite: ${site}\nRemaining: ${fmt(newStock)} ${item.unit}`);
+  } catch(e) {
+    alert('Error: ' + e.message);
+  }
+}
 
 async function submitStockIn() {
   const itemId = document.getElementById('in-item').value;

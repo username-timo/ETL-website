@@ -14,6 +14,32 @@
     decodeText
   } = D;
 
+  const approvalHeadingStyle = 'font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:var(--primary);text-transform:uppercase;padding:0 4px 8px;border-bottom:2px solid var(--border);margin-bottom:12px;';
+
+  function renderTable(headers, rows, attrs) {
+    return `
+      <table${attrs ? ` ${attrs}` : ''}>
+        <thead><tr>${headers.map((heading) => `<th>${heading}</th>`).join('')}</tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`;
+  }
+
+  function modalField(label, value, options) {
+    const opts = options || {};
+    const classes = opts.full ? 'modal-field full' : 'modal-field';
+    const text = opts.raw ? value : escapeHtml(fallback(value));
+    return `<div class="${classes}"><label>${label}</label><p${opts.style ? ` style="${opts.style}"` : ''}>${text}</p></div>`;
+  }
+
+  function optionalModalField(label, value, options) {
+    return value ? modalField(label, value, options) : '';
+  }
+
+  function renderApprovalSection(title, headers, rows, isFirst) {
+    const style = isFirst ? 'margin-bottom:24px;' : '';
+    return `<div style="${style}"><h3 style="${approvalHeadingStyle}">${escapeHtml(title)}</h3>${renderTable(headers, rows)}</div>`;
+  }
+
   function requestRowClass(record) {
     if (record.status === 'approved') return 'row-approved';
     if (record.status === 'pending_approval' || record.status === 'pending') return 'row-pending';
@@ -74,14 +100,10 @@
   }
 
   function renderRequestTable(records, options) {
-    return `
-      <table>
-        <thead><tr>
-          <th>Organisation</th><th>Contact</th><th>Project</th>
-          <th>Email</th><th>Date</th><th>Status</th><th>Actions</th>
-        </tr></thead>
-        <tbody>${renderRequestRows(records, options)}</tbody>
-      </table>`;
+    return renderTable(
+      ['Organisation', 'Contact', 'Project', 'Email', 'Date', 'Status', 'Actions'],
+      renderRequestRows(records, options)
+    );
   }
 
   function renderLpoStatusSelect(record, role) {
@@ -140,14 +162,10 @@
   }
 
   function renderLpoTable(records, options) {
-    return `
-      <table>
-        <thead><tr>
-          <th>LPO Number</th><th>Entity</th><th>Direction</th>
-          <th>Email</th><th>Total</th><th>Date</th><th>Status</th><th>Actions</th>
-        </tr></thead>
-        <tbody>${renderLpoRows(records, options)}</tbody>
-      </table>`;
+    return renderTable(
+      ['LPO Number', 'Entity', 'Direction', 'Email', 'Total', 'Date', 'Status', 'Actions'],
+      renderLpoRows(records, options)
+    );
   }
 
   function filterRequests(records, filter) {
@@ -205,10 +223,20 @@
   function renderApprovals(quotations, lpos, options) {
     const sections = [];
     if (quotations.length) {
-      sections.push(`<div style="margin-bottom:24px;"><h3 style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:var(--primary);text-transform:uppercase;padding:0 4px 8px;border-bottom:2px solid var(--border);margin-bottom:12px;">Pending Quotation Requests (${quotations.length})</h3><table><thead><tr><th>Organisation</th><th>Contact</th><th>Project</th><th>Email</th><th>Budget</th><th>Date</th><th>Actions</th></tr></thead><tbody>${renderApprovalRequestRows(quotations, options)}</tbody></table></div>`);
+      sections.push(renderApprovalSection(
+        `Pending Quotation Requests (${quotations.length})`,
+        ['Organisation', 'Contact', 'Project', 'Email', 'Budget', 'Date', 'Actions'],
+        renderApprovalRequestRows(quotations, options),
+        true
+      ));
     }
     if (lpos.length) {
-      sections.push(`<div><h3 style="font-family:Barlow Condensed,sans-serif;font-size:16px;font-weight:800;color:var(--primary);text-transform:uppercase;padding:0 4px 8px;border-bottom:2px solid var(--border);margin-bottom:12px;">Pending LPOs (${lpos.length})</h3><table><thead><tr><th>LPO Number</th><th>Entity</th><th>Direction</th><th>Email</th><th>Total</th><th>Date</th><th>Actions</th></tr></thead><tbody>${renderApprovalLpoRows(lpos, options)}</tbody></table></div>`);
+      sections.push(renderApprovalSection(
+        `Pending LPOs (${lpos.length})`,
+        ['LPO Number', 'Entity', 'Direction', 'Email', 'Total', 'Date', 'Actions'],
+        renderApprovalLpoRows(lpos, options),
+        false
+      ));
     }
     return sections.join('');
   }
@@ -232,17 +260,17 @@
     return `
       <h2>LPO Details</h2>
       <div class="modal-grid">
-        <div class="modal-field"><label>LPO Number</label><p>${escapeHtml(record.lpo_number || '-')}</p></div>
-        <div class="modal-field"><label>Direction</label><p><span class="badge badge-${direction}">${escapeHtml(record.direction || '-')}</span></p></div>
-        <div class="modal-field"><label>Entity Name</label><p>${escapeHtml(record.entity_name || '-')}</p></div>
-        <div class="modal-field"><label>Email</label><p>${escapeHtml(record.entity_email || '-')}</p></div>
-        <div class="modal-field"><label>Issue Date</label><p>${fmtDate(record.issue_date)}</p></div>
-        <div class="modal-field"><label>Delivery Date</label><p>${fmtDate(record.delivery_date)}</p></div>
-        <div class="modal-field"><label>Total Amount</label><p><strong>${fmtMoney(record.total || 0)}</strong></p></div>
-        <div class="modal-field"><label>Status</label><p><span class="badge badge-${status}">${escapeHtml(record.status || '-')}</span></p></div>
-        ${record.project_name ? `<div class="modal-field full"><label>Project / Contract Title</label><p>${escapeHtml(record.project_name)}</p></div>` : ''}
-        ${record.delivery_location ? `<div class="modal-field"><label>Delivery Location</label><p>${escapeHtml(record.delivery_location)}</p></div>` : ''}
-        ${record.notes ? `<div class="modal-field full"><label>Notes</label><p>${escapeHtml(record.notes)}</p></div>` : ''}
+        ${modalField('LPO Number', record.lpo_number)}
+        ${modalField('Direction', `<span class="badge badge-${direction}">${escapeHtml(record.direction || '-')}</span>`, { raw: true })}
+        ${modalField('Entity Name', record.entity_name)}
+        ${modalField('Email', record.entity_email)}
+        ${modalField('Issue Date', fmtDate(record.issue_date))}
+        ${modalField('Delivery Date', fmtDate(record.delivery_date))}
+        ${modalField('Total Amount', `<strong>${fmtMoney(record.total || 0)}</strong>`, { raw: true })}
+        ${modalField('Status', `<span class="badge badge-${status}">${escapeHtml(record.status || '-')}</span>`, { raw: true })}
+        ${optionalModalField('Project / Contract Title', record.project_name, { full: true })}
+        ${optionalModalField('Delivery Location', record.delivery_location)}
+        ${optionalModalField('Notes', record.notes, { full: true })}
       </div>
       ${items ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:var(--lighter-bg)"><th style="padding:8px;text-align:left">#</th><th style="padding:8px;text-align:left">Description</th><th style="padding:8px">Unit</th><th style="padding:8px">Qty</th><th style="padding:8px">Price</th><th style="padding:8px">Total</th></tr></thead><tbody>${items}</tbody></table>` : ''}
       <div class="modal-actions">
@@ -262,20 +290,20 @@
     return `
       <h2>Quotation Request</h2>
       <div class="modal-grid">
-        <div class="modal-field"><label>Organisation</label><p>${escapeHtml(fallback(record.client_name))}</p></div>
-        <div class="modal-field"><label>Contact Person</label><p>${escapeHtml(fallback(record.contact_person))}</p></div>
-        <div class="modal-field"><label>Email</label><p>${escapeHtml(fallback(record.client_email))}</p></div>
-        <div class="modal-field"><label>Phone</label><p>${escapeHtml(fallback(record.client_phone))}</p></div>
-        <div class="modal-field"><label>Project Title</label><p>${escapeHtml(fallback(record.project_title))}</p></div>
-        <div class="modal-field"><label>Location</label><p>${escapeHtml(fallback(record.project_location))}</p></div>
-        <div class="modal-field"><label>Budget</label><p>${escapeHtml(fallback(record.estimated_budget))}</p></div>
-        <div class="modal-field"><label>Timeline</label><p>${escapeHtml(fallback(record.timeline))}</p></div>
-        <div class="modal-field full"><label>Services Needed</label><p>${escapeHtml(fallback(record.services_category))}</p></div>
-        <div class="modal-field full"><label>Description</label><p>${escapeHtml(fallback(record.project_description))}</p></div>
-        <div class="modal-field"><label>Status</label><p><span class="badge badge-${safeClass(record.status)}">${escapeHtml(fallback(record.status))}</span></p></div>
-        <div class="modal-field"><label>Submitted</label><p>${fmtDate(record.created_at)}</p></div>
-        ${record.approved_by ? `<div class="modal-field"><label>Reviewed By</label><p>${escapeHtml(record.approved_by)}</p></div>` : ''}
-        ${record.rejection_reason ? `<div class="modal-field full"><label>Rejection Reason</label><p style="color:var(--danger)">${escapeHtml(record.rejection_reason)}</p></div>` : ''}
+        ${modalField('Organisation', record.client_name)}
+        ${modalField('Contact Person', record.contact_person)}
+        ${modalField('Email', record.client_email)}
+        ${modalField('Phone', record.client_phone)}
+        ${modalField('Project Title', record.project_title)}
+        ${modalField('Location', record.project_location)}
+        ${modalField('Budget', record.estimated_budget)}
+        ${modalField('Timeline', record.timeline)}
+        ${modalField('Services Needed', record.services_category, { full: true })}
+        ${modalField('Description', record.project_description, { full: true })}
+        ${modalField('Status', `<span class="badge badge-${safeClass(record.status)}">${escapeHtml(fallback(record.status))}</span>`, { raw: true })}
+        ${modalField('Submitted', fmtDate(record.created_at))}
+        ${optionalModalField('Reviewed By', record.approved_by)}
+        ${optionalModalField('Rejection Reason', record.rejection_reason, { full: true, style: 'color:var(--danger)' })}
       </div>
       <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
         ${record.status === 'approved' ? '<button class="modal-btn primary" onclick="openGeneratorFromModal()">Generate Quotation</button>' : ''}
