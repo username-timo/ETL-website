@@ -17,7 +17,7 @@ const rawProjects: Project[] = [
     client: "National Housing & Construction Co.",
     location: "Lweza, Lubowa, Kampala", year: "2025", value: "UGX 7.9B",
     desc: "Bush clearing, deep excavation, cut & fill, heavy grading, gravelling, compactions, paving, gardening, temporary drainage and fencing.",
-    imgs: ["/etl-images/electoral-commission-01.jpg","/etl-images/electoral-commission-02.jpg","/etl-images/electoral-commission-03.jpg","/etl-images/electoral-commission-04.jpg","/etl-images/electoral-commission-05.jpg"],
+    imgs: ["/etl-images/electoral-commission-01.jpg","/etl-images/electoral-commission-02.jpg","/etl-images/electoral-commission-03.jpg","/etl-images/electoral-commission-04.jpg","/etl-images/electoral-commission-05.jpg"], ...DONE,
   },
   {
     title: "Asphalt Parking & Drainage — Naguru (Phaneroo Grounds)",
@@ -25,7 +25,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 2-4, 6, 18-22 Naguru, Nakawa, Kampala", year: "2025", value: "UGX 4.2B",
     desc: "Shaping, back-sloping, heavy grading, gravelling, compactions, priming and asphalt laying for the Phaneroo Naguru compound.",
-    imgs: ["/etl-images/naguru-asphalt-01.jpg","/etl-images/naguru-asphalt-02.jpg","/etl-images/naguru-asphalt-03.jpg","/etl-images/naguru-asphalt-04.jpg","/etl-images/naguru-asphalt-05.jpg","/etl-images/naguru-asphalt-06.jpg","/etl-images/naguru-asphalt-07.jpg"],
+    imgs: ["/etl-images/naguru-asphalt-01.jpg","/etl-images/naguru-asphalt-02.jpg","/etl-images/naguru-asphalt-03.jpg","/etl-images/naguru-asphalt-04.jpg","/etl-images/naguru-asphalt-05.jpg","/etl-images/naguru-asphalt-06.jpg","/etl-images/naguru-asphalt-07.jpg"], ...DONE,
   },
   {
     title: "Proposed Warehouses — Namanve, Mukono District",
@@ -33,7 +33,7 @@ const rawProjects: Project[] = [
     client: "Trident Infratech Limited",
     location: "Namanve Industrial Area, Mukono", year: "2017", value: "UGX 3.6B",
     desc: "General construction: earthworks, retaining walls, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/etl-images/warehouse-mukono-01.jpg","/etl-images/warehouse-mukono-02.jpg","/etl-images/warehouse-mukono-03.jpg","/etl-images/warehouse-mukono-04.jpg","/etl-images/warehouse-mukono-05.jpg"],
+    imgs: ["/etl-images/warehouse-mukono-01.jpg","/etl-images/warehouse-mukono-02.jpg","/etl-images/warehouse-mukono-03.jpg","/etl-images/warehouse-mukono-04.jpg","/etl-images/warehouse-mukono-05.jpg"], ...DONE,
   },
   {
     title: "Kisozi-Kifamba Road — Low-Cost Sealing, Lot 3 (9.0km)",
@@ -57,7 +57,7 @@ const rawProjects: Project[] = [
     client: "Republic of Uganda — Courts of Judicature",
     location: "Makindye, Kampala", year: "2018", value: "UGX 1.1B",
     desc: "General construction: earthworks, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/etl-images/makindye-court-01.jpg","/etl-images/makindye-court-02.jpg"],
+    imgs: ["/etl-images/makindye-court-01.jpg","/etl-images/makindye-court-02.jpg"], ...DONE,
   },
   {
     title: "Ciforo Market Building — Adjumani District",
@@ -65,7 +65,7 @@ const rawProjects: Project[] = [
     client: "United Nations Development Programme (UNDP)",
     location: "Adjumani District", year: "2024", value: "UGX 1.0B",
     desc: "General construction: earthworks, retaining walls, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/etl-images/ciforo-market-01.jpg","/etl-images/ciforo-market-02.jpg","/etl-images/ciforo-market-03.jpg"],
+    imgs: ["/etl-images/ciforo-market-01.jpg","/etl-images/ciforo-market-02.jpg","/etl-images/ciforo-market-03.jpg"], ...DONE,
   },
   {
     title: "Shallow Wells Construction — Budaka District",
@@ -73,7 +73,7 @@ const rawProjects: Project[] = [
     client: "United Nations Development Programme (UNDP)",
     location: "Budaka District", year: "2014", value: "UGX 180M",
     desc: "Construction of 4 No. shallow wells: surveying water source, excavation/drilling, pump testing, hand pump installation and concrete drainage.",
-    imgs: ["/etl-images/shallow-wells-budaka-01.jpg","/etl-images/shallow-wells-budaka-02.jpg"],
+    imgs: ["/etl-images/shallow-wells-budaka-01.jpg","/etl-images/shallow-wells-budaka-02.jpg"], ...DONE,
   },
   {
     title: "Rural Electrification — Rwakai-Isingiro & Buganago (REA)",
@@ -139,7 +139,7 @@ const rawProjects: Project[] = [
     client: "Uganda Revenue Authority",
     location: "Nakawa, Kampala", year: "2023", value: "UGX 600M",
     desc: "Repair of NIP parking yard: general earthworks, drainage works and asphalt concrete resurfacing.",
-    imgs: ["/etl-images/ura-nakawa-parking-01.jpg","/etl-images/ura-nakawa-parking-02.jpg","/etl-images/ura-nakawa-parking-03.jpg","/etl-images/ura-nakawa-parking-04.jpg"],
+    imgs: ["/etl-images/ura-nakawa-parking-01.jpg","/etl-images/ura-nakawa-parking-02.jpg","/etl-images/ura-nakawa-parking-03.jpg","/etl-images/ura-nakawa-parking-04.jpg"], ...DONE,
   },
   {
     title: "Seed Secondary School — Mwelo Sub-county (UGIFT)",
@@ -147,7 +147,7 @@ const rawProjects: Project[] = [
     client: "Tororo District Local Government",
     location: "Mwelo Sub-county, Tororo District", year: "2023", value: "UGX 702M",
     desc: "Construction under UGIFT: earthworks, blockwork, concrete slabs, roofing, doors, windows, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/etl-images/seed-school-mwelo-01.jpg","/etl-images/seed-school-mwelo-02.jpg","/etl-images/seed-school-mwelo-03.jpg"],
+    imgs: ["/etl-images/seed-school-mwelo-01.jpg","/etl-images/seed-school-mwelo-02.jpg","/etl-images/seed-school-mwelo-03.jpg"], ...DONE,
   },
   {
     title: "Lamer Residences — Garuga",
@@ -275,7 +275,7 @@ const rawProjects: Project[] = [
     client: "Uganda Revenue Authority",
     location: "Bunagana Border, Western Uganda", year: "2012", value: "UGX 168M",
     desc: "General construction of border post office block: earthworks, blockwork, concrete slabs, roofing, metal fabrication, plumbing and electrical installations.",
-    imgs: ["/etl-images/bunagana-border-01.jpg","/etl-images/bunagana-border-02.jpg"],
+    imgs: ["/etl-images/bunagana-border-01.jpg","/etl-images/bunagana-border-02.jpg"], ...DONE,
   },
   {
     title: "UNRA — Ami-Ki Lane-Atapara Road (39km) Maintenance",
