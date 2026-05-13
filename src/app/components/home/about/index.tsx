@@ -43,12 +43,12 @@ const highlights = [
 
 export default function About() {
   return (
-    <section id="about" className="pt-24 pb-8 bg-white dark:bg-darkmode">
+    <section id="about" className="pt-24 pb-8 bg-white dark:bg-darkmode lg:pt-14">
       <div className="container lg:max-w-screen-xl md:max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div className="relative flex flex-col items-start text-left mb-12 sm:mb-16 pt-16 pb-6 sm:pt-20 sm:pb-10">
+        <div className="relative flex flex-col items-start text-left mb-12 sm:mb-16 pt-16 pb-6 sm:pt-20 sm:pb-10 lg:mb-8 lg:pt-10 lg:pb-4">
           <div
-            className="absolute -right-10 -top-14 sm:right-8 sm:-top-4 pointer-events-none select-none"
+            className="absolute -right-10 -top-14 sm:right-8 sm:-top-4 lg:-top-8 pointer-events-none select-none"
             aria-hidden="true"
           >
             <Image
@@ -71,7 +71,7 @@ export default function About() {
           <div className="relative z-10 w-16 h-1 rounded-full mb-6" style={{ background: "linear-gradient(90deg,#1a3c6e,#4fa3d1)" }} />
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 items-stretch">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-10 items-stretch">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: "#c8860a" }}>
               "Quality at Service"
@@ -103,7 +103,7 @@ export default function About() {
             </div>
           </div>
 
-          <div className="mt-10 flex flex-col">
+          <div className="mt-10 lg:mt-0 flex flex-col">
             <div className="rounded-xl border border-border dark:border-dark_border overflow-hidden flex flex-col flex-1">
               <div className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-white"
                 style={{ background: "linear-gradient(90deg,#1a3c6e,#2d5fa3)" }}>
