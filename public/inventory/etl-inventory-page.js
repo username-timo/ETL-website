@@ -32,6 +32,31 @@ async function api(table, opts = {}) {
   return res;
 }
 
+function findInventoryItem(itemId) {
+  const item = allItems.find(i => i.id === itemId);
+  if(!item) throw new Error('Selected item was not found in inventory.');
+  return item;
+}
+
+async function updateInventoryItem(itemId, payload) {
+  return api(`inventory_items?id=eq.${itemId}`, {
+    method: 'PATCH',
+    body: payload
+  });
+}
+
+async function recordMovement(payload) {
+  return api('stock_movements', {
+    method: 'POST',
+    body: payload
+  });
+}
+
+async function refreshInventoryViews(includeMovements) {
+  await loadInventory();
+  if(includeMovements) await loadMovements();
+}
+
 function switchTab(tab, btn) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -262,28 +287,22 @@ function openTransfer() {
 }
 
 async function recordStockOut(itemId, qty, project, notes) {
-  const item = allItems.find(i => i.id === itemId);
-  if(!item) throw new Error('Selected item was not found in inventory.');
+  const item = findInventoryItem(itemId);
   if(qty > item.current_stock) {
     throw new Error(`Insufficient stock. Requested ${qty} ${item.unit}, available ${fmt(item.current_stock)} ${item.unit}.`);
   }
 
   const newStock = item.current_stock - qty;
-  await api('stock_movements', {
-    method: 'POST',
-    body: {
-      item_id: itemId,
-      item_name: item.name,
-      movement_type: 'out',
-      quantity: qty,
-      project,
-      notes
-    }
+  await recordMovement({
+    item_id: itemId,
+    item_name: item.name,
+    movement_type: 'out',
+    quantity: qty,
+    project,
+    notes
   });
 
-  await api(`inventory_items?id=eq.${itemId}`, {
-    method: 'PATCH', body: { current_stock: newStock }
-  });
+  await updateInventoryItem(itemId, { current_stock: newStock });
 
   return { item, newStock };
 }
@@ -302,8 +321,7 @@ async function submitTransfer() {
     const { item, newStock } = await recordStockOut(itemId, qty, site, notes);
 
     closeModal('transfer-modal');
-    await loadInventory();
-    await loadMovements();
+    await refreshInventoryViews(true);
     alert(`Stock transferred to site!\n\n${item.name}: -${qty} ${item.unit}\nSite: ${site}\nRemaining: ${fmt(newStock)} ${item.unit}`);
   } catch(e) {
     alert('Error: ' + e.message);
@@ -315,28 +333,23 @@ async function submitStockIn() {
   const qty = parseFloat(document.getElementById('in-qty').value);
   if(!itemId || !qty || qty <= 0) { alert('Please select an item and enter a valid quantity.'); return; }
 
-  const item = allItems.find(i => i.id === itemId);
+  const item = findInventoryItem(itemId);
   const newStock = (item.current_stock || 0) + qty;
   const cost = parseFloat(document.getElementById('in-cost').value) || item.unit_cost;
 
   try {
-    // Update stock level
-    await api(`inventory_items?id=eq.${itemId}`, {
-      method: 'PATCH', body: { current_stock: newStock, unit_cost: cost || item.unit_cost }
-    });
-
-    // Record movement
-    await api('stock_movements', {
-      method: 'POST',
-      body: {
-        item_id: itemId, item_name: item.name, movement_type: 'in',
-        quantity: qty, lpo_number: document.getElementById('in-lpo').value,
-        notes: document.getElementById('in-notes').value || `Received from ${document.getElementById('in-supplier').value || item.supplier || 'Supplier'}`
-      }
+    await updateInventoryItem(itemId, { current_stock: newStock, unit_cost: cost || item.unit_cost });
+    await recordMovement({
+      item_id: itemId,
+      item_name: item.name,
+      movement_type: 'in',
+      quantity: qty,
+      lpo_number: document.getElementById('in-lpo').value,
+      notes: document.getElementById('in-notes').value || `Received from ${document.getElementById('in-supplier').value || item.supplier || 'Supplier'}`
     });
 
     closeModal('stock-in-modal');
-    await loadInventory();
+    await refreshInventoryViews(true);
     alert(`✅ Stock In recorded!\n\n${item.name}: +${qty} ${item.unit}\nNew stock: ${fmt(newStock)} ${item.unit}`);
   } catch(e) { alert('Error: ' + e.message); }
 }
@@ -355,21 +368,15 @@ async function submitStockOut() {
   const newStock = item.current_stock - qty;
 
   try {
-    await api(`inventory_items?id=eq.${itemId}`, {
-      method: 'PATCH', body: { current_stock: newStock }
-    });
-
-    await api('stock_movements', {
-      method: 'POST',
-      body: {
-        item_id: itemId, item_name: item.name, movement_type: 'out',
-        quantity: qty, project: document.getElementById('out-project').value,
-        notes: document.getElementById('out-notes').value || `Issued to ${document.getElementById('out-issued').value || 'Site'}`
-      }
-    });
+    await recordStockOut(
+      itemId,
+      qty,
+      document.getElementById('out-project').value,
+      document.getElementById('out-notes').value || `Issued to ${document.getElementById('out-issued').value || 'Site'}`
+    );
 
     closeModal('stock-out-modal');
-    await loadInventory();
+    await refreshInventoryViews(true);
 
     let msg = `✅ Stock Out recorded!\n\n${item.name}: -${qty} ${item.unit}\nRemaining: ${fmt(newStock)} ${item.unit}`;
     if(newStock <= item.min_stock) msg += `\n\n⚠️ WARNING: Stock is now below minimum level!`;
@@ -406,24 +413,20 @@ async function submitAdjust() {
   const minStock = parseFloat(document.getElementById('adjust-min').value);
   const cost = parseFloat(document.getElementById('adjust-cost').value);
   const reason = document.getElementById('adjust-reason').value.trim();
-  const item = allItems.find(i => i.id === id);
+  const item = findInventoryItem(id);
 
   try {
-    await api(`inventory_items?id=eq.${id}`, {
-      method: 'PATCH', body: { current_stock: newStock, min_stock: minStock, unit_cost: cost }
-    });
-
-    await api('stock_movements', {
-      method: 'POST',
-      body: {
-        item_id: id, item_name: item.name, movement_type: 'adjust',
-        quantity: Math.abs(newStock - item.current_stock),
-        notes: reason || 'Manual stock adjustment'
-      }
+    await updateInventoryItem(id, { current_stock: newStock, min_stock: minStock, unit_cost: cost });
+    await recordMovement({
+      item_id: id,
+      item_name: item.name,
+      movement_type: 'adjust',
+      quantity: Math.abs(newStock - item.current_stock),
+      notes: reason || 'Manual stock adjustment'
     });
 
     closeModal('adjust-modal');
-    await loadInventory();
+    await refreshInventoryViews(true);
     alert(`✅ Stock adjusted for ${item.name}`);
   } catch(e) { alert('Error: ' + e.message); }
 }
