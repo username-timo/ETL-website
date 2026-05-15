@@ -81,7 +81,7 @@ const rawProjects: Project[] = [
     client: "LTL Projects (Pvt) Limited / REA",
     location: "Rwakai-Isingiro, Uganda", year: "2015", value: "USD 298,000",
     desc: "Construction of 84km MV lines, 31km LV lines and installation of 13 MV/LV transformers under the Government Rural Electrification programme.",
-    imgs: ["/etl-images/svc-05-electro-mechanical.jpg","/etl-images/power-sector-04.jpg","/etl-images/power-sector-05.jpg","/etl-images/power-sector-06.jpg","/etl-images/power-sector-07.jpg"], ...DONE,
+    imgs: ["/etl-images/power-sector-01.jpg","/etl-images/power-sector-02.jpg","/etl-images/power-sector-03.jpg","/etl-images/power-sector-04.jpg","/etl-images/power-sector-05.jpg","/etl-images/power-sector-06.jpg","/etl-images/power-sector-07.jpg"], ...DONE,
   },
 
   // ── REMAINING PROJECTS ──
@@ -298,7 +298,7 @@ const rawProjects: Project[] = [
     client: "MTN Uganda / ATC Uganda",
     location: "Bubada, Buwesa, Tororo District", year: "2019", value: "UGX 98M",
     desc: "Construction of MTN telecommunications tower site including civil, electro-mechanical supply and installation works.",
-    imgs: ["/etl-images/mtn-bubada-01.jpg","/etl-images/mtn-bubada-02.jpg","/etl-images/power-sector-01.jpg"], ...DONE,
+    imgs: ["/etl-images/mtn-bubada-01.jpg","/etl-images/mtn-bubada-02.jpg","/etl-images/mtn-bubada-03.jpg","/etl-images/mtn-bubada-04.jpg","/etl-images/mtn-bubada-05.jpg","/etl-images/mtn-bubada-06.jpg"], ...DONE,
   },
   {
     title: "Tororo Solar North — 10MWp Solar Project",
@@ -306,7 +306,7 @@ const rawProjects: Project[] = [
     client: "Building Energy Uganda",
     location: "Tororo District", year: "2017", value: "USD 98,000",
     desc: "Installation of communication cable (RS-485) and fibre optic multimode cable (20/125 micron, 12 strands) for 10MWp solar plant.",
-    imgs: ["/etl-images/mtn-bubada-01.jpg","/etl-images/mtn-bubada-02.jpg","/etl-images/mtn-bubada-03.jpg","/etl-images/mtn-bubada-04.jpg","/etl-images/mtn-bubada-05.jpg","/etl-images/mtn-bubada-06.jpg"], ...DONE,
+    imgs: ["/etl-images/etl-solar-01.jpg", "/etl-images/etl-solar-02.jpg", "/etl-images/etl-solar-03.jpg"], ...DONE,
   },
   {
     title: "NWSC Project — Trenching & Manholes",
@@ -322,7 +322,7 @@ const rawProjects: Project[] = [
     client: "13C Limited / MTN Uganda",
     location: "Uganda", year: "2015", value: "USD 25,614",
     desc: "Trenching, backfilling, compaction and manhole construction works for MTN Uganda telecommunications infrastructure.",
-    imgs: ["/etl-images/mtn-bubada-05.jpg","/etl-images/mtn-bubada-01.jpg"], ...DONE,
+    imgs: ["/etl-images/MTN-trenching-01.jpg","/etl-images/MTN-trenching-02.jpg","/etl-images/MTN-trenching-03.jpg"], ...DONE,
   },
 ];
 
