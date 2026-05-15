@@ -7,6 +7,31 @@ let currentEngineer = '';
 let siteStock = [];
 let allItems = [];
 
+function esc(value) {
+  if(window.ETLUtils && window.ETLUtils.escapeHtml) return window.ETLUtils.escapeHtml(value);
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function escJs(value) {
+  return String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/[\r\n]+/g, ' ');
+}
+
+function escJsAttr(value) {
+  return esc(escJs(value));
+}
+
+function safeClass(value) {
+  return String(value || '').replace(/[^a-z0-9_-]/gi, '');
+}
+
 async function api(table, opts = {}) {
   const { method = 'GET', filter = '', body = null } = opts;
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}${filter}`, {
@@ -23,6 +48,44 @@ async function api(table, opts = {}) {
   return res;
 }
 
+async function recordSiteConsumption(payload) {
+  return api('site_consumption', {
+    method: 'POST',
+    body: payload
+  });
+}
+
+async function updateSiteStock(siteStockId, quantity) {
+  return api(`site_stock?id=eq.${siteStockId}`, {
+    method: 'PATCH',
+    body: { quantity }
+  });
+}
+
+async function fetchStoreStock(itemId) {
+  const rows = await api(`inventory_items?id=eq.${itemId}&select=current_stock`);
+  return rows[0] || null;
+}
+
+async function updateStoreStock(itemId, quantity) {
+  return api(`inventory_items?id=eq.${itemId}`, {
+    method: 'PATCH',
+    body: { current_stock: quantity }
+  });
+}
+
+async function recordStoreMovement(payload) {
+  return api('stock_movements', {
+    method: 'POST',
+    body: payload
+  });
+}
+
+async function refreshSiteViews() {
+  await loadSiteStock();
+  await loadHistory();
+}
+
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
 }
@@ -32,7 +95,7 @@ async function loadSites() {
   const sites = await api('project_sites', { filter: '?status=eq.active&order=name.asc' });
   const sel = document.getElementById('login-site');
   sel.innerHTML = '<option value="">-- Select your site --</option>' +
-    sites.map(s => `<option value="${s.id}" data-name="${s.name}">${s.name} — ${s.location}</option>`).join('');
+    sites.map(s => `<option value="${esc(s.id)}" data-name="${esc(s.name)}">${esc(s.name)} - ${esc(s.location)}</option>`).join('');
 }
 
 async function loadAllItems() {
@@ -95,6 +158,19 @@ async function loadSiteStock() {
   document.getElementById('stock-list').innerHTML = data.map(item => `
     <div class="stock-item">
       <div class="stock-item-top">
+        <div class="stock-item-name">${esc(item.item_name)}</div>
+        <div class="stock-item-qty">${esc(item.quantity)} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">${esc(item.unit)}</span></div>
+      </div>
+      <div class="stock-item-actions">
+        <button class="action-btn use" onclick="quickLog('${escJsAttr(item.item_id)}','${escJsAttr(item.item_name)}','${escJsAttr(item.unit)}','consumed')">Use</button>
+        <button class="action-btn return" onclick="quickLog('${escJsAttr(item.item_id)}','${escJsAttr(item.item_name)}','${escJsAttr(item.unit)}','returned')">Return</button>
+      </div>
+    </div>`).join('');
+  return;
+
+  document.getElementById('stock-list').innerHTML = data.map(item => `
+    <div class="stock-item">
+      <div class="stock-item-top">
         <div class="stock-item-name">${item.item_name}</div>
         <div class="stock-item-qty">${item.quantity} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">${item.unit}</span></div>
       </div>
@@ -113,7 +189,7 @@ function quickLog(itemId, itemName, unit, type) {
 }
 
 function populateItemSelects() {
-  const opts = allItems.map(i => `<option value="${i.id}" data-name="${i.name}" data-unit="${i.unit}">${i.name} (${i.unit})</option>`).join('');
+  const opts = allItems.map(i => `<option value="${esc(i.id)}" data-name="${esc(i.name)}" data-unit="${esc(i.unit)}">${esc(i.name)} (${esc(i.unit)})</option>`).join('');
   document.getElementById('log-item').innerHTML = opts;
   document.getElementById('req-item').innerHTML = opts;
 }
@@ -138,38 +214,34 @@ async function submitLog(type) {
   }
 
   try {
-    // Record consumption
-    await api('site_consumption', {
-      method: 'POST',
-      body: {
-        site_id: currentSite.id, site_name: currentSite.name,
-        item_id: itemId, item_name: itemName, unit,
-        quantity: qty, movement_type: type,
-        recorded_by: currentEngineer, notes
-      }
+    await recordSiteConsumption({
+      site_id: currentSite.id,
+      site_name: currentSite.name,
+      item_id: itemId,
+      item_name: itemName,
+      unit,
+      quantity: qty,
+      movement_type: type,
+      recorded_by: currentEngineer,
+      notes
     });
 
-    // Update site stock
     const siteItem = siteStock.find(s => s.item_id === itemId);
     if(siteItem) {
       const newQty = type === 'consumed' ? siteItem.quantity - qty : siteItem.quantity + qty;
-      await api(`site_stock?id=eq.${siteItem.id}`, { method: 'PATCH', body: { quantity: newQty } });
+      await updateSiteStock(siteItem.id, newQty);
 
-      // If returned, add back to main store
       if(type === 'returned') {
-        const storeItem = await api(`inventory_items?id=eq.${itemId}&select=current_stock`);
-        if(storeItem.length) {
-          await api(`inventory_items?id=eq.${itemId}`, {
-            method: 'PATCH', body: { current_stock: storeItem[0].current_stock + qty }
-          });
-          // Record movement in main store
-          await api('stock_movements', {
-            method: 'POST',
-            body: {
-              item_id: itemId, item_name: itemName, movement_type: 'in',
-              quantity: qty, project: currentSite.name,
-              notes: `Returned from site by ${currentEngineer}`
-            }
+        const storeItem = await fetchStoreStock(itemId);
+        if(storeItem) {
+          await updateStoreStock(itemId, storeItem.current_stock + qty);
+          await recordStoreMovement({
+            item_id: itemId,
+            item_name: itemName,
+            movement_type: 'in',
+            quantity: qty,
+            project: currentSite.name,
+            notes: `Returned from site by ${currentEngineer}`
           });
         }
       }
@@ -177,8 +249,7 @@ async function submitLog(type) {
 
     document.getElementById('log-qty').value = '';
     document.getElementById('log-notes').value = '';
-    await loadSiteStock();
-    await loadHistory();
+    await refreshSiteViews();
 
     const label = type === 'consumed' ? 'Usage recorded' : 'Return recorded';
     alert(`✅ ${label}!\n\n${itemName}: ${qty} ${unit}\n${type === 'returned' ? 'Stock returned to main store.' : ''}`);
@@ -196,15 +267,16 @@ async function submitRequest() {
   if(!qty || qty <= 0) { alert('Please enter a quantity needed.'); return; }
 
   try {
-    await api('site_consumption', {
-      method: 'POST',
-      body: {
-        site_id: currentSite.id, site_name: currentSite.name,
-        item_id: itemEl.value, item_name: itemName, unit,
-        quantity: qty, movement_type: 'requested',
-        recorded_by: currentEngineer,
-        notes: notes || `Requested for ${currentSite.name}`
-      }
+    await recordSiteConsumption({
+      site_id: currentSite.id,
+      site_name: currentSite.name,
+      item_id: itemEl.value,
+      item_name: itemName,
+      unit,
+      quantity: qty,
+      movement_type: 'requested',
+      recorded_by: currentEngineer,
+      notes: notes || `Requested for ${currentSite.name}`
     });
 
     document.getElementById('req-qty').value = '';
@@ -237,6 +309,20 @@ async function loadHistory() {
     received: { label: '📦 Received', cls: 'badge-received' },
     requested: { label: '📋 Requested', cls: 'badge-received' },
   };
+
+  document.getElementById('history-list').innerHTML = data.map(m => {
+    const t = typeMap[m.movement_type] || { label: m.movement_type, cls: 'badge-received' };
+    const meta = `${fmtDate(m.created_at)} - ${m.recorded_by || 'Unknown'}${m.notes ? ' - ' + m.notes : ''}`;
+    return `<div class="history-item">
+      <span class="history-badge ${safeClass(t.cls)}">${esc(t.label)}</span>
+      <div class="history-info">
+        <div class="history-name">${esc(m.item_name)}</div>
+        <div class="history-meta">${esc(meta)}</div>
+      </div>
+      <div class="history-qty">${esc(m.quantity)} <span style="font-size:11px;color:var(--text-muted)">${esc(m.unit)}</span></div>
+    </div>`;
+  }).join('');
+  return;
 
   document.getElementById('history-list').innerHTML = data.map(m => {
     const t = typeMap[m.movement_type] || { label: m.movement_type, cls: 'badge-received' };
