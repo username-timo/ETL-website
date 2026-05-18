@@ -1,4 +1,44 @@
 (function () {
+  const DASHBOARD_THEME_KEY = 'etl-dashboard-theme';
+
+  function getSavedDashboardTheme() {
+    try {
+      return localStorage.getItem(DASHBOARD_THEME_KEY) === 'dark' ? 'dark' : 'light';
+    } catch (err) {
+      return 'light';
+    }
+  }
+
+  function refreshDashboardThemeButton(theme) {
+    const button = document.getElementById('dashboard-theme-toggle');
+    if (!button) return;
+    const isDark = theme === 'dark';
+    button.setAttribute('aria-pressed', String(isDark));
+    button.setAttribute('aria-label', isDark ? 'Switch dashboard to light mode' : 'Switch dashboard to dark mode');
+    button.title = isDark ? 'Switch dashboard to light mode' : 'Switch dashboard to dark mode';
+  }
+
+  function setDashboardTheme(theme) {
+    const nextTheme = theme === 'dark' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-dashboard-theme', nextTheme);
+    try {
+      localStorage.setItem(DASHBOARD_THEME_KEY, nextTheme);
+    } catch (err) {
+      // If storage is unavailable, the visible theme still changes for this page load.
+    }
+    refreshDashboardThemeButton(nextTheme);
+  }
+
+  function toggleDashboardTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-dashboard-theme') === 'dark' ? 'dark' : 'light';
+    setDashboardTheme(currentTheme === 'dark' ? 'light' : 'dark');
+  }
+
+  setDashboardTheme(getSavedDashboardTheme());
+  document.addEventListener('DOMContentLoaded', () => {
+    refreshDashboardThemeButton(getSavedDashboardTheme());
+  });
+
   function escapeHtml(value) {
     if (window.ETLUtils && window.ETLUtils.escapeHtml) return window.ETLUtils.escapeHtml(value);
     return String(value ?? '')
@@ -66,6 +106,8 @@
   }
 
   window.ETLDashboard = Object.assign(window.ETLDashboard || {}, {
+    setDashboardTheme,
+    toggleDashboardTheme,
     escapeHtml,
     escapeJs,
     safeClass,
@@ -80,4 +122,5 @@
     fallback,
     decodeText
   });
+  window.toggleDashboardTheme = toggleDashboardTheme;
 })();

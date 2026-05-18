@@ -37,6 +37,7 @@ const page = () => {
         title="Contact Us"
         description="Reach Engineering Trade Links Co. Ltd for tenders, quotations, project partnerships, and engineering services across Uganda."
         breadcrumbLinks={breadcrumbLinks}
+        coverImage="/etl-images/og-cover.jpg"
       />
       <ContactInfo />
       <Portal />

@@ -6,9 +6,37 @@ interface HeroSubProps {
     title: string;
     description: string;
     breadcrumbLinks: BreadcrumbLink[];
+    coverImage?: string;
 }
 
-const HeroSub: FC<HeroSubProps> = ({ title, description, breadcrumbLinks }) => {
+const HeroSub: FC<HeroSubProps> = ({ title, description, breadcrumbLinks, coverImage }) => {
+
+    if (coverImage) {
+        return (
+            <section className="relative overflow-hidden bg-[#113767]">
+                {/* Soft fill keeps the full fitted cover from looking boxed-in on wide screens. */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                    src={coverImage}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 h-full w-full scale-110 object-cover opacity-35 blur-md"
+                />
+                <div className="relative mx-auto flex h-[clamp(260px,42vw,560px)] w-full max-w-[1500px] items-center justify-center px-3 py-4 sm:px-6">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                        src={coverImage}
+                        alt=""
+                        className="h-full w-full object-contain drop-shadow-2xl"
+                    />
+                </div>
+                <div className="sr-only">
+                    <h2>{title}</h2>
+                    <p>{description}</p>
+                </div>
+            </section>
+        );
+    }
 
     return (
         <>

@@ -91,7 +91,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 2-4, 6, 12-16, 18-22 Naguru, Nakawa, Kampala", year: "2025", value: "UGX 1.8B",
     desc: "Addendum contract for additional asphalt laying, cut and fill, heavy grading, gravelling and compaction works on Phaneroo grounds.",
-    imgs: ["/etl-images/naguru-asphalt-02.jpg","/etl-images/naguru-asphalt-01.jpg","/etl-images/naguru-asphalt-07.jpg","/etl-images/naguru-asphalt-08.jpg"], ...DONE,
+    imgs: ["/etl-images/naguru-asphalt-02.jpg","/etl-images/naguru-asphalt-01.jpg","/etl-images/naguru-asphalt-07.jpg"], ...DONE,
   },
   {
     title: "Earthworks — Naguru Estates (Plots 2-4, 6, 18-12)",
@@ -107,7 +107,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 76-80, Naguru, Nakawa Division, Kampala", year: "2025", value: "UGX 491M",
     desc: "Bush clearing, cut and fill, heavy grading, gravelling, compactions, stone masonry boundary wall, temporary drainage and fencing.",
-    imgs: ["/etl-images/svc-earthworks-site.jpg","/etl-images/naguru-virginia-04.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-earthworks-site.jpg"], ...DONE,
   },
   {
     title: "Earth Retention with Stone Pitching — Virginia Plot",
@@ -115,7 +115,7 @@ const rawProjects: Project[] = [
     client: "Phaneroo Ministries International",
     location: "Plot 2-4, 6, 12-16, 18-22 Naguru, Nakawa, Kampala", year: "2025", value: "UGX 121M",
     desc: "Earth retention works including cut and fill, stone pitching, column cutting, and concrete works.",
-    imgs: ["/etl-images/svc-excavation.jpg","/etl-images/naguru-virginia-05.jpg"], ...DONE,
+    imgs: ["/etl-images/svc-excavation.jpg"], ...DONE,
   },
   {
     title: "Paved Parking Area — Virginia Hospital",

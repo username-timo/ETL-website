@@ -51,7 +51,7 @@ const services: Service[] = [
     cat: "Roads",
     tag: null,
     desc: "Comprehensive road construction, maintenance, rehabilitation and low-cost sealing of district and community access roads across Uganda.",
-    image: "/etl-images/naguru-asphalt-01.jpg",
+    image: "/etl-images/electoral-commission-04.jpg",
     gallery: [
       "/etl-images/electoral-commission-01.jpg",
       "/etl-images/electoral-commission-03.jpg",
@@ -275,16 +275,21 @@ function ServiceModal({
 
           {/* Left: image + gallery */}
           <div className="flex flex-col lg:min-h-0 lg:w-[58%]">
-            <div className="relative h-[240px] sm:h-[320px] lg:h-auto lg:flex-1 lg:min-h-[340px]" style={{ background: "#060e20" }}>
+            <div className="relative h-[240px] sm:h-[320px] lg:h-auto lg:flex-1 lg:min-h-[340px] overflow-hidden" style={{ background: "#060e20" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={gallery[idx]} alt="" aria-hidden="true"
+                className="absolute inset-0 h-full w-full scale-110 blur-2xl"
+                style={{ objectFit: "cover", opacity: 0.48 }} />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={gallery[idx]} alt={service.title}
-                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-              <div className="absolute inset-0 pointer-events-none"
+                className="relative z-[1] h-full w-full"
+                style={{ objectFit: "contain", display: "block" }} />
+              <div className="absolute inset-0 z-[2] pointer-events-none"
                 style={{ background: "linear-gradient(180deg, rgba(0,0,0,0) 60%, rgba(0,0,0,0.35) 100%)" }} />
 
               {/* Counter */}
               {total > 1 && (
-                <div className="absolute top-3 right-3 text-xs font-bold px-2.5 py-1 rounded-full text-white"
+                <div className="absolute top-3 right-3 z-[3] text-xs font-bold px-2.5 py-1 rounded-full text-white"
                   style={{ background: "rgba(0,0,0,0.55)" }}>
                   {idx + 1} / {total}
                 </div>
@@ -293,7 +298,7 @@ function ServiceModal({
               {/* Arrows */}
               {idx > 0 && (
                 <button onClick={prev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110"
+                  className="absolute left-3 top-1/2 z-[3] -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110"
                   style={{ background: "rgba(10,20,40,0.65)" }} aria-label="Previous">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
@@ -302,7 +307,7 @@ function ServiceModal({
               )}
               {idx < total - 1 && (
                 <button onClick={next}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110"
+                  className="absolute right-3 top-1/2 z-[3] -translate-y-1/2 w-10 h-10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110"
                   style={{ background: "rgba(10,20,40,0.65)" }} aria-label="Next">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

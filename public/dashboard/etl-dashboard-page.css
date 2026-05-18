@@ -6,23 +6,55 @@
     --gold: #c8860a; --gold-bg: #fdf3e0;
     --success: #0f7a4a; --success-bg: #e6f7ef;
     --danger: #c0392b; --danger-bg: #fdf0ef;
+    --nav-bg: var(--primary); --input-bg: var(--white);
+    --nav-text: #ffffff; --nav-muted: rgba(255,255,255,0.6);
+    --table-hover: var(--lighter-bg); --approved-row-bg: #e6f7ef;
+    --pending-row-bg: #fdf3e0; --card-hover-bg: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+    --card-active-bg: #f4f9fd;
+  }
+  html[data-dashboard-theme="dark"] {
+    color-scheme: dark;
+    --primary: #79b7f1; --secondary: #5db6ee; --light-bg: #12233a;
+    --lighter-bg: #07111f; --white: #101b2d; --text: #edf5ff;
+    --text-muted: #9fb1c8; --border: #28415f;
+    --gold: #f0b948; --gold-bg: #31240d;
+    --success: #4ade80; --success-bg: #102f23;
+    --danger: #fb7185; --danger-bg: #331720;
+    --nav-bg: #07111f; --input-bg: #0b1728;
+    --nav-text: #f8fbff; --nav-muted: rgba(248,251,255,0.68);
+    --table-hover: #152641; --approved-row-bg: #0d2b20;
+    --pending-row-bg: #2a210e; --card-hover-bg: linear-gradient(180deg, #101b2d 0%, #13243c 100%);
+    --card-active-bg: #13243c;
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'DM Sans', sans-serif; background: var(--lighter-bg); color: var(--text); min-height: 100vh; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--lighter-bg); color: var(--text); min-height: 100vh; transition: background-color 0.2s ease, color 0.2s ease; }
 
   .top-nav {
-    background: var(--primary); height: 64px; display: flex; align-items: center;
+    background: var(--nav-bg); height: 64px; display: flex; align-items: center;
     justify-content: space-between; padding: 0 5%;
     position: sticky; top: 0; z-index: 100;
   }
   .top-nav-brand { display: flex; align-items: center; gap: 12px; }
   .top-nav-sq { background: transparent; width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-  .top-nav-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--white); text-transform: uppercase; }
-  .top-nav-sub { font-size: 9px; color: rgba(255,255,255,0.6); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; display: block; }
+  .top-nav-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--nav-text); text-transform: uppercase; }
+  .top-nav-sub { font-size: 9px; color: var(--nav-muted); font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; display: block; }
   .nav-actions { display: flex; gap: 10px; }
-  .nav-btn { text-decoration: none; color: var(--white); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 16px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.2s; background: transparent; cursor: pointer; }
+  .nav-btn { text-decoration: none; color: var(--nav-text); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; padding: 8px 16px; border: 1.5px solid rgba(255,255,255,0.3); border-radius: 6px; transition: all 0.2s; background: transparent; cursor: pointer; }
   .nav-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
-  .nav-btn.gold { background: var(--gold); border-color: var(--gold); }
+  .nav-btn.gold { background: var(--gold); border-color: var(--gold); color: #07111f; }
+  .theme-toggle {
+    width: 38px; height: 38px; border: none; border-radius: 999px;
+    color: var(--nav-text); background: transparent; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: background-color 0.2s ease, transform 0.2s ease, color 0.2s ease;
+  }
+  .theme-toggle:hover { background: rgba(255,255,255,0.12); transform: translateY(-1px); }
+  .theme-toggle:focus-visible { outline: 3px solid rgba(79,163,209,0.45); outline-offset: 3px; }
+  .theme-icon { fill: currentColor; display: block; }
+  .theme-icon-sun { display: none; width: 24px; height: 24px; }
+  .theme-icon-moon { width: 30px; height: 30px; }
+  .theme-toggle[aria-pressed="true"] .theme-icon-sun { display: block; }
+  .theme-toggle[aria-pressed="true"] .theme-icon-moon { display: none; }
 
   .dash-wrap { max-width: 1500px; margin: 0 auto; padding: 36px 3% 60px; }
 
@@ -51,7 +83,7 @@
   th { background: var(--lighter-bg); padding: 11px 16px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); border-bottom: 1px solid var(--border); }
   td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid var(--border); vertical-align: middle; }
   tr:last-child td { border-bottom: none; }
-  tr:hover td { background: var(--lighter-bg); }
+  tr:hover td { background: var(--table-hover); }
 
   /* LPO Table Column Widths */
   tbody tr:first-child td:nth-child(1), thead tr th:nth-child(1) { width: 12%; }
@@ -126,6 +158,8 @@
     color: var(--primary); cursor: pointer; font-family: 'DM Sans', sans-serif;
     transition: all 0.2s;
   }
+  input, select, textarea { background: var(--input-bg); color: var(--text); }
+  input::placeholder, textarea::placeholder { color: var(--text-muted); }
   .status-select:focus { outline: none; border-color: var(--secondary); }
   .status-select:disabled { cursor: not-allowed; opacity: 0.5; }
   .status-select:disabled:hover { border-color: var(--gold); }
@@ -154,9 +188,9 @@
   .modal-btn.danger { background: var(--danger);  color: var(--white); }
 
   /* ── Approved / Pending Row Highlight ── */
-  tr.row-approved td { background: #e6f7ef !important; border-top: 2px solid #0f7a4a; border-bottom: 2px solid #0f7a4a; }
+  tr.row-approved td { background: var(--approved-row-bg) !important; border-top: 2px solid #0f7a4a; border-bottom: 2px solid #0f7a4a; }
   tr.row-approved td:first-child { border-left: 5px solid #0f7a4a !important; }
-  tr.row-pending td { background: #fdf3e0 !important; border-top: 2px solid #c8860a; border-bottom: 2px solid #c8860a; }
+  tr.row-pending td { background: var(--pending-row-bg) !important; border-top: 2px solid #c8860a; border-bottom: 2px solid #c8860a; }
   tr.row-pending td:first-child { border-left: 5px solid #c8860a !important; }
 
   /* MOBILE RESPONSIVE - TABLETS (768px and below) */
@@ -198,15 +232,6 @@
 
   /* MOBILE RESPONSIVE - PHONES (480px and below) */
   @media(max-width:480px) {
-    :root {
-      --primary: #1a3c6e; --secondary: #4fa3d1; --light-bg: #eaf2fb;
-      --lighter-bg: #f5f9fd; --white: #ffffff; --text: #1e293b;
-      --text-muted: #64748b; --border: #cfe3f0;
-      --gold: #c8860a; --gold-bg: #fdf3e0;
-      --success: #0f7a4a; --success-bg: #e6f7ef;
-      --danger: #c0392b; --danger-bg: #fdf0ef;
-    }
-
     body { font-size: 14px; }
     html, body { max-width: 100%; overflow-x: hidden; }
 
@@ -219,6 +244,9 @@
     .top-nav-sub { font-size: 8px; letter-spacing: 1px; }
     .nav-actions { flex: 0 0 auto; width: 52%; max-width: 52%; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
     .nav-btn { display: inline-flex; align-items: center; justify-content: center; text-align: center; font-size: 8px; padding: 6px 5px; border-radius: 4px; letter-spacing: 0.35px; }
+    .theme-toggle { width: 30px; height: 30px; justify-self: center; align-self: center; }
+    .theme-icon-sun { width: 20px; height: 20px; }
+    .theme-icon-moon { width: 24px; height: 24px; }
 
     /* MAIN */
     .dash-wrap { padding: 16px 2% 32px; max-width: 100%; }
@@ -385,13 +413,13 @@
     transform: none;
     box-shadow: 0 2px 10px rgba(26,60,110,0.08);
     border-color: #b9d3ea;
-    background: linear-gradient(180deg, #ffffff 0%, #f8fbfe 100%);
+    background: var(--card-hover-bg);
   }
   .stat-card.receivable-kpi.clickable:active {
     transform: none;
     box-shadow: inset 0 0 0 1px rgba(79,163,209,0.22);
     border-color: var(--secondary);
-    background: #f4f9fd;
+    background: var(--card-active-bg);
   }
 
   /* INVOICE LIST */
@@ -427,7 +455,7 @@
   /* PAYMENT MODALS (scoped to .modal-backdrop so they don't collide with .modal-overlay/.modal) */
   .modal-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.5); display: none; align-items: center; justify-content: center; z-index: 1100; padding: 20px; }
   .modal-backdrop.show { display: flex; }
-  .modal-backdrop .pay-modal { background: #fff; border-radius: 12px; max-width: 480px; width: 100%; max-height: 90vh; overflow: auto; }
+  .modal-backdrop .pay-modal { background: var(--white); color: var(--text); border-radius: 12px; max-width: 480px; width: 100%; max-height: 90vh; overflow: auto; }
   .modal-backdrop .pay-modal-header { background: var(--primary); color: #fff; padding: 14px 20px; display: flex; justify-content: space-between; align-items: center; border-radius: 12px 12px 0 0; }
   .modal-backdrop .pay-modal-header h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
   .modal-backdrop .pay-modal-close { background: transparent; border: none; color: #fff; font-size: 22px; cursor: pointer; padding: 0 4px; line-height: 1; }
@@ -435,7 +463,7 @@
   .modal-backdrop .pay-modal-body .field { margin-bottom: 14px; }
   .modal-backdrop .pay-modal-body .field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); display: block; margin-bottom: 4px; }
   .modal-backdrop .pay-modal-body .field input,
-  .modal-backdrop .pay-modal-body .field textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; }
+  .modal-backdrop .pay-modal-body .field textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; outline: none; background: var(--input-bg); color: var(--text); }
   .modal-backdrop .pay-modal-body .field input:focus,
   .modal-backdrop .pay-modal-body .field textarea:focus { border-color: var(--secondary); }
   .modal-backdrop .pay-modal-footer { padding: 14px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; }
