@@ -53,12 +53,12 @@ const services: Service[] = [
     desc: "Comprehensive road construction, maintenance, rehabilitation and low-cost sealing of district and community access roads across Uganda.",
     image: "/etl-images/electoral-commission-04.jpg",
     gallery: [
-      "/etl-images/electoral-commission-01.jpg",
+      "/etl-images/electoral-commission-04.jpg",
       "/etl-images/electoral-commission-03.jpg",
       "/etl-images/electoral-commission-02.jpg",
       "/etl-images/ura-nakawa-parking-01.jpg",
       "/etl-images/unra-road-01.jpg",
-      "/etl-images/svc-road-construction.jpg",
+      "/etl-images/ura-nakawa-parking-03.jpg",
     ],
     deliverables: [
       "Asphalt & bituminous surfacing",
@@ -77,7 +77,7 @@ const services: Service[] = [
     desc: "Full water supply infrastructure — borehole drilling, pump testing, pipe laying, tank installation and drainage construction for communities.",
     image: "/etl-images/shallow-wells-budaka-01.jpg",
     gallery: [
-      "/etl-images/svc-water-engineering.jpg",
+      "/etl-images/shallow-wells-budaka-02.jpg",
       "/etl-images/svc-water-pipes.jpg",
       "/etl-images/shallow-wells-budaka-01.jpg",
     ],
