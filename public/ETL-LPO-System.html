@@ -11,6 +11,7 @@
 <script src="/shared/etl-utils.js"></script>
 <script src="/shared/etl-email.js"></script>
 <script src="/forms/shared/etl-items.js"></script>
+<script src="/forms/shared/etl-share.js"></script>
 <script src="/forms/shared/etl-preview.js"></script>
 <script src="/forms/shared/etl-submit.js"></script>
 <link rel="stylesheet" href="/forms/shared/etl-forms.css">
@@ -224,6 +225,7 @@
     <button class="btn-ctrl btn-pdf" onclick="exportPDF()">⬇ Download PDF</button>
     <button class="btn-ctrl btn-pdf" onclick="window.print()" style="background:var(--secondary);">🖨 Print LPO</button>
     <button class="btn-ctrl btn-edit" onclick="document.getElementById('form-section').style.display='block'; document.getElementById('preview-section').style.display='none'; window.scrollTo(0,0);">← Edit LPO</button>
+    <a id="preview-whatsapp-btn" href="#" target="_blank" rel="noopener" class="btn-ctrl" style="background:#25D366;color:#fff;text-decoration:none;display:none;">Send via WhatsApp</a>
   </div>
 
   <div class="lpo-doc" id="lpo-document">

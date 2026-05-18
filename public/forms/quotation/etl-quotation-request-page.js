@@ -1,5 +1,5 @@
 // Quotation request page controller extracted from ETL-Quotation-Request.html.
-const { SUPABASE_URL, DASHBOARD_URL } = window.ETLConfig;
+const { SUPABASE_URL, DASHBOARD_URL, SITE_BASE_URL } = window.ETLConfig;
   let TURNSTILE_ENABLED = false;
   let TURNSTILE_SITE_KEY = '';
   let TURNSTILE_TOKEN = '';
@@ -243,6 +243,20 @@ Dashboard: ${DASHBOARD_URL}`);
         document.getElementById('request-form').style.display = 'none';
         document.getElementById('success-box').style.display = 'block';
         document.getElementById('success-ref').innerText = `REF: ${ref}`;
+        setTimeout(() => {
+          ETLShare.openSharePanel({
+            link: SITE_BASE_URL + '/ETL-Quotation-Request.html',
+            copyValue: `REF: ${ref}`,
+            clientName: 'ETL team',
+            phone: '+256 704 545 163',
+            label: 'ETL quotation request',
+            title: 'Request Submitted',
+            message: emailSent
+              ? 'Your quotation request was submitted. You can also send the reference to ETL via WhatsApp.'
+              : 'Your request was saved, but the notification email may not have sent. Please share the reference with ETL via WhatsApp.',
+            whatsAppMessage: `Hello ETL, I have submitted a quotation request.\n\nReference: ${ref}\nClient: ${cName}\nPhone: ${cPhone}\nEmail: ${cEmail}\nProject: ${pTitle}\n\nRequest form:\n${SITE_BASE_URL}/ETL-Quotation-Request.html`
+          });
+        }, 300);
         window.scrollTo(0, 0);
       } else {
         const err = result.error || {};

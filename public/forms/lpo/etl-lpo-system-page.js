@@ -244,11 +244,20 @@ ${DASHBOARD_URL}`, emailOpts);
       if (!emailSent) console.warn('LPO saved, but notification email could not be sent.');
 
       setTimeout(() => {
-        if(isOut) {
-          prompt('LPO saved successfully!\n\nShare this link with the supplier so they can view their LPO:', link);
-        } else {
-          prompt('Inward LPO recorded successfully!\n\nLPO Reference: ' + cleanLpoNum + '\n\nClient view link:', link);
-        }
+        const shareToEtl = IS_ANON;
+        ETLShare.openSharePanel({
+          link,
+          clientName: shareToEtl ? 'ETL team' : payload.entity_name,
+          phone: shareToEtl ? '+256 704 545 163' : payload.entity_phone,
+          label: 'official ETL LPO',
+          title: isOut ? 'LPO Saved' : 'LPO Submitted',
+          message: isOut
+            ? 'The LPO view link is ready. You can copy it or share it directly via WhatsApp.'
+            : 'The inward LPO has been submitted. You can copy the link or share it directly via WhatsApp.',
+          whatsAppMessage: shareToEtl
+            ? `Hello ETL, I have submitted an inward LPO for approval.\n\nLPO Reference: ${cleanLpoNum}\nEntity: ${payload.entity_name}\nTotal: UGX ${payload.total.toLocaleString()}\n\nView link:\n${link}`
+            : undefined
+        });
       }, 500);
       return true;
     } catch(e) {

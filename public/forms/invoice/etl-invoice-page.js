@@ -304,10 +304,19 @@ Engineering Trade Links Co. Ltd`;
     }
 
     setTimeout(() => {
-      const emailMessage = clientEmail
-        ? (emailSent ? 'Sent to: ' + clientEmail : 'Email could not be sent automatically - please share manually with: ' + clientEmail)
-        : 'No client email provided - please share manually.';
-      alert('Invoice ' + invNum + ' generated!\n\n' + emailMessage);
+      const clientPhone = document.getElementById('inv-contact2').value.trim();
+      ETLShare.openSharePanel({
+        link: invoiceViewLink,
+        clientName,
+        phone: clientPhone,
+        label: 'official ETL invoice',
+        title: emailSent ? 'Invoice Sent' : 'Invoice Saved',
+        message: clientEmail
+          ? (emailSent
+            ? `The invoice link was emailed to ${clientEmail}. You can also share it directly via WhatsApp.`
+            : `The invoice was saved, but email delivery did not complete. Use WhatsApp or copy the link below.`)
+          : 'The invoice was saved. Use WhatsApp or copy the link below to share it with the client.'
+      });
     }, 100);
   }
 
