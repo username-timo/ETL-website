@@ -64,11 +64,12 @@
     entityLabel.innerText   = isOut ? 'VENDOR / SUPPLIER DETAILS:' : 'CLIENT / ISSUER DETAILS:';
     entityLabel.className   = 'party-label ' + (isOut ? 'label-out' : 'label-in');
     document.getElementById('p-entity-name').innerText   = lpo.entity_name || '-';
-    document.getElementById('p-entity-detail').innerHTML = [
-      lpo.entity_phone,
-      lpo.entity_email,
-      lpo.entity_address
-    ].filter(Boolean).map(esc).join('<br>');
+    const entityDetails = [
+      lpo.entity_phone ? `Phone: ${lpo.entity_phone}` : '',
+      lpo.entity_email ? `Email: ${lpo.entity_email}` : '',
+      lpo.entity_address ? `Address: ${lpo.entity_address}` : ''
+    ].filter(Boolean);
+    document.getElementById('p-entity-detail').innerHTML = entityDetails.length ? entityDetails.map(esc).join('<br>') : '-';
 
     const items  = lpo.items || [];
     const tbody  = document.getElementById('p-items-body');

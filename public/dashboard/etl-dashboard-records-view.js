@@ -264,6 +264,7 @@
         ${modalField('Direction', `<span class="badge badge-${direction}">${escapeHtml(record.direction || '-')}</span>`, { raw: true })}
         ${modalField('Entity Name', record.entity_name)}
         ${modalField('Email', record.entity_email)}
+        ${modalField('Phone', record.entity_phone)}
         ${modalField('Issue Date', fmtDate(record.issue_date))}
         ${modalField('Delivery Date', fmtDate(record.delivery_date))}
         ${modalField('Total Amount', `<strong>${fmtMoney(record.total || 0)}</strong>`, { raw: true })}
