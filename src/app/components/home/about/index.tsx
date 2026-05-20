@@ -56,7 +56,7 @@ export default function About() {
               alt=""
               width={280}
               height={280}
-              className="object-contain opacity-[0.58] sm:opacity-[0.46] dark:opacity-[0.28]"
+              className="object-contain opacity-[0.66] sm:opacity-[0.54] dark:opacity-[0.34]"
             />
           </div>
 

@@ -1,51 +1,67 @@
 # ETL Project TODO
 
-## Refactor Large Public Tool Pages
+## Current Refactor Status
 
-The public HTML tools have grown large because each page currently contains its own HTML, CSS, and JavaScript in one file. This is working, but it is becoming harder to maintain safely.
+The demo-safe refactor phase is mostly complete. The old public HTML tools are still available, but most repeated logic has been pulled into shared JavaScript and CSS files so future changes are safer.
 
-Priority pages:
+Main public tool pages:
 - `public/ETL-Dashboard.html`
 - `public/ETL-Quotation-generator.html`
 - `public/ETL-LPO-System.html`
 - `public/ETL-Invoice.html`
 - `public/ETL-Inventory.html`
+- `public/ETL-Quotation-Request.html`
+- `public/ETL-Site-Stock.html`
+- Public view pages: quotation, LPO, and invoice view links
 
-Recommended refactor workload:
-- Move shared form/table/mobile styles into shared CSS files such as `public/etl-forms.css`.
-  - Started: quotation generator, LPO system, and invoice generator now share base/mobile item table styles through `public/etl-forms.css`.
-  - Continued: shared theme tokens, top nav, form cards, grids, fields, totals, actions, and inventory autocomplete styles moved into `public/etl-forms.css` for quotation generator, LPO system, and invoice generator.
-- Move repeated item-row logic into a shared JS helper such as `public/etl-items.js`.
-  - Started: quotation generator, LPO system, and invoice generator now share add/remove/recalculate/update-total behavior through `public/etl-items.js`.
-- Continue using `public/etl-utils.js` for escaping, validation, formatting, and response parsing.
-- Continue using `public/etl-auth.js` for shared Supabase authentication behavior.
-- Centralize Supabase public config and reduce repeated inline anon-key declarations.
-  - Note: the Supabase anon key is visible in public HTML by design, so safety depends on strict RLS policies. Do not expose `service_role` keys in public files.
-  - Later option: move public submissions through Next.js API routes for tighter validation, rate limiting, and less browser-side Supabase wiring.
-  - Started: `public/etl-config.js` now centralizes the public Supabase URL/anon key and site URLs; dashboard, request, generator, LPO, invoice, inventory, site stock, and public view pages now use it.
-- Move repeated email POST/error handling into shared helpers.
-  - Started: dashboard, quotation request, quotation generator, LPO system, and invoice generator now send through `public/etl-email.js`.
-- Move repeated dashboard table rendering into shared helpers.
-  - Started: request and LPO row/action/status-select markup now renders through `public/etl-dashboard.js`.
-  - Continued: invoice list filtering/status/row markup now renders through `public/etl-dashboard.js`.
-  - Continued: invoice payment modal summary/history and receivables KPI calculations now share `public/etl-dashboard.js` helpers.
-  - Continued: LPO detail, quotation request detail, and stock-check modal rendering moved into `public/etl-dashboard.js`; dashboard controller now delegates to shared render helpers.
-  - Continued: dashboard Supabase record access moved into `public/etl-dashboard-api.js`; request/LPO filters and approvals table rendering now live in `public/etl-dashboard.js`.
-- Keep each HTML page focused on page structure and page-specific logic only.
-  - Started: dashboard page controller JavaScript moved from `public/ETL-Dashboard.html` into `public/etl-dashboard-page.js`, cutting the dashboard HTML down significantly.
-  - Started: quotation generator page controller JavaScript moved from `public/ETL-Quotation-generator.html` into `public/etl-quotation-generator-page.js`.
-  - Started: LPO system page controller JavaScript moved from `public/ETL-LPO-System.html` into `public/etl-lpo-system-page.js`.
-  - Started: invoice generator page controller JavaScript moved from `public/ETL-Invoice.html` into `public/etl-invoice-page.js`.
-  - Started: inventory page controller JavaScript moved from `public/ETL-Inventory.html` into `public/etl-inventory-page.js`.
-  - Started: site stock and quotation request page controller JavaScript moved into `public/etl-site-stock-page.js` and `public/etl-quotation-request-page.js`.
-  - Started: quotation, LPO, and invoice public view page controllers moved into `public/etl-quotation-view-page.js`, `public/etl-lpo-view-page.js`, and `public/etl-invoice-view-page.js`.
-  - Route cleanup: dashboard LPO entry points now use the working `public/ETL-LPO-System.html` instead of the incomplete legacy `public/ETL-LPO-Outward.html`.
-- Move large page-specific CSS blocks out of HTML into page CSS files.
-  - Started: dashboard, quotation generator, LPO system, invoice, and inventory now use `public/etl-*-page.css` files instead of large inline `<style>` blocks.
-  - Continued: quotation request, site stock, and public document view pages now use their own `public/etl-*-page.css` files too.
-- Eventually consider moving the largest tools into proper Next.js pages/components.
-- Cleanup completed: removed old template auth/docs files, removed the tracked `.chrome-turnstile-deployed` browser profile from git, and consolidated duplicate image folders into `public/etl-images`.
+## Completed Refactor Work
 
-Important note:
-- Refactor gradually and test one tool page at a time. These pages are actively used for quotations, LPOs, invoices, stock, and dashboard operations.
-- Testing preference: after UI/refactor work, run light browser smoke tests; for email-related flows, run full browser/email flow tests.
+- Shared form styles now live in `public/forms/shared/etl-forms.css`.
+- Shared item-row logic now lives in `public/forms/shared/etl-items.js`.
+- Shared form validation and JSON submit helpers now live in `public/forms/shared/etl-submit.js`.
+- Shared preview rendering helpers now live in `public/forms/shared/etl-preview.js`.
+- Shared WhatsApp/copy-link share modal logic now lives in `public/forms/shared/etl-share.js`.
+- Shared inventory autocomplete now lives in `public/forms/shared/etl-inventory-autocomplete.js`.
+- Shared public config now lives in `public/shared/etl-config.js`.
+- Shared email sending now lives in `public/shared/etl-email.js`.
+- Shared auth behavior now lives in `public/shared/etl-auth.js`.
+- Shared escaping, formatting, and response parsing helpers now live in `public/shared/etl-utils.js`.
+- Dashboard logic is split into focused modules under `public/dashboard/`.
+- Inventory logic is split into focused modules under `public/inventory/`.
+- Form page logic is split into focused modules under `public/forms/`.
+- Large page-specific CSS blocks were moved out of HTML into page CSS files.
+- Dashboard, quotation, LPO, invoice, inventory, site stock, and public view pages now keep much less JavaScript/CSS directly inside the HTML.
+- Duplicate template assets and unused starter files were cleaned up.
+- Main LPO routing now uses `public/ETL-LPO-System.html` with mode query parameters instead of depending on the incomplete legacy outward page.
+
+## Remaining Cleanup
+
+- Keep `public/ETL-LPO-Outward.html` only if it still has a real route purpose. If not, remove it after confirming no links depend on it.
+- Continue reducing the largest remaining files only when we are already touching them:
+  - `public/inventory/etl-inventory-page.js`
+  - `public/forms/invoice/etl-invoice-page.js`
+  - `public/forms/lpo/etl-lpo-system-page.js`
+  - `public/forms/quotation/etl-quotation-generator-page.js`
+  - `public/dashboard/etl-dashboard-records-view.js`
+  - `public/dashboard/etl-dashboard-records-actions.js`
+  - `public/dashboard/etl-dashboard-controller.js`
+  - `public/forms/shared/etl-forms.css`
+  - `public/forms/invoice/etl-invoice-page.css`
+  - `public/dashboard/etl-dashboard-page.css`
+- Consider moving the biggest operational tools into proper Next.js pages/components later, after the demo is stable and the current structure is fully understood.
+- Keep checking for duplicated logic before adding new code. If quotation, LPO, invoice, dashboard, or inventory need the same behavior, prefer a shared helper.
+
+## Future Feature Ideas
+
+- Client database/autofill for repeat clients and suppliers.
+- Quote expiry reminders.
+- Soft-delete instead of permanent deletes.
+- Audit log for sensitive actions such as approve, reject, delete, and payment updates.
+- Warehouse/store manager role when a real stock manager account is needed.
+- EFRIS/URA compliance review with an accountant before going fully live.
+
+## Testing Preference
+
+- For normal UI/refactor work, run light checks and light browser smoke tests only when useful.
+- For email workflow changes, run the full email flow test because those paths affect real delivery.
+- Avoid heavy browser testing unless specifically requested, to save tokens and avoid unnecessary live records.
