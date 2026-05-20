@@ -53,7 +53,7 @@ export default function Portal() {
           </a>
 
           {/* Tile 2: LPO System */}
-          <a href="/ETL-LPO-System.html"
+          <a href="/ETL-LPO-System.html?mode=inward"
             className="group flex flex-col items-center text-center p-8 rounded-3xl border-2 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer"
             style={{ borderColor: "rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.07)" }}
             data-aos="fade-left">

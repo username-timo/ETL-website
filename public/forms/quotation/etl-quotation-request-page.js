@@ -248,7 +248,7 @@ Dashboard: ${DASHBOARD_URL}`);
             link: SITE_BASE_URL + '/ETL-Quotation-Request.html',
             copyValue: `REF: ${ref}`,
             clientName: 'ETL team',
-            phone: '+256 704 545 163',
+            phone: '+256704545163',
             label: 'ETL quotation request',
             title: 'Request Submitted',
             message: emailSent

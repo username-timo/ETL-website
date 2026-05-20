@@ -248,7 +248,7 @@ ${DASHBOARD_URL}`, emailOpts);
         ETLShare.openSharePanel({
           link,
           clientName: shareToEtl ? 'ETL team' : payload.entity_name,
-          phone: shareToEtl ? '+256 704 545 163' : payload.entity_phone,
+          phone: shareToEtl ? '+256704545163' : payload.entity_phone,
           label: 'official ETL LPO',
           title: isOut ? 'LPO Saved' : 'LPO Submitted',
           message: isOut

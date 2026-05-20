@@ -356,7 +356,7 @@
       html += `<div style="padding:16px;border-top:1px solid var(--border);">
         <p style="font-size:13px;color:var(--warning);font-weight:600;margin-bottom:12px;">Some items are not in stock. Generate a supplier LPO first, then invoice when ready.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="modal-btn primary" onclick="window.open('ETL-LPO-System.html','_blank');closeModal()">Generate Supplier LPO</button>
+          <button class="modal-btn primary" onclick="window.open('ETL-LPO-System.html?mode=outward','_blank');closeModal()">Generate Supplier LPO</button>
           <button class="modal-btn" style="background:var(--gold);color:#fff;" onclick="window.open('ETL-Invoice.html?lpo_id=${escapeJs(record.id)}','_blank');closeModal()">Generate Invoice Anyway</button>
         </div>
       </div>`;

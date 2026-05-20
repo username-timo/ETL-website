@@ -523,7 +523,7 @@ export default function Features() {
               Request a Quotation
             </Link>
             <Link
-              href="/ETL-LPO-System.html"
+              href="/ETL-LPO-System.html?mode=inward"
               className="flex-shrink-0 inline-flex items-center justify-center gap-2 px-8 py-3.5 font-bold text-white rounded-xl shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all text-sm"
               style={{ background: "linear-gradient(135deg,#c8860a,#e6a830)" }}
             >

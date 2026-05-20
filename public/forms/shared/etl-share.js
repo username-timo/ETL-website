@@ -1,7 +1,7 @@
 (function () {
   let currentShareLink = '';
   const SHARE_STYLE_ID = 'etl-share-panel-styles';
-  const DEFAULT_ETL_WHATSAPP = '+256 704 545 163';
+  const DEFAULT_ETL_WHATSAPP = '+256704545163';
 
   function normalizeUgandaPhone(phone) {
     const cleaned = String(phone || '').replace(/[^0-9+]/g, '');
