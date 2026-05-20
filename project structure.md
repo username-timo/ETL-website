@@ -136,7 +136,6 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | `public/ETL-Quotation-generator.html` | Internal quotation generator. Saves generated quotes to `quotations_generated`, emails the client, and opens the share modal. |
 | `public/ETL-Quotation-View.html` | Public quotation view link opened by clients. Reads generated quote by `unique_link`. |
 | `public/ETL-LPO-System.html` | Main LPO form for inward/outward LPOs. Uses `?mode=inward` or `?mode=outward`. |
-| `public/ETL-LPO-Outward.html` | Legacy/outdated outward LPO page. Prefer `ETL-LPO-System.html?mode=outward` unless this file is deliberately revived. |
 | `public/ETL-LPO-View.html` | Public LPO view link. Shows issuer/supplier details and LPO items. |
 | `public/ETL-Invoice.html` | Internal invoice generator and invoice payment tools. |
 | `public/ETL-Invoice-View.html` | Public invoice view link opened by clients. |

@@ -14,7 +14,6 @@ export default function robots(): MetadataRoute.Robots {
           "/ETL-Invoice.html",
           "/ETL-Invoice-View.html",
           "/ETL-LPO-System.html",
-          "/ETL-LPO-Outward.html",
           "/ETL-LPO-View.html",
           "/ETL-Quotation-Request.html",
           "/ETL-Quotation-View.html",

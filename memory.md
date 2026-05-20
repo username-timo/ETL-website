@@ -47,6 +47,7 @@ Recent staged/edited documentation work in this session:
 - `PROJECT_TODO.md` was refreshed to reflect the current refactor status.
 - `project structure.md` was created/updated as a current project map.
 - `src/app/components/home/about/index.tsx` had the About ETL logo watermark opacity increased slightly.
+- `public/ETL-LPO-Outward.html` was removed after confirming active links use `public/ETL-LPO-System.html?mode=outward`.
 
 Always run `git status --short --branch` before continuing.
 
@@ -75,7 +76,6 @@ Important static tool pages:
 - `public/ETL-Quotation-generator.html` - internal generated quotation tool.
 - `public/ETL-Quotation-View.html` - public generated quotation view link.
 - `public/ETL-LPO-System.html` - main LPO form for inward and outward LPOs via query mode.
-- `public/ETL-LPO-Outward.html` - legacy/outdated page; prefer `ETL-LPO-System.html?mode=outward`.
 - `public/ETL-LPO-View.html` - public LPO view link.
 - `public/ETL-Invoice.html` - internal invoice generator and payment tools.
 - `public/ETL-Invoice-View.html` - public invoice view link.
@@ -232,7 +232,7 @@ Demo-safe refactor phase is mostly complete:
 
 Remaining cleanup should be gradual:
 
-- Confirm whether `public/ETL-LPO-Outward.html` is still needed. Prefer using `ETL-LPO-System.html?mode=outward`.
+- The old `public/ETL-LPO-Outward.html` redirect stub has been removed. Use `public/ETL-LPO-System.html?mode=outward` for outward LPOs.
 - Reduce large files only when touching them anyway:
   - `public/inventory/etl-inventory-page.js`
   - `public/forms/invoice/etl-invoice-page.js`

@@ -33,10 +33,10 @@ Main public tool pages:
 - Dashboard, quotation, LPO, invoice, inventory, site stock, and public view pages now keep much less JavaScript/CSS directly inside the HTML.
 - Duplicate template assets and unused starter files were cleaned up.
 - Main LPO routing now uses `public/ETL-LPO-System.html` with mode query parameters instead of depending on the incomplete legacy outward page.
+- Removed the old `public/ETL-LPO-Outward.html` redirect stub after confirming active links already use `public/ETL-LPO-System.html?mode=outward`.
 
 ## Remaining Cleanup
 
-- Keep `public/ETL-LPO-Outward.html` only if it still has a real route purpose. If not, remove it after confirming no links depend on it.
 - Continue reducing the largest remaining files only when we are already touching them:
   - `public/inventory/etl-inventory-page.js`
   - `public/forms/invoice/etl-invoice-page.js`
