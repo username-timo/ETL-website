@@ -55,6 +55,7 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | `memory.md` | Older project memory/context notes. Useful, but verify against current code before relying on it. |
 | `supabase-rls-audit.sql` | Read-only Supabase launch audit for RLS status, policies, browser-role grants, anon access, and SECURITY DEFINER functions. |
 | `supabase-public-link-hardening.sql` | Supabase hardening migration that serves public document views through token RPC functions and removes direct anon SELECT from document tables. |
+| `supabase-authenticated-policy-hardening.sql` | Supabase hardening migration for logged-in staff risk. Tightens broad update access on financial records and inventory/project master data. |
 | `md2.md` | Older feature-idea note. Useful as rough history, not source of truth. |
 
 ## Main Next.js App Structure

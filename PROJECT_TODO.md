@@ -40,6 +40,7 @@ Main public tool pages:
 - Treat security work as launch-blocking before the real domain goes live:
   - Run `supabase-rls-audit.sql` in Supabase and review every anon grant and every policy.
   - Use `supabase-public-link-hardening.sql` to replace direct anon document-table reads with token-based RPC functions.
+  - Review `supabase-authenticated-policy-hardening.sql` before go-live to reduce broad logged-in user update access.
   - Keep doing XSS passes when touching any `innerHTML` render path.
   - Move high-risk writes and admin actions toward server/API routes where practical.
   - Keep secrets only in `.env` or Cloudflare Worker secrets, never in browser files.
@@ -64,6 +65,7 @@ Main public tool pages:
 - Public quotation/LPO/invoice view links served through token-based RPC functions, not broad anon table SELECT.
 - Inventory, payments, profiles, and stock movement tables blocked from anon access.
 - Management-only operations verified for approve, reject, delete, and sensitive payment changes.
+- Broad authenticated `UPDATE true` policies reviewed and tightened where they touch financial or inventory master data.
 - XSS pass complete for public/static pages that use `innerHTML`.
 - Email flows verified after any server-side auth or recipient logic changes.
 
