@@ -3,8 +3,21 @@
     return !to || !String(to).includes('@');
   }
 
+  async function getSessionToken() {
+    try {
+      if (!window.etlAuth || !window.etlAuth.getClient) return '';
+      const client = window.etlAuth.getClient();
+      const { data } = await client.auth.getSession();
+      return data && data.session ? data.session.access_token : '';
+    } catch (error) {
+      console.warn('Could not read auth session for email request:', error);
+      return '';
+    }
+  }
+
   async function send(to, subject, body, options) {
     const opts = options || {};
+    const flow = opts.flow || 'internal_ops';
     if (invalidRecipient(to)) {
       return { ok: false, error: opts.invalidMessage || 'No valid recipient email address was entered.' };
     }
@@ -13,15 +26,24 @@
       to,
       subject,
       body,
-      flow: opts.flow || 'internal_ops',
+      flow,
       context: opts.context || 'email'
     };
     if (opts.turnstileToken) payload.turnstileToken = opts.turnstileToken;
 
     try {
+      const headers = { 'Content-Type': 'application/json' };
+      if (flow === 'internal_ops') {
+        const token = opts.authToken || await getSessionToken();
+        if (!token) {
+          return { ok: false, error: 'Please sign in again before sending this internal email.' };
+        }
+        headers.Authorization = `Bearer ${token}`;
+      }
+
       const res = await fetch('/api/send-email', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(payload)
       });
 

@@ -3,6 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 const FOOTER_HTML =
   '<br><br><hr style="border:none;border-top:1px solid #cfe3f0;"><p style="font-size:11px;color:#64748b;">Engineering Trade Links Co. Ltd | Plot 1353, Sonde-Seeta Road, Mukono | +256 776 566 522</p>';
 
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  "https://stpxnnvwhkueyryliehu.supabase.co";
+const SUPABASE_ANON_KEY =
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FLOW_CONFIG = {
   internal_ops: {
@@ -131,6 +139,58 @@ function getPublicFlowRecipients(senderEmail: string) {
 
   if (configured?.length) return configured;
   return [senderEmail.toLowerCase()];
+}
+
+async function verifyInternalUser(request: NextRequest) {
+  const authHeader = request.headers.get("authorization") || "";
+  const token = authHeader.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
+
+  if (!token) {
+    return {
+      ok: false as const,
+      status: 401,
+      error: "Sign in is required for internal email requests.",
+    };
+  }
+
+  try {
+    const response = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
+      headers: {
+        apikey: SUPABASE_ANON_KEY,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      return {
+        ok: false as const,
+        status: 401,
+        error: "Your session has expired. Please sign in again.",
+      };
+    }
+
+    const user = (await response.json().catch(() => null)) as {
+      id?: string;
+      email?: string;
+    } | null;
+
+    if (!user?.id) {
+      return {
+        ok: false as const,
+        status: 401,
+        error: "Could not verify your signed-in user.",
+      };
+    }
+
+    return { ok: true as const, user };
+  } catch (error) {
+    console.error("[email] Supabase auth verification failed", { error });
+    return {
+      ok: false as const,
+      status: 502,
+      error: "Could not verify the internal email session.",
+    };
+  }
 }
 
 function cleanStore(now: number) {
@@ -310,6 +370,7 @@ export const POST = async (request: NextRequest) => {
   const flowConfig = FLOW_CONFIG[flow];
   const allowedOrigins = getConfiguredOrigins(request);
   const publicFlowRecipients = getPublicFlowRecipients(senderEmail);
+  let verifiedUser: { id?: string; email?: string } | null = null;
 
   if (origin && !allowedOrigins.includes(origin)) {
     console.warn("[email] Rejected unexpected origin", { ip, origin, flow });
@@ -317,6 +378,20 @@ export const POST = async (request: NextRequest) => {
       { error: "Origin is not allowed for email requests." },
       { status: 403 }
     );
+  }
+
+  if (!flowConfig.isPublic) {
+    const auth = await verifyInternalUser(request);
+    if (!auth.ok) {
+      console.warn("[email] Rejected unauthenticated internal email", {
+        ip,
+        flow,
+        context,
+        origin: origin || "n/a",
+      });
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+    verifiedUser = auth.user;
   }
 
   if (
@@ -369,6 +444,7 @@ export const POST = async (request: NextRequest) => {
     context,
     ip,
     to,
+    user: verifiedUser?.email || verifiedUser?.id || "public",
     origin: origin || "n/a",
   });
 
@@ -412,6 +488,7 @@ export const POST = async (request: NextRequest) => {
     context,
     ip,
     to,
+    user: verifiedUser?.email || verifiedUser?.id || "public",
     messageId: messageId || "n/a",
   });
   return NextResponse.json({ ok: true, flow, context, messageId });

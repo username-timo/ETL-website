@@ -121,8 +121,8 @@ Edit source files in `src/`, `public/`, and root config files instead.
 
 | Path | What it does |
 |---|---|
-| `src/app/api/send-email/route.ts` | Server-side email endpoint. Sends through Brevo, validates payloads, rate-limits requests, checks allowed origins, and verifies Turnstile for public flows. |
-| `src/app/api/cron/quote-reminders/route.ts` | Cloudflare cron endpoint. Looks for generated quotations expiring in 3 days and emails reminder messages. |
+| `src/app/api/send-email/route.ts` | Server-side email endpoint. Sends through Brevo, validates payloads, rate-limits requests, checks allowed origins, verifies Supabase sessions for internal email, and verifies Turnstile for public flows. |
+| `src/app/api/cron/quote-reminders/route.ts` | Quote reminder endpoint. Requires `CRON_SECRET` in production, then looks for generated quotations expiring in 3 days and emails reminder messages. |
 | `src/app/api/pagedata/route.ts` | Small page-data endpoint from the original template. Keep only if still used. |
 
 ## Public Static Tool Pages
@@ -232,6 +232,8 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 - User roles live in `profiles.role`, mainly `staff` and `management`.
 - Public view links do not require login. They rely on unguessable `unique_link` values and Supabase RLS.
 - Public request forms use Turnstile before email sending.
+- Internal email sends use the logged-in Supabase session token and are rejected by `/api/send-email` if the session is missing or expired.
+- The quote reminder endpoint fails closed in production if `CRON_SECRET` is not configured.
 - The Supabase anon key is visible in browser JS by design. It must never be treated like a private secret.
 - Real secrets such as `BREVO_API_KEY`, `TURNSTILE_SECRET_KEY`, `CRON_SECRET`, and `SUPABASE_SERVICE_KEY` belong in Cloudflare secrets or local `.env`, not public files.
 
@@ -239,7 +241,7 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 
 | Flow | Where it is used | Notes |
 |---|---|---|
-| `internal_ops` | Internal quote/LPO/invoice/dashboard actions | Does not require Turnstile. |
+| `internal_ops` | Internal quote/LPO/invoice/dashboard actions | Requires a valid Supabase session token. Does not require Turnstile. |
 | `public_quote_request` | Public quotation request form | Requires Turnstile and sends only to allowed ETL recipient emails. |
 | `public_lpo_submit` | Anonymous/public LPO submit path | Requires Turnstile. |
 

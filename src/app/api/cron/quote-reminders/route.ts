@@ -8,7 +8,13 @@ const SUPABASE_URL = "https://stpxnnvwhkueyryliehu.supabase.co";
 export const GET = async (request: NextRequest) => {
   // Protect the endpoint — only allow Cloudflare cron calls or internal calls
   const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = process.env.CRON_SECRET?.trim();
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (!cronSecret && isProduction) {
+    console.error("[cron] CRON_SECRET is missing in production");
+    return NextResponse.json({ error: "CRON_SECRET is not configured" }, { status: 500 });
+  }
 
   if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

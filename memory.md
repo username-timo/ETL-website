@@ -161,6 +161,8 @@ Important correction: older notes may mention `quotation_requests`; the current 
 - Main roles are `staff` and `management`.
 - Public view pages do not require login; they rely on unguessable `unique_link` values plus Supabase RLS.
 - Public forms use Turnstile and `/api/send-email`.
+- Internal email sends now attach the Supabase session token from `public/shared/etl-email.js`; `/api/send-email` verifies that token before allowing `internal_ops`.
+- The quote reminder endpoint now fails closed in production if `CRON_SECRET` is missing, and rejects calls with the wrong bearer token.
 - The Supabase anon key is public by design and visible in browser JS. Security depends on strict RLS.
 - Never expose service-role keys or Brevo API keys in browser/public files.
 - Secrets belong in Cloudflare Worker secrets or local `.env`.
@@ -181,7 +183,7 @@ It sends through Brevo and handles:
 
 Email flows:
 
-- `internal_ops` - internal quote/LPO/invoice/dashboard actions, no Turnstile.
+- `internal_ops` - internal quote/LPO/invoice/dashboard actions, requires a valid Supabase session token, no Turnstile.
 - `public_quote_request` - public quotation request, Turnstile required.
 - `public_lpo_submit` - anonymous/public LPO submit, Turnstile required.
 
