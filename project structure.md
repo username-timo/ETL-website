@@ -53,6 +53,8 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | `PROJECT_TODO.md` | Current refactor/status TODO list. |
 | `project structure.md` | This file. Human-readable project map. |
 | `memory.md` | Older project memory/context notes. Useful, but verify against current code before relying on it. |
+| `supabase-rls-audit.sql` | Read-only Supabase launch audit for RLS status, policies, browser-role grants, anon access, and SECURITY DEFINER functions. |
+| `supabase-public-link-hardening.sql` | Supabase hardening migration that serves public document views through token RPC functions and removes direct anon SELECT from document tables. |
 | `md2.md` | Older feature-idea note. Useful as rough history, not source of truth. |
 
 ## Main Next.js App Structure
@@ -236,6 +238,9 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 - The quote reminder endpoint fails closed in production if `CRON_SECRET` is not configured.
 - The Supabase anon key is visible in browser JS by design. It must never be treated like a private secret.
 - Real secrets such as `BREVO_API_KEY`, `TURNSTILE_SECRET_KEY`, `CRON_SECRET`, and `SUPABASE_SERVICE_KEY` belong in Cloudflare secrets or local `.env`, not public files.
+- Before launch, run `supabase-rls-audit.sql` in Supabase and review every anon grant/policy result.
+- Public document links should use RPC functions such as `get_public_quotation`, `get_public_lpo`, and `get_public_invoice`, not direct anon table SELECT.
+- Public/static pages still use some `innerHTML`; user/database text must be escaped before it is inserted into those HTML strings.
 
 ## Email Flows
 

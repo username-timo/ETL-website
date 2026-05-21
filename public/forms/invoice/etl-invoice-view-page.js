@@ -16,8 +16,14 @@
     }
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/invoices?unique_link=eq.${invLink}&limit=1`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_public_invoice`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`
+        },
+        body: JSON.stringify({ p_unique_link: invLink })
       });
       if(!res.ok) throw new Error(await ETLUtils.readResponseError(res));
       const data = await res.json();

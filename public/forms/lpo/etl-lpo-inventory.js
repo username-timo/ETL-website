@@ -59,7 +59,7 @@
       return;
     }
 
-    const matches = inventoryItems.filter((item) => item.name.toLowerCase().includes(val));
+    const matches = inventoryItems.filter((item) => String(item.name || '').toLowerCase().includes(val));
     if (!matches.length) {
       list.innerHTML = '<div class="ac-no-results">No items found</div>';
       list.classList.add('show');
@@ -68,9 +68,9 @@
 
     list.innerHTML = matches.map((item) =>
       `<div class="ac-item" tabindex="0"
-        data-name="${String(item.name || '').replace(/"/g, '&quot;')}"
-        data-unit="${item.unit || ''}"
-        data-cost="${item.unit_cost || 0}">${window.ETLUtils.escapeHtml(item.name || '')}</div>`
+        data-name="${window.ETLUtils.escapeHtml(item.name || '')}"
+        data-unit="${window.ETLUtils.escapeHtml(item.unit || '')}"
+        data-cost="${window.ETLUtils.escapeHtml(item.unit_cost || 0)}">${window.ETLUtils.escapeHtml(item.name || '')}</div>`
     ).join('');
 
     list.querySelectorAll('.ac-item').forEach((item) => {

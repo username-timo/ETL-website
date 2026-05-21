@@ -291,8 +291,14 @@ ${DASHBOARD_URL}`, emailOpts);
     if(!qLink) return;
 
     try {
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/quotations_generated?unique_link=eq.${qLink}&limit=1`, {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SESSION_TOKEN || SUPABASE_KEY}` }
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/get_public_quotation`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SESSION_TOKEN || SUPABASE_KEY}`
+        },
+        body: JSON.stringify({ p_unique_link: qLink })
       });
       const data = await res.json();
       if(!data || !data.length) return;

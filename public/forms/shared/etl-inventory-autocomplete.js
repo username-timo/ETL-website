@@ -32,6 +32,17 @@
 // ── State ──────────────────────────────────────────────────────────────────
 let inventoryItems = [];
 
+function esc(value) {
+  return window.ETLUtils && window.ETLUtils.escapeHtml
+    ? window.ETLUtils.escapeHtml(value)
+    : String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 // ── Load ───────────────────────────────────────────────────────────────────
 async function loadInventoryItems() {
   try {
@@ -48,6 +59,7 @@ async function loadInventoryItems() {
       `${supabaseUrl}/rest/v1/inventory_items?select=name,unit,unit_cost,category&order=name.asc`,
       { headers: { apikey: supabaseKey, Authorization: `Bearer ${bearer}` } }
     );
+    if (!res.ok) throw new Error(await ETLUtils.readResponseError(res));
     const data = await res.json();
     if (Array.isArray(data)) inventoryItems = data;
   } catch (e) {
@@ -64,7 +76,7 @@ function showAC(input) {
   if (!val) { list.classList.remove('show'); return; }
 
   const matches = inventoryItems.filter(i =>
-    i.name.toLowerCase().includes(val)
+    String(i.name || '').toLowerCase().includes(val)
   );
 
   if (!matches.length) {
@@ -75,9 +87,9 @@ function showAC(input) {
 
   list.innerHTML = matches.map(i =>
     `<div class="ac-item" tabindex="0"
-      data-name="${i.name.replace(/"/g, '&quot;')}"
-      data-unit="${i.unit || ''}"
-      data-cost="${i.unit_cost || 0}">${i.name}</div>`
+      data-name="${esc(i.name)}"
+      data-unit="${esc(i.unit || '')}"
+      data-cost="${esc(i.unit_cost || 0)}">${esc(i.name)}</div>`
   ).join('');
 
   list.querySelectorAll('.ac-item').forEach(item => {

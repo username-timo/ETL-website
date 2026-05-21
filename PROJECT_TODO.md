@@ -2,7 +2,7 @@
 
 ## Current Refactor Status
 
-The demo-safe refactor phase is mostly complete. The old public HTML tools are still available, but most repeated logic has been pulled into shared JavaScript and CSS files so future changes are safer.
+The project should now be treated as production-bound, not just demo-safe. The old public HTML tools are still available, but repeated logic has been pulled into shared JavaScript and CSS files so future changes are safer while we continue hardening the launch risks.
 
 Main public tool pages:
 - `public/ETL-Dashboard.html`
@@ -37,6 +37,12 @@ Main public tool pages:
 
 ## Remaining Cleanup
 
+- Treat security work as launch-blocking before the real domain goes live:
+  - Run `supabase-rls-audit.sql` in Supabase and review every anon grant and every policy.
+  - Use `supabase-public-link-hardening.sql` to replace direct anon document-table reads with token-based RPC functions.
+  - Keep doing XSS passes when touching any `innerHTML` render path.
+  - Move high-risk writes and admin actions toward server/API routes where practical.
+  - Keep secrets only in `.env` or Cloudflare Worker secrets, never in browser files.
 - Continue reducing the largest remaining files only when we are already touching them:
   - `public/inventory/etl-inventory-page.js`
   - `public/forms/invoice/etl-invoice-page.js`
@@ -50,6 +56,16 @@ Main public tool pages:
   - `public/dashboard/etl-dashboard-page.css`
 - Consider moving the biggest operational tools into proper Next.js pages/components later, after the demo is stable and the current structure is fully understood.
 - Keep checking for duplicated logic before adding new code. If quotation, LPO, invoice, dashboard, or inventory need the same behavior, prefer a shared helper.
+
+## Launch Security Checklist
+
+- Supabase RLS live audit complete and reviewed.
+- Public quotation/LPO intake limited to required inserts only.
+- Public quotation/LPO/invoice view links served through token-based RPC functions, not broad anon table SELECT.
+- Inventory, payments, profiles, and stock movement tables blocked from anon access.
+- Management-only operations verified for approve, reject, delete, and sensitive payment changes.
+- XSS pass complete for public/static pages that use `innerHTML`.
+- Email flows verified after any server-side auth or recipient logic changes.
 
 ## Future Feature Ideas
 

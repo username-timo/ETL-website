@@ -54,7 +54,7 @@
       invoicesCache = await ETLDashboardApi.fetchInvoicesWithPayments(sessionToken());
       renderInvoiceList();
     } catch (e) {
-      body.innerHTML = `<div class="inv-list-empty">Could not load invoices: ${e.message}</div>`;
+      body.innerHTML = `<div class="inv-list-empty">Could not load invoices: ${ETLDashboard.escapeHtml(e.message)}</div>`;
     }
   }
 

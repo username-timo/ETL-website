@@ -7,6 +7,17 @@ let SESSION_TOKEN = '';
 
 let allItems = [];
 
+function escJs(value) {
+  return String(value ?? '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/[\r\n]+/g, ' ');
+}
+
+function escJsAttr(value) {
+  return esc(escJs(value));
+}
+
 function fmtDate(d) {
   if(!d) return '—';
   return new Date(d).toLocaleDateString('en-GB', {day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit'});
@@ -90,7 +101,7 @@ async function loadInventory() {
     updateStats(data);
     populateItemSelects(data);
   } catch(e) {
-    document.getElementById('stock-body').innerHTML = '<div class="empty-state"><p>Error loading inventory: ' + e.message + '</p></div>';
+    document.getElementById('stock-body').innerHTML = '<div class="empty-state"><p>Error loading inventory: ' + esc(e.message) + '</p></div>';
   }
 }
 
@@ -120,9 +131,9 @@ function renderInventory(data) {
       <td>UGX ${fmt(value)}</td>
       <td><span class="badge ${badgeClass}">${badgeText}</span></td>
       <td>
-        <button class="action-btn green" onclick="openStockInFor('${esc(item.id)}')">+ In</button>
-        <button class="action-btn danger" onclick="openStockOutFor('${esc(item.id)}')">- Out</button>
-        <button class="action-btn" onclick="openAdjust(${JSON.stringify(item).replace(/"/g,'&quot;')})">⚙️</button>
+        <button class="action-btn green" onclick="openStockInFor('${escJsAttr(item.id)}')">+ In</button>
+        <button class="action-btn danger" onclick="openStockOutFor('${escJsAttr(item.id)}')">- Out</button>
+        <button class="action-btn" onclick="openAdjustFor('${escJsAttr(item.id)}')">Adjust</button>
       </td>
     </tr>`;
   }).join('');
@@ -175,13 +186,13 @@ async function loadMovements() {
       const typeText = m.movement_type === 'in' ? '📥 IN' : m.movement_type === 'out' ? '📤 OUT' : '⚙️ ADJUST';
       return `<tr>
         <td>${fmtDate(m.created_at)}</td>
-        <td><strong>${m.item_name || '—'}</strong></td>
+        <td><strong>${esc(m.item_name || '—')}</strong></td>
         <td><span class="badge ${typeClass}">${typeText}</span></td>
         <td><strong>${m.movement_type === 'out' ? '-' : '+'}${fmt(m.quantity)}</strong></td>
-        <td>${m.project || '—'}</td>
-        <td>${m.lpo_number || '—'}</td>
-        <td>${m.notes || '—'}</td>
-        <td>${m.recorded_by || 'ETL Store'}</td>
+        <td>${esc(m.project || '—')}</td>
+        <td>${esc(m.lpo_number || '—')}</td>
+        <td>${esc(m.notes || '—')}</td>
+        <td>${esc(m.recorded_by || 'ETL Store')}</td>
       </tr>`;
     }).join('');
 
@@ -194,7 +205,7 @@ async function loadMovements() {
         <tbody>${rows}</tbody>
       </table>`;
   } catch(e) {
-    document.getElementById('movements-body').innerHTML = '<div class="empty-state"><p>Error: ' + e.message + '</p></div>';
+    document.getElementById('movements-body').innerHTML = '<div class="empty-state"><p>Error: ' + esc(e.message) + '</p></div>';
   }
 }
 
@@ -204,7 +215,9 @@ function filterItems() {
   const status = document.getElementById('status-filter').value;
 
   let filtered = allItems.filter(item => {
-    const matchSearch = item.name.toLowerCase().includes(search) || item.category.toLowerCase().includes(search);
+    const itemName = String(item.name || '').toLowerCase();
+    const itemCategory = String(item.category || '').toLowerCase();
+    const matchSearch = itemName.includes(search) || itemCategory.includes(search);
     const matchCat = !cat || item.category === cat;
     const matchStatus = !status || (status === 'low' ? stockStatus(item) !== 'ok' : stockStatus(item) === 'ok');
     return matchSearch && matchCat && matchStatus;
@@ -267,6 +280,10 @@ function openAdjust(item) {
   document.getElementById('adjust-cost').value = item.unit_cost;
   document.getElementById('adjust-reason').value = '';
   document.getElementById('adjust-modal').classList.add('open');
+}
+
+function openAdjustFor(id) {
+  openAdjust(findInventoryItem(id));
 }
 
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }

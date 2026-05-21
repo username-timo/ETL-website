@@ -59,10 +59,10 @@
 
     tbody.innerHTML = (items || []).map((item, index) => `
       <tr>
-        <td>${item.i || index + 1}</td>
+        <td>${escapeHtml(item.i || index + 1)}</td>
         <td>${escapeHtml(item.desc)}</td>
         <td>${escapeHtml(item.unit)}</td>
-        <td${alignQty ? ' style="text-align:right;"' : ''}>${item.qty}</td>
+        <td${alignQty ? ' style="text-align:right;"' : ''}>${escapeHtml(item.qty)}</td>
         <td${alignPrice ? ' style="text-align:right;"' : ''}>${priceFormatter(item.price)}</td>
         <td${alignTotal ? ' style="text-align:right;"' : ''}>${totalFormatter(item.total)}</td>
       </tr>`).join('');

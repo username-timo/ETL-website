@@ -44,6 +44,7 @@ async function api(table, opts = {}) {
     },
     body: body ? JSON.stringify(body) : undefined
   });
+  if(!res.ok) throw new Error(await ETLUtils.readResponseError(res));
   if(method === 'GET') return res.json();
   return res;
 }
@@ -164,19 +165,6 @@ async function loadSiteStock() {
       <div class="stock-item-actions">
         <button class="action-btn use" onclick="quickLog('${escJsAttr(item.item_id)}','${escJsAttr(item.item_name)}','${escJsAttr(item.unit)}','consumed')">Use</button>
         <button class="action-btn return" onclick="quickLog('${escJsAttr(item.item_id)}','${escJsAttr(item.item_name)}','${escJsAttr(item.unit)}','returned')">Return</button>
-      </div>
-    </div>`).join('');
-  return;
-
-  document.getElementById('stock-list').innerHTML = data.map(item => `
-    <div class="stock-item">
-      <div class="stock-item-top">
-        <div class="stock-item-name">${item.item_name}</div>
-        <div class="stock-item-qty">${item.quantity} <span style="font-size:12px;font-weight:400;color:var(--text-muted)">${item.unit}</span></div>
-      </div>
-      <div class="stock-item-actions">
-        <button class="action-btn use" onclick="quickLog('${item.item_id}','${item.item_name}','${item.unit}','consumed')">📤 Use</button>
-        <button class="action-btn return" onclick="quickLog('${item.item_id}','${item.item_name}','${item.unit}','returned')">📥 Return</button>
       </div>
     </div>`).join('');
 }
@@ -320,19 +308,6 @@ async function loadHistory() {
         <div class="history-meta">${esc(meta)}</div>
       </div>
       <div class="history-qty">${esc(m.quantity)} <span style="font-size:11px;color:var(--text-muted)">${esc(m.unit)}</span></div>
-    </div>`;
-  }).join('');
-  return;
-
-  document.getElementById('history-list').innerHTML = data.map(m => {
-    const t = typeMap[m.movement_type] || { label: m.movement_type, cls: 'badge-received' };
-    return `<div class="history-item">
-      <span class="history-badge ${t.cls}">${t.label}</span>
-      <div class="history-info">
-        <div class="history-name">${m.item_name}</div>
-        <div class="history-meta">${fmtDate(m.created_at)} · ${m.recorded_by || 'Unknown'} ${m.notes ? '· ' + m.notes : ''}</div>
-      </div>
-      <div class="history-qty">${m.quantity} <span style="font-size:11px;color:var(--text-muted)">${m.unit}</span></div>
     </div>`;
   }).join('');
 }

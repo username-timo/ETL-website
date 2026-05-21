@@ -111,7 +111,7 @@
       window._lpoData = Array.from(lpoById.values());
       document.getElementById('approvals-body').innerHTML = ETLDashboard.renderApprovals(data, lpos, { fmtDate });
     } catch(e) {
-      document.getElementById('approvals-body').innerHTML = '<div class="empty-state"><p>Error: ' + e.message + '</p></div>';
+      document.getElementById('approvals-body').innerHTML = '<div class="empty-state"><p>Error: ' + ETLDashboard.escapeHtml(e.message) + '</p></div>';
     }
   }
 
@@ -202,7 +202,7 @@
       window._reqData = data;
       renderRequestsTable(data);
     } catch (e) {
-      document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
+      document.getElementById('requests-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + ETLDashboard.escapeHtml(e.message) + '</p></div>';
     }
   }
 
@@ -217,7 +217,7 @@
       window._lpoData = data;
       renderLPOTable(data);
     } catch (e) {
-      document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + e.message + '</p></div>';
+      document.getElementById('lpos-body').innerHTML = '<div class="empty-state"><p>Error loading data: ' + ETLDashboard.escapeHtml(e.message) + '</p></div>';
     }
   }
 

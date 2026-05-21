@@ -1,6 +1,6 @@
 # ETL Next.js Project Memory
 
-Last updated: May 20, 2026
+Last updated: May 21, 2026
 
 This file is a handoff note for continuing the ETL project in another LLM or another coding session. It should be read together with:
 
@@ -157,6 +157,7 @@ Important correction: older notes may mention `quotation_requests`; the current 
 
 ## Auth and Security
 
+- The project is now being treated as production-bound, not just demo-safe. When choosing between quick demo convenience and safer launch behavior, prefer the safer launch behavior.
 - Internal tool login uses Supabase Auth through `public/shared/etl-auth.js`.
 - Main roles are `staff` and `management`.
 - Public view pages do not require login; they rely on unguessable `unique_link` values plus Supabase RLS.
@@ -166,6 +167,9 @@ Important correction: older notes may mention `quotation_requests`; the current 
 - The Supabase anon key is public by design and visible in browser JS. Security depends on strict RLS.
 - Never expose service-role keys or Brevo API keys in browser/public files.
 - Secrets belong in Cloudflare Worker secrets or local `.env`.
+- `supabase-rls-audit.sql` is a read-only SQL audit file to run in Supabase before launch. It checks RLS status, policies, browser-role grants, anon access, and SECURITY DEFINER functions.
+- `supabase-public-link-hardening.sql` creates token-based public RPC functions for quotation, LPO, and invoice view links, then removes direct anon SELECT from those tables. Run it only together with the matching frontend code that calls `/rpc/get_public_quotation`, `/rpc/get_public_lpo`, and `/rpc/get_public_invoice`.
+- Public/static pages still contain some `innerHTML` rendering. Any time those paths are touched, escape user/database values before inserting them into HTML or move rendering to safer DOM APIs.
 
 ## Email System
 

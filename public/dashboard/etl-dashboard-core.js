@@ -50,7 +50,12 @@
   }
 
   function escapeJs(value) {
-    return String(value ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+    return escapeHtml(
+      String(value ?? '')
+        .replace(/\\/g, '\\\\')
+        .replace(/'/g, "\\'")
+        .replace(/[\r\n]+/g, ' ')
+    );
   }
 
   function safeClass(value) {
