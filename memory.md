@@ -169,7 +169,7 @@ Important correction: older notes may mention `quotation_requests`; the current 
 - Secrets belong in Cloudflare Worker secrets or local `.env`.
 - `supabase-rls-audit.sql` is a read-only SQL audit file to run in Supabase before launch. It checks RLS status, policies, browser-role grants, anon access, and SECURITY DEFINER functions.
 - `supabase-public-link-hardening.sql` creates token-based public RPC functions for quotation, LPO, and invoice view links, then removes direct anon SELECT from those tables. Run it only together with the matching frontend code that calls `/rpc/get_public_quotation`, `/rpc/get_public_lpo`, and `/rpc/get_public_invoice`.
-- `supabase-authenticated-policy-hardening.sql` is the next internal-risk RLS migration. It makes generated quote edits, invoice edits, payment edits, project-site metadata changes, and inventory item master-data changes management-only while leaving current staff workflows that still need browser writes untouched.
+- `supabase-authenticated-policy-hardening.sql` is now a read-only/internal-risk review plan, not a management-only lockdown migration. Staff are involved in generated quote, invoice, payment, project-site, and inventory edits, so the safer production path is controlled server/API/RPC actions with audit logs instead of bluntly removing staff UPDATE access.
 - Public/static pages still contain some `innerHTML` rendering. Any time those paths are touched, escape user/database values before inserting them into HTML or move rendering to safer DOM APIs.
 
 ## Email System

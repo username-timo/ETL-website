@@ -1,108 +1,26 @@
--- ETL authenticated-policy hardening
--- Review, then run in Supabase SQL Editor after confirming the staff workflow.
+-- ETL authenticated-policy hardening plan
+-- READ-ONLY / DO NOT RUN AS A LOCKDOWN MIGRATION YET.
 --
--- Goal:
--- Keep authenticated staff able to do normal operational work, but stop broad
--- browser-side UPDATE policies from allowing any logged-in user to change any
--- sensitive field on finance/inventory records.
+-- Current workflow note:
+-- Staff are involved in the editing workflows for generated quotations,
+-- invoices, payments, project sites, and inventory item data. Because of that,
+-- a simple "management-only" policy would be too blunt and would break normal
+-- work.
 --
--- Important:
--- This SQL intentionally does not remove SELECT or INSERT access. It focuses on
--- UPDATE policies that were previously `using true with check true`.
+-- Production direction:
+-- Keep staff involved, but move sensitive edits away from broad direct browser
+-- table UPDATEs and into controlled server/API/RPC actions that:
+--   1. verify the logged-in user,
+--   2. validate the requested change,
+--   3. allow only safe field changes,
+--   4. write an audit log row,
+--   5. then update the target table.
+--
+-- Until those controlled actions exist, do not revoke staff UPDATE access for
+-- these workflows unless the frontend is changed at the same time.
 
--- Generated quotations:
--- Staff can create generated quotes. Only management should edit generated
--- quotation records after creation.
-drop policy if exists quotations_generated_authenticated_update on public.quotations_generated;
-create policy quotations_generated_management_update
-on public.quotations_generated
-for update
-to authenticated
-using (public.is_management())
-with check (public.is_management());
-
--- Invoices:
--- Staff can create invoices. Editing saved invoices should be management-only
--- until invoice edits are moved through a controlled server route.
-drop policy if exists auth_update_invoices on public.invoices;
-create policy invoices_management_update
-on public.invoices
-for update
-to authenticated
-using (public.is_management())
-with check (public.is_management());
-
--- Invoice payments:
--- Staff can record payments. Editing existing payment rows should be
--- management-only because payment history is financial evidence.
-drop policy if exists "authenticated update invoice_payments" on public.invoice_payments;
-create policy invoice_payments_management_update
-on public.invoice_payments
-for update
-to authenticated
-using (public.is_management())
-with check (public.is_management());
-
--- Project site metadata:
--- Project site creation/update should be management-only until a warehouse or
--- project-manager role exists.
-drop policy if exists "Authenticated users can insert project sites" on public.project_sites;
-drop policy if exists "Authenticated users can update project sites" on public.project_sites;
-create policy project_sites_management_insert
-on public.project_sites
-for insert
-to authenticated
-with check (public.is_management());
-create policy project_sites_management_update
-on public.project_sites
-for update
-to authenticated
-using (public.is_management())
-with check (public.is_management());
-
--- Inventory item master data:
--- Staff can read inventory. Changes to item names, units, min levels, and costs
--- are sensitive and should be management-only until a warehouse_manager role is
--- created and added to public.is_inventory_manager().
-drop policy if exists auth_insert_inventory on public.inventory_items;
-drop policy if exists auth_update_inventory on public.inventory_items;
-create policy inventory_items_management_insert
-on public.inventory_items
-for insert
-to authenticated
-with check (public.is_management());
-create policy inventory_items_management_update
-on public.inventory_items
-for update
-to authenticated
-using (public.is_management())
-with check (public.is_management());
-
--- Site stock:
--- Keep staff insert/update for now because the current site stock workflow
--- updates quantities directly from the browser. This should move to server-side
--- RPC/API later so stock cannot be arbitrarily overwritten.
-
--- Site consumption:
--- Keep authenticated insert/update for now because site users log usage/returns
--- directly. Later, change updates to management-only and make corrections via
--- adjustment rows instead of editing history.
-
--- Stock movements:
--- Keep authenticated insert/update for now because current stock in/out creates
--- movement rows directly. Later, make updates management-only and use correction
--- movements for auditability.
-
--- Quotations intake:
--- Keep authenticated update for now because staff update status from the
--- dashboard. Management approval still depends on app UI and should later move
--- to a server/RPC action that enforces role and allowed status transitions.
-
--- LPOs:
--- Current policy already blocks non-management users from changing approved LPOs.
--- Keep it for now so normal workflow stays working.
-
--- Verification query for the policies this file changes.
+-- 1. Find broad authenticated UPDATE policies that still need controlled
+-- server/RPC replacements.
 select
   tablename,
   policyname,
@@ -112,11 +30,64 @@ select
   with_check as insert_update_check
 from pg_policies
 where schemaname = 'public'
-  and tablename in (
-    'quotations_generated',
-    'invoices',
-    'invoice_payments',
-    'project_sites',
-    'inventory_items'
-  )
-order by tablename, cmd, policyname;
+  and cmd = 'UPDATE'
+  and roles::text like '%authenticated%'
+order by tablename, policyname;
+
+-- 2. Find authenticated INSERT policies that may need validation through
+-- server/RPC actions later.
+select
+  tablename,
+  policyname,
+  roles,
+  cmd,
+  with_check as insert_check
+from pg_policies
+where schemaname = 'public'
+  and cmd = 'INSERT'
+  and roles::text like '%authenticated%'
+order by tablename, policyname;
+
+-- 3. Suggested next controlled-action targets, in priority order:
+--
+-- High priority:
+-- - invoice_payments: staff can record payments, but payment edits/corrections
+--   should become append-only adjustment rows or audited RPC actions.
+-- - invoices: staff can create/edit, but saved invoice edits should be
+--   validated and audited.
+-- - inventory_items: staff can maintain stock data, but item cost/unit/min
+--   changes should be audited.
+--
+-- Medium priority:
+-- - stock_movements: keep append-only where possible; corrections should be new
+--   adjustment movements instead of editing history.
+-- - site_stock: move quantity changes into RPC so stock cannot be overwritten
+--   without a matching movement record.
+-- - project_sites: staff can maintain sites, but status/location edits should
+--   be audited.
+--
+-- Existing acceptable-for-now:
+-- - quotations: staff update request status from dashboard.
+-- - lpos: current policy already prevents non-management users from changing
+--   approved LPOs.
+
+-- 4. Future audit table sketch. Do not run until the app writes to it.
+--
+-- create table public.audit_log (
+--   id uuid primary key default gen_random_uuid(),
+--   actor_id uuid references auth.users(id),
+--   action text not null,
+--   table_name text not null,
+--   row_id uuid,
+--   before_data jsonb,
+--   after_data jsonb,
+--   created_at timestamptz not null default now()
+-- );
+--
+-- alter table public.audit_log enable row level security;
+--
+-- create policy audit_log_management_read
+-- on public.audit_log
+-- for select
+-- to authenticated
+-- using (public.is_management());
