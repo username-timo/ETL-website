@@ -1,6 +1,6 @@
 # ETL Next.js Project Memory
 
-Last updated: May 21, 2026
+Last updated: May 22, 2026
 
 This file is a handoff note for continuing the ETL project in another LLM or another coding session. It should be read together with:
 
@@ -170,6 +170,7 @@ Important correction: older notes may mention `quotation_requests`; the current 
 - `supabase-rls-audit.sql` is a read-only SQL audit file to run in Supabase before launch. It checks RLS status, policies, browser-role grants, anon access, and SECURITY DEFINER functions.
 - `supabase-public-link-hardening.sql` creates token-based public RPC functions for quotation, LPO, and invoice view links, then removes direct anon SELECT from those tables. Run it only together with the matching frontend code that calls `/rpc/get_public_quotation`, `/rpc/get_public_lpo`, and `/rpc/get_public_invoice`.
 - `supabase-authenticated-policy-hardening.sql` is now a read-only/internal-risk review plan, not a management-only lockdown migration. Staff are involved in generated quote, invoice, payment, project-site, and inventory edits, so the safer production path is controlled server/API/RPC actions with audit logs instead of bluntly removing staff UPDATE access.
+- `supabase-internal-controls-phase1.sql` is the first runnable internal-controls migration. It adds `audit_log`, management-read RLS policy for audit entries, and non-breaking validation/audit triggers on `invoices`, `invoice_payments`, `inventory_items`, `stock_movements`, and `site_stock`.
 - Public/static pages still contain some `innerHTML` rendering. Any time those paths are touched, escape user/database values before inserting them into HTML or move rendering to safer DOM APIs.
 
 ## Email System
@@ -261,6 +262,7 @@ Light checks:
 git diff --check
 npx tsc --noEmit
 node --check path/to/file.js
+npm run smoke:internal-controls
 ```
 
 Build/deploy checks:
@@ -272,6 +274,11 @@ npm run cf:deploy
 ```
 
 Use heavy browser/email tests only when needed. For normal UI/refactor changes, light checks are usually enough unless the user asks for browser verification.
+For database hardening verification, the reusable smoke script expects:
+- `SMOKE_SUPABASE_URL`
+- `SMOKE_SUPABASE_ANON_KEY`
+- `SMOKE_MANAGEMENT_EMAIL`
+- `SMOKE_MANAGEMENT_PASSWORD`
 
 ## Important Contact Details
 

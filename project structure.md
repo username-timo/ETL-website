@@ -56,6 +56,7 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | `supabase-rls-audit.sql` | Read-only Supabase launch audit for RLS status, policies, browser-role grants, anon access, and SECURITY DEFINER functions. |
 | `supabase-public-link-hardening.sql` | Supabase hardening migration that serves public document views through token RPC functions and removes direct anon SELECT from document tables. |
 | `supabase-authenticated-policy-hardening.sql` | Read-only Supabase review plan for logged-in staff risk. Documents broad update policies and the safer server/RPC plus audit-log direction without breaking staff edit workflows. |
+| `supabase-internal-controls-phase1.sql` | Runnable first-step internal-controls migration: adds `audit_log`, management-read audit policy, and validation/audit triggers for invoice/payment/inventory/stock tables without removing staff edit workflows. |
 | `md2.md` | Older feature-idea note. Useful as rough history, not source of truth. |
 
 ## Main Next.js App Structure
@@ -264,6 +265,7 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 ```bash
 npx tsc --noEmit
 git diff --check
+npm run smoke:internal-controls
 npm run build
 npm run cf:build
 npm run cf:deploy
