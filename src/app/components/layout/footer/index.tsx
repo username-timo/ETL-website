@@ -11,9 +11,14 @@ const Footer = () => {
           {/* Logo + Tagline */}
           <div className="md:col-span-4 col-span-12 flex flex-col justify-start px-4 sm:px-0">
             <Link href="/" className="mb-4 inline-flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center">
-                <span className="font-bold text-white text-sm" style={{ fontFamily: "var(--font-barlow, sans-serif)" }}>ETL</span>
-              </div>
+              <Image
+                src="/etl-images/etl-logo.png"
+                alt="Engineering Trade Links logo"
+                width={68}
+                height={68}
+                className="h-[68px] w-[68px] object-contain"
+                style={{ mixBlendMode: "multiply" }}
+              />
               <div>
                 <span className="block text-white font-bold text-base tracking-wide" style={{ fontFamily: "var(--font-barlow, sans-serif)" }}>
                   ENGINEERING TRADE LINKS
