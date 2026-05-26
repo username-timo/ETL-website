@@ -1,10 +1,15 @@
-'use client'
+"use client";
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
-import AOS from "aos"
-import 'aos/dist/aos.css';
+import AOS from "aos";
+import "aos/dist/aos.css";
+import type { ReactNode } from "react";
 
-const Aoscompo = ({children}:any) => {
+type AosProps = {
+  children: ReactNode;
+};
+
+const Aoscompo = ({ children }: AosProps) => {
     const pathname = usePathname();
 
     useEffect(() => {
@@ -21,11 +26,8 @@ const Aoscompo = ({children}:any) => {
     useEffect(() => {
         setTimeout(() => AOS.refreshHard(), 200)
     }, [pathname])
-  return (
-    <div>
-      {children}
-    </div>
-  )
-}
+
+    return <>{children}</>;
+};
 
 export default Aoscompo

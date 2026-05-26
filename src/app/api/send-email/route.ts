@@ -6,11 +6,11 @@ const FOOTER_HTML =
 const SUPABASE_URL =
   process.env.SUPABASE_URL ||
   process.env.NEXT_PUBLIC_SUPABASE_URL ||
-  "https://stpxnnvwhkueyryliehu.supabase.co";
+  "";
 const SUPABASE_ANON_KEY =
   process.env.SUPABASE_ANON_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w";
+  "";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FLOW_CONFIG = {
   internal_ops: {
@@ -142,6 +142,14 @@ function getPublicFlowRecipients(senderEmail: string) {
 }
 
 async function verifyInternalUser(request: NextRequest) {
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    return {
+      ok: false as const,
+      status: 500,
+      error: "Supabase auth environment is not configured.",
+    };
+  }
+
   const authHeader = request.headers.get("authorization") || "";
   const token = authHeader.match(/^Bearer\s+(.+)$/i)?.[1]?.trim();
 

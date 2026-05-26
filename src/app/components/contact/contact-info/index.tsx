@@ -8,7 +8,17 @@ const ContactInfo = () => {
           <div className="flex md:flex-row flex-col lg:items-center items-start justify-center md:gap-28 gap-8">
             <div className="flex sm:flex-row flex-col items-start sm:gap-8 gap-4">
               <div className="bg-primary/20 w-3.75 h-3.75 flex items-center justify-center rounded-full">
-                <i className="bg-[url('/images/contact-page/email.svg')] bg-no-repeat bg-contain w-8 h-8 inline-block"></i>
+                <svg
+                  className="w-7 h-7 text-primary"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18v12H3z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m3 7 9 7 9-7" />
+                </svg>
               </div>
               <div className="flex md:flex-col sm:flex-row flex-col md:items-start sm:items-center items-start h-full justify-between">
                 <div>
@@ -27,7 +37,21 @@ const ContactInfo = () => {
             </div>
             <div className="flex sm:flex-row flex-col items-start sm:gap-8 gap-4">
               <div className="bg-primary/20 w-3.75 h-3.75 flex items-center justify-center rounded-full">
-                <i className="bg-[url('/images/contact-page/Career.svg')] bg-no-repeat bg-contain w-9 h-9 inline-block"></i>
+                <svg
+                  className="w-7 h-7 text-primary"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  aria-hidden="true"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M12 21s7-4.6 7-11a7 7 0 1 0-14 0c0 6.4 7 11 7 11Z"
+                  />
+                  <circle cx="12" cy="10" r="2.5" />
+                </svg>
               </div>
               <div className="flex md:flex-col sm:flex-row flex-col md:items-start sm:items-center items-start h-full justify-between">
                 <div>

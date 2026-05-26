@@ -1,8 +1,9 @@
 import React, { FC } from 'react';
 import Link from 'next/link';
+import type { BreadcrumbLink } from "@/app/types/data/breadcrumb";
 
 interface BreadcrumbProps {
-    links: { href: string; text: string }[];    
+    links: BreadcrumbLink[];
 }
 
 const Breadcrumb: FC<BreadcrumbProps> = ({ links }) => {

@@ -1,13 +1,12 @@
 "use client";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useTheme } from "next-themes";
 import Logo from "./logo";
 import HeaderLink from "./navigation/HeaderLink";
 import MobileHeaderLink from "./navigation/MobileHeaderLink";
+import type { HeaderItem } from "@/app/types/layout/menu";
 
-const headerData = [
+const headerData: HeaderItem[] = [
   { label: "Home", href: "/" },
   { label: "About Us", href: "/#about" },
   { label: "Services", href: "/#services" },
@@ -17,7 +16,6 @@ const headerData = [
 ];
 
 const Header: React.FC = () => {
-  const pathUrl = usePathname();
   const { theme, setTheme } = useTheme();
 
   const [navbarOpen, setNavbarOpen] = useState(false);
@@ -32,26 +30,27 @@ const Header: React.FC = () => {
 
   // Function to handle click outside
   const handleClickOutside = (event: MouseEvent) => {
-    if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node) && navbarOpen) {
+    if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
       setNavbarOpen(false);
     }
   };
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    document.addEventListener("mousedown", handleClickOutside);
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => {
       window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!navbarOpen) return;
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [navbarOpen]);
-
-  useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => {
-      window.removeEventListener("scroll", handleScroll);
-    };
-  }, [pathUrl]);
 
   useEffect(() => {
     document.body.style.overflow = navbarOpen ? "hidden" : "";

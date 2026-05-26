@@ -1,7 +1,7 @@
 
 import React from "react";
 import { Metadata } from "next";
-import HeroSub from "@/app/components/shared/hero-sub";
+import ContactHeroSlider from "@/app/components/contact/contact-hero-slider";
 import ContactInfo from "@/app/components/contact/contact-info";
 import Portal from "@/app/components/home/portal";
 import Location from "@/app/components/contact/office-location";
@@ -27,17 +27,11 @@ export const metadata: Metadata = {
 };
 
 const page = () => {
-  const breadcrumbLinks = [
-    { href: "/", text: "Home" },
-    { href: "/contact", text: "Contact" },
-  ];
   return (
     <>
-      <HeroSub
-        title="Contact Us"
+      <ContactHeroSlider
+        title="Build With Engineering Trade Links"
         description="Reach Engineering Trade Links Co. Ltd for tenders, quotations, project partnerships, and engineering services across Uganda."
-        breadcrumbLinks={breadcrumbLinks}
-        coverImage="/etl-images/og-cover.jpg"
       />
       <ContactInfo />
       <Portal />

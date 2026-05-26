@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import Link from 'next/link';
-import { HeaderItem } from '../../../../types/layout/menu';
+import type { HeaderItem } from '@/app/types/layout/menu';
 import { usePathname, useRouter } from 'next/navigation';
 
 const MobileHeaderLink: React.FC<{ item: HeaderItem; onNavigate?: () => void }> = ({ item, onNavigate }) => {
@@ -11,7 +11,7 @@ const MobileHeaderLink: React.FC<{ item: HeaderItem; onNavigate?: () => void }> 
   };
   const router = useRouter();
 
-  const handlenav = () => {
+  const handleNav = () => {
     onNavigate?.();
     router.push(item.href)
   }
@@ -21,7 +21,7 @@ const MobileHeaderLink: React.FC<{ item: HeaderItem; onNavigate?: () => void }> 
   return (
     <div className="relative w-full">
       <button
-        onClick={item.submenu ? handleToggle : handlenav}
+        onClick={item.submenu ? handleToggle : handleNav}
         className={`flex items-center justify-between w-full py-3 px-4 rounded-lg text-left font-semibold text-black focus:outline-none dark:text-white dark:text-opacity-80 ${path === item.href ? 'bg-primary text-white dark:bg-primary dark:text-white dark:text-opacity-100' : ' text-black dark:text-white '} ${path.startsWith(`/${item.label.toLowerCase()}`) ? "bg-primary text-white dark:bg-primary dark:text-white dark:text-opacity-100 " : null}`}
       >
         {item.label}
@@ -33,9 +33,9 @@ const MobileHeaderLink: React.FC<{ item: HeaderItem; onNavigate?: () => void }> 
       </button>
       {submenuOpen && item.submenu && (
         <div className="bg-white dark:bg-darkmode py-2 px-3 w-full">
-          {item.submenu.map((subItem, index) => (
+          {item.submenu.map((subItem) => (
             <Link
-              key={index}
+              key={subItem.href}
               href={subItem.href}
               onClick={onNavigate}
               className={`block py-2 px-3  ${subItem.href === path ? '!text-primary dark:text-primary' : 'text-gray'}`}
