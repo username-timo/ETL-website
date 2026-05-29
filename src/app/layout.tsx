@@ -1,7 +1,7 @@
 import { DM_Sans, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "next-themes";
-import Aoscompo from "@/utils/aos";
+import AosProvider from "@/utils/aos";
 const dmsans = DM_Sans({ subsets: ["latin"] });
 const barlowCondensed = Barlow_Condensed({
   subsets: ["latin"],
@@ -140,12 +140,12 @@ export default function RootLayout({
             enableSystem={false}
             defaultTheme="light"
           >
-            <Aoscompo>
+            <AosProvider>
               <Header />
               <NextTopLoader color="#1a3c6e" />
               {children}
               <Footer />
-            </Aoscompo>
+            </AosProvider>
             <ScrollToTop />
           </ThemeProvider>
       </body>

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { buildEtlEmailHtml } from "@/lib/email/build-etl-email-html";
 
-const SUPABASE_URL = "https://stpxnnvwhkueyryliehu.supabase.co";
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ||
+  process.env.NEXT_PUBLIC_SUPABASE_URL ||
+  process.env.SMOKE_SUPABASE_URL ||
+  "";
 
 type QuotationRow = {
   id: string;
@@ -42,6 +47,10 @@ export const GET = async (request: NextRequest) => {
 
   if (!supabaseKey || !brevoApiKey) {
     return NextResponse.json({ error: "Missing env vars" }, { status: 500 });
+  }
+
+  if (!SUPABASE_URL) {
+    return NextResponse.json({ error: "SUPABASE_URL is missing" }, { status: 500 });
   }
 
   const now = new Date();
@@ -129,7 +138,7 @@ Plot 1353, Sonde-Seeta Road, Mukono
           sender: { name: senderName, email: senderEmail },
           to: [{ email: quote.client_email, name: quote.client_name || undefined }],
           subject: `Your ETL quotation expires in 3 days - ${quote.quote_number || quote.project_title || "Action Required"}`,
-          htmlContent: buildEmailHtml(emailBody),
+          htmlContent: buildEtlEmailHtml(emailBody, { includeHeader: true }),
         }),
       });
 
@@ -157,25 +166,3 @@ Plot 1353, Sonde-Seeta Road, Mukono
     results,
   });
 };
-
-function buildEmailHtml(body: string) {
-  const safe = body.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const linked = safe.replace(
-    /(https?:\/\/[^\s<]+)/g,
-    '<a href="$1" style="color:#1a3c6e;font-weight:bold;">$1</a>'
-  );
-
-  return `
-    <div style="font-family:Arial,sans-serif;font-size:14px;line-height:1.8;color:#1e293b;max-width:600px;">
-      <div style="background:#1a3c6e;padding:20px 24px;border-radius:8px 8px 0 0;">
-        <p style="color:#fff;font-size:18px;font-weight:bold;margin:0;">Engineering Trade Links Co. Ltd</p>
-        <p style="color:rgba(255,255,255,0.7);font-size:11px;margin:4px 0 0;text-transform:uppercase;letter-spacing:1px;">Quality at Service</p>
-      </div>
-      <div style="padding:24px;border:1px solid #cfe3f0;border-top:none;border-radius:0 0 8px 8px;">
-        ${linked.replace(/\n/g, "<br>")}
-      </div>
-      <br>
-      <hr style="border:none;border-top:1px solid #cfe3f0;">
-      <p style="font-size:11px;color:#64748b;">Engineering Trade Links Co. Ltd | Plot 1353, Sonde-Seeta Road, Mukono | +256 776 566 522</p>
-    </div>`;
-}

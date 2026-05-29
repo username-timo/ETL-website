@@ -1,6 +1,20 @@
 (function () {
-  const SUPABASE_URL = 'https://stpxnnvwhkueyryliehu.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+  const fallbackSupabaseUrl = 'https://stpxnnvwhkueyryliehu.supabase.co';
+  const fallbackSupabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+  const runtimeConfig = window.__ETL_RUNTIME_CONFIG || {};
+
+  const SUPABASE_URL =
+    runtimeConfig.SUPABASE_URL ||
+    runtimeConfig.supabaseUrl ||
+    window.SUPABASE_URL ||
+    fallbackSupabaseUrl;
+
+  const SUPABASE_ANON_KEY =
+    runtimeConfig.SUPABASE_ANON_KEY ||
+    runtimeConfig.supabaseAnonKey ||
+    window.SUPABASE_ANON_KEY ||
+    window.SUPABASE_KEY ||
+    fallbackSupabaseAnonKey;
 
   function pageUrl(path) {
     return `${window.location.origin}${path}`;
@@ -22,4 +36,8 @@
   window.SUPABASE_URL = window.SUPABASE_URL || SUPABASE_URL;
   window.SUPABASE_KEY = window.SUPABASE_KEY || SUPABASE_ANON_KEY;
   window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || SUPABASE_ANON_KEY;
+
+  if (!runtimeConfig.SUPABASE_URL && !runtimeConfig.supabaseUrl) {
+    console.info('[etl-config] Using bundled Supabase public config fallback.');
+  }
 })();

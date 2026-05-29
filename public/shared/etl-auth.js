@@ -28,14 +28,17 @@
  */
 (function () {
   const config = window.ETLConfig || {};
-  const SUPABASE_URL = config.SUPABASE_URL || 'https://stpxnnvwhkueyryliehu.supabase.co';
-  const SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0cHhubnZ3aGt1ZXlyeWxpZWh1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNDIxMTEsImV4cCI6MjA4OTkxODExMX0.BBO4CtgrHdi14Lu8QjzJO6cp68fzYM2aIR8nuL1oR2w';
+  const SUPABASE_URL = config.SUPABASE_URL || window.SUPABASE_URL || '';
+  const SUPABASE_ANON_KEY = config.SUPABASE_ANON_KEY || window.SUPABASE_ANON_KEY || window.SUPABASE_KEY || '';
 
   let sb = null;           // Supabase client
   let cachedProfile = null; // { id, role, full_name }
 
   function ensureClient() {
     if (sb) return sb;
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      throw new Error('Missing Supabase config. Load /shared/etl-config.js before /shared/etl-auth.js');
+    }
     if (!window.supabase || !window.supabase.createClient) {
       throw new Error('Supabase JS SDK not loaded. Add <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script> before etl-auth.js');
     }
@@ -102,7 +105,7 @@
       e.preventDefault();
       errBox.textContent = '';
       submit.disabled = true;
-      submit.textContent = 'Signing in…';
+      submit.textContent = 'Signing in...';
       const email = document.getElementById('etl-auth-email').value.trim();
       const password = document.getElementById('etl-auth-password').value;
       try {
@@ -174,7 +177,7 @@
       // a local login overlay on every tool page.
       if (opts.redirectIfNoSession) {
         window.location.replace(opts.redirectIfNoSession);
-        return new Promise(() => {}); // never resolves — navigating away
+        return new Promise(() => {}); // never resolves - navigating away
       }
       return promptForLogin(client, opts);
     }
@@ -201,7 +204,7 @@
       await client.auth.signOut();
       cachedProfile = null;
       renderLoginOverlay(() => init(opts));
-      return new Promise(() => {}); // never resolves — user is on login screen
+      return new Promise(() => {}); // never resolves - user is on login screen
     }
   }
 

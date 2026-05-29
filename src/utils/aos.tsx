@@ -9,25 +9,25 @@ type AosProps = {
   children: ReactNode;
 };
 
-const Aoscompo = ({ children }: AosProps) => {
-    const pathname = usePathname();
+const AosProvider = ({ children }: AosProps) => {
+  const pathname = usePathname();
 
-    useEffect(() => {
-        AOS.init({
-            duration: 700,
-            once: true,
-            offset: 60,
-            easing: 'ease-out-cubic',
-        })
-        setTimeout(() => AOS.refreshHard(), 100)
-    }, [])
+  useEffect(() => {
+    AOS.init({
+      duration: 700,
+      once: true,
+      offset: 60,
+      easing: "ease-out-cubic",
+    });
+    setTimeout(() => AOS.refreshHard(), 100);
+  }, []);
 
-    // Re-scan new elements after client-side navigation
-    useEffect(() => {
-        setTimeout(() => AOS.refreshHard(), 200)
-    }, [pathname])
+  // Re-scan new elements after client-side navigation
+  useEffect(() => {
+    setTimeout(() => AOS.refreshHard(), 200);
+  }, [pathname]);
 
-    return <>{children}</>;
+  return <>{children}</>;
 };
 
-export default Aoscompo
+export default AosProvider;
