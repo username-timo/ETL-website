@@ -42,7 +42,7 @@ const Footer = () => {
             {/* Working Hours */}
             <div className="mt-5">
               <p className="text-white text-sm font-semibold mb-1">Working Hours</p>
-              <p className="text-gray text-sm">Monday – Friday: 9:00 AM – 5:00 PM</p>
+              <p className="text-gray text-sm">Monday – Friday: 9:00 AM – 6:00 PM</p>
              
             </div>
           </div>

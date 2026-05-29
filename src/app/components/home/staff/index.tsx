@@ -51,6 +51,14 @@ const team = [
     photo: "https://engineeringtradelinks.com/wp-content/uploads/2025/06/harry.jpg",
     accent: "#64748b",
   },
+  {
+    name: "Sande Robert",
+    role: "Site Agent",
+    qual: "Site Supervision & Project Coordination",
+    exp: "8 Years",
+    photo: PLACEHOLDER,
+    accent: "#f59e0b",
+  },
 ];
 
 export default function Staff() {
