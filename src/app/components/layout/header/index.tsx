@@ -50,7 +50,7 @@ const Header: React.FC = () => {
     <header
       className={`fixed top-0 z-50 h-20 w-full overflow-visible py-0 transition-all duration-300 lg:h-24 ${sticky ? "border-b border-gray-200 bg-white/97 shadow-md backdrop-blur-md dark:border-dark_border dark:bg-semidark/97" : "bg-black/75 shadow-none backdrop-blur-md"}`}
     >
-      <div className="container mx-auto lg:max-w-screen-xl md:max-w-screen-md flex h-full items-center justify-between px-4 py-3">
+      <div className="container mx-auto flex h-full items-center justify-between px-4 md:max-w-screen-md lg:max-w-screen-xl">
         <Logo sticky={sticky} />
         <nav
           className={`hidden flex-grow items-center justify-center space-x-5 lg:flex ${!sticky ? "[&_a:not(.lpo-btn)]:!text-white [&_a:not(.lpo-btn)]:hover:!text-secondary" : ""}`}

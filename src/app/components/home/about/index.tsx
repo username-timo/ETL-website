@@ -1,5 +1,3 @@
-import Image from 'next/image';
-
 const registrations = [
   { label: "Registration No.", value: "82786" },
   { label: "Year Incorporated", value: "2006" },
@@ -47,19 +45,6 @@ export default function About() {
       <div className="container lg:max-w-screen-xl md:max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
 
         <div className="relative flex flex-col items-start text-left mb-12 sm:mb-16 pt-16 pb-6 sm:pt-20 sm:pb-10 lg:mb-8 lg:pt-10 lg:pb-4">
-          <div
-            className="absolute -right-10 -top-14 sm:right-8 sm:-top-4 lg:-top-8 pointer-events-none select-none"
-            aria-hidden="true"
-          >
-            <Image
-              src="/etl-images/etl-logo.png"
-              alt=""
-              width={280}
-              height={280}
-              className="object-contain opacity-[0.66] sm:opacity-[0.54] dark:opacity-[0.34]"
-            />
-          </div>
-
           <h2 className="relative z-10 font-black text-midnight_text dark:text-white mb-3"
             style={{ fontFamily: "var(--font-barlow, sans-serif)", fontSize: "clamp(2rem,4vw,3rem)", lineHeight: 1.1 }}>
             About ETL

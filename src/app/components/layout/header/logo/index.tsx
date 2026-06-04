@@ -1,17 +1,16 @@
-import Image from 'next/image';
-import Link from 'next/link';
+import Image from "next/image";
+import Link from "next/link";
 
 const Logo: React.FC<{ sticky?: boolean }> = ({ sticky = true }) => {
   return (
-    <Link href="/" className="flex items-center gap-3 no-underline">
+    <Link href="/" className="flex h-full items-center gap-3 no-underline">
       <Image
         src="/etl-images/etl-logo.png"
         alt="Engineering Trade Links"
-        width={84}
-        height={84}
-        className="object-contain"
+        width={96}
+        height={96}
+        className="h-20 w-20 object-contain lg:h-24 lg:w-24"
         priority
-        style={{ marginTop: "-8px", mixBlendMode: "multiply" }}
       />
       <div className="flex flex-col leading-none">
         <span className={`font-black uppercase tracking-wide ${sticky ? "text-primary dark:text-white" : "text-white"}`}
