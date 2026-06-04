@@ -620,7 +620,8 @@ export default function Features() {
           font-family: var(--font-barlow, 'Barlow Condensed', sans-serif);
           font-size: 1.4rem;
           font-weight: 900;
-          color: #fff;
+          color: #fff !important;
+          text-shadow: 0 2px 8px rgba(0,0,0,0.95), 0 1px 2px rgba(0,0,0,0.9);
           text-transform: uppercase;
           letter-spacing: 0.03em;
           line-height: 1.2;

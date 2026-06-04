@@ -292,7 +292,7 @@ export default function Projects() {
                   </p>
 
                   <div className="flex items-center justify-between pt-3 border-t border-border dark:border-dark_border">
-                    <span className="font-black text-lg" style={{ color: "#1a3c6e", fontFamily: "var(--font-barlow, sans-serif)" }}>
+                    <span className="font-black text-lg text-primary dark:text-secondary" style={{ fontFamily: "var(--font-barlow, sans-serif)" }}>
                       {p.value}
                     </span>
                     <span className="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wide"
