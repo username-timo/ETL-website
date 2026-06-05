@@ -9,10 +9,12 @@ interface ContactHeroSliderProps {
 
 const slides = [
   {
-    img: "/etl-images/belgotex-floor-finishing.png",
+    img: "/upscaled-ETL-images/ETL%20SIGN%20POST.png",
+    fit: "contain",
   },
   {
-    img: "/etl-images/etl-solar-01.jpg",
+    img: "/etl-images/naguru-asphalt-08.jpg.jpeg",
+    fit: "contain",
   },
   {
     img: "/etl-images/iraji-bridge-02.jpg",
@@ -43,15 +45,21 @@ export default function ContactHeroSlider({
   const next = () => goTo((current + 1) % slides.length);
 
   return (
-    <section className="relative w-full overflow-hidden" style={{ height: "clamp(320px, 50vw, 620px)" }}>
+    <section className="relative w-full overflow-hidden py-0" style={{ height: "clamp(320px, 50vw, 620px)" }}>
       {slides.map((slide, i) => (
         <div
           key={slide.img}
           className="absolute inset-0 transition-opacity duration-1000"
           style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}
         >
+          {slide.fit === "contain" && (
+            <div
+              className="absolute inset-0 scale-110 bg-cover bg-center opacity-45 blur-xl"
+              style={{ backgroundImage: `url(${slide.img})` }}
+            />
+          )}
           <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+            className={`absolute inset-0 bg-center bg-no-repeat ${slide.fit === "contain" ? "bg-contain" : "bg-cover"}`}
             style={{ backgroundImage: `url(${slide.img})` }}
           />
           <div
@@ -64,7 +72,7 @@ export default function ContactHeroSlider({
         </div>
       ))}
 
-      <div className="relative z-10 mx-auto flex h-full max-w-screen-xl flex-col items-center justify-center px-4 text-center text-white">
+      <div className="relative z-10 mx-auto flex h-full max-w-screen-xl flex-col items-center justify-end px-4 pb-20 text-center text-white sm:pb-24 lg:pb-28">
         <h1
           className="mb-4 max-w-5xl text-balance font-black tracking-[0.03em] text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)]"
           style={{
