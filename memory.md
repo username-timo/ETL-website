@@ -1,6 +1,6 @@
 # ETL Next.js Project Memory
 
-Last updated: May 22, 2026
+Last updated: June 5, 2026
 
 This file is a handoff note for continuing the ETL project in another LLM or another coding session. It should be read together with:
 
@@ -37,17 +37,20 @@ Edit source files in `src/`, `public/`, and root config files.
 - Avoid heavy browser testing unless specifically requested, to save tokens and avoid creating unnecessary live records.
 - Do not revert user changes unless explicitly asked.
 - If unexpected working-tree changes appear, preserve them and mention them.
+- Keep `memory.md`, `PROJECT_TODO.md`, and `project structure.md` in sync after meaningful workflow, route, security, database, or major UI changes. If no docs update is needed, say so briefly.
 
 ## Current Git Notes
 
-At the time this memory was refreshed, `md2.md` was deleted in the working tree. That deletion was not made by Codex in this update, so treat it as a user change unless the user asks to restore it.
+As of the June 5, 2026 documentation refresh, `main` matched `origin/main` before these docs were edited.
 
-Recent staged/edited documentation work in this session:
+Important commits since the May 22 documentation snapshot:
 
-- `PROJECT_TODO.md` was refreshed to reflect the current refactor status.
-- `project structure.md` was created/updated as a current project map.
-- `src/app/components/home/about/index.tsx` had the About ETL logo watermark opacity increased slightly.
-- `public/ETL-LPO-Outward.html` was removed after confirming active links use `public/ETL-LPO-System.html?mode=outward`.
+- `45385fb` and `2242609` updated launch hardening docs, added `supabase-internal-controls-phase1.sql`, and added the reusable `npm run smoke:internal-controls` script.
+- `6cec78a` updated the footer, including the ETL logo and working-hours presentation.
+- `f443155`, `6494d76`, and `54e2caa` cleaned up Next.js code, removed unused/template code, consolidated navigation/types/email HTML helpers, hardened email env handling, and restored Supabase auth fallbacks for approval email flow.
+- `0e5a2b2`, `8b6406c`, and `a20f9e6` updated homepage staff/working hours, improved service-card contrast, resized the header logo to fit the nav bar, and removed the extra large homepage logo.
+- `5a43106` added the contact-page hero slider assets and layout.
+- `4531f8a` redesigned the inward LPO path into an unpriced customer procurement request flow and added `supabase-launch-data-reset.sql`.
 
 Always run `git status --short --branch` before continuing.
 
@@ -66,7 +69,10 @@ Important public website files:
 - `src/app/(site)/projects/page.tsx` - public projects page.
 - `src/app/(site)/projects/ProjectsGrid.tsx` - project grid, filtering, and project modal UI.
 - `src/app/(site)/contact/page.tsx` - contact page.
+- `src/app/components/contact/contact-hero-slider/index.tsx` - contact page image slider replacing the old static banner.
+- `src/data/navigation.ts` - shared public nav items used by the header.
 - `src/data/projects.ts` - main project database and image references.
+- `src/lib/email/build-etl-email-html.ts` - shared server-side ETL email HTML wrapper.
 - `src/app/components/shared/features/index.tsx` - service cards and service modal content.
 
 Important static tool pages:
@@ -97,6 +103,8 @@ These files reduce duplicated logic across quotation, LPO, invoice, dashboard, a
 - `public/forms/shared/etl-share.js` - shared copy-link and WhatsApp share modal.
 - `public/forms/shared/etl-inventory-autocomplete.js` - shared inventory autocomplete.
 
+`etl-items.js` still supports inventory-backed priced rows for quotation/inventory-style flows. The current customer procurement request mode intentionally allows free-text items without forcing inventory, price, or stock data.
+
 When adding new duplicated behavior, prefer extending one of these helpers instead of copying code into each page.
 
 ## Dashboard Module Map
@@ -104,8 +112,8 @@ When adding new duplicated behavior, prefer extending one of these helpers inste
 - `public/dashboard/etl-dashboard-core.js` - escaping, formatting, status classes, dashboard helper functions.
 - `public/dashboard/etl-dashboard-data.js` - Supabase REST data access.
 - `public/dashboard/etl-dashboard-controller.js` - tabs, page startup, loading requests/LPOs/approvals, KPI refresh.
-- `public/dashboard/etl-dashboard-records-view.js` - renders quotation request rows, LPO rows, approvals, details, and stock-check modal UI.
-- `public/dashboard/etl-dashboard-records-actions.js` - approve/reject, status updates, copy links, stock check, and record-related email actions.
+- `public/dashboard/etl-dashboard-records-view.js` - renders quotation request rows, LPO rows, approvals, details, stock-check modal UI, and the `Prepare Quotation` action for approved unpriced procurement requests.
+- `public/dashboard/etl-dashboard-records-actions.js` - approve/reject, status updates, copy links, stock check, procurement-request approval notices, and record-related email actions.
 - `public/dashboard/etl-dashboard-invoices-view.js` - invoice list and payment display rendering.
 - `public/dashboard/etl-dashboard-invoices-actions.js` - invoice payment/history actions.
 - `public/dashboard/etl-dashboard-page.css` - dashboard layout, mobile behavior, tables, modals, KPIs, dark theme.
@@ -115,15 +123,15 @@ When adding new duplicated behavior, prefer extending one of these helpers inste
 Quotation:
 
 - `public/forms/quotation/etl-quotation-request-page.js` - public request submit logic.
-- `public/forms/quotation/etl-quotation-generator-page.js` - generated quotation save/email/share logic.
+- `public/forms/quotation/etl-quotation-generator-page.js` - generated quotation save/email/share logic, including prefill from approved customer procurement requests via `lpo_id`.
 - `public/forms/quotation/etl-quotation-view-page.js` - public quote view loader.
 
 LPO:
 
-- `public/forms/lpo/etl-lpo-system-page.js` - inward/outward LPO form, preview, save, email, WhatsApp, quote prefill.
+- `public/forms/lpo/etl-lpo-system-page.js` - outward LPO, quotation-acceptance inward LPO, and unpriced customer procurement request form for sourcing/pricing.
 - `public/forms/lpo/etl-lpo-inventory.js` - LPO inventory helper behavior.
 - `public/forms/lpo/etl-lpo-turnstile.js` - Turnstile for public/anonymous LPO submit.
-- `public/forms/lpo/etl-lpo-view-page.js` - public LPO view loader and renderer.
+- `public/forms/lpo/etl-lpo-view-page.js` - public LPO/procurement-request view loader and renderer.
 
 Invoice:
 
@@ -143,7 +151,7 @@ Current table meaning:
 
 - `quotations` - public incoming quotation requests from clients.
 - `quotations_generated` - generated quotations created by staff.
-- `lpos` - local purchase orders, both inward and outward.
+- `lpos` - local purchase orders and customer procurement requests. Unpriced procurement requests are stored here as inward records with zero-priced items until staff prepare a generated quotation.
 - `invoices` - generated invoices.
 - `invoice_payments` - detailed payment records linked to invoices.
 - `inventory_items` - inventory/store item list.
@@ -171,6 +179,7 @@ Important correction: older notes may mention `quotation_requests`; the current 
 - `supabase-public-link-hardening.sql` creates token-based public RPC functions for quotation, LPO, and invoice view links, then removes direct anon SELECT from those tables. Run it only together with the matching frontend code that calls `/rpc/get_public_quotation`, `/rpc/get_public_lpo`, and `/rpc/get_public_invoice`.
 - `supabase-authenticated-policy-hardening.sql` is now a read-only/internal-risk review plan, not a management-only lockdown migration. Staff are involved in generated quote, invoice, payment, project-site, and inventory edits, so the safer production path is controlled server/API/RPC actions with audit logs instead of bluntly removing staff UPDATE access.
 - `supabase-internal-controls-phase1.sql` is the first runnable internal-controls migration. It adds `audit_log`, management-read RLS policy for audit entries, and non-breaking validation/audit triggers on `invoices`, `invoice_payments`, `inventory_items`, `stock_movements`, and `site_stock`.
+- `supabase-launch-data-reset.sql` clears launch/demo records from operational tables while preserving `auth.users` and `profiles`. Run it in Supabase SQL Editor only when intentionally preparing a clean launch dataset.
 - Public/static pages still contain some `innerHTML` rendering. Any time those paths are touched, escape user/database values before inserting them into HTML or move rendering to safer DOM APIs.
 
 ## Email System
@@ -178,6 +187,7 @@ Important correction: older notes may mention `quotation_requests`; the current 
 Server-side email route:
 
 - `src/app/api/send-email/route.ts`
+- `src/lib/email/build-etl-email-html.ts` holds the shared ETL email HTML builder used by API routes.
 
 It sends through Brevo and handles:
 
@@ -192,6 +202,8 @@ Email flows:
 - `internal_ops` - internal quote/LPO/invoice/dashboard actions, requires a valid Supabase session token, no Turnstile.
 - `public_quote_request` - public quotation request, Turnstile required.
 - `public_lpo_submit` - anonymous/public LPO submit, Turnstile required.
+
+Dashboard approval notifications for quotation/procurement work are currently sent to `tokui@usiu.ac.ke`. That address is a notification recipient, not necessarily a Supabase login account.
 
 Quote expiry reminder:
 
@@ -220,23 +232,48 @@ The wording should say "ETL team", not "director".
 
 - Homepage top nav was reduced in height while keeping nav words readable.
 - Homepage nav words and company text near the logo were enlarged after reduction.
+- Header logo was resized to sit inside the nav line, and the extra large homepage logo was removed.
+- Staff Login text is white on the transparent/dark nav so it matches the other nav words.
 - About ETL watermark logo was moved to the upper-right area, then aligned near the heading, made more opaque, and most recently bumped to opacity values `0.66`, `0.54`, and `0.34` for different modes.
 - Service modals were fixed for mobile scrolling.
 - Homepage service/project images were updated to use ETL image assets from `public/etl-images`.
+- Service/project card title and cash/number contrast was improved for readability over images.
 - Dashboard got a moon/sun dark theme trigger rather than a text "dark mode" button.
 - LPO dashboard view now includes the entity phone.
 - Public LPO view labels entity details as Phone, Email, and Address.
 - Inward LPO WhatsApp share goes to the ETL team number and uses ETL team wording.
+- Footer uses the ETL logo instead of the small square placeholder, and working hours are Monday - Friday, 9:00 AM - 6:00 PM.
+- Contact page hero now uses `ContactHeroSlider` instead of the old ETL banner. Current first slides are the ETL sign-post image and `naguru-asphalt-08.jpg.jpeg`; both use contained image fitting with a blurred fill layer behind them.
+- Homepage portal wording now points customers to quotation requests and procurement requests/items pricing rather than a priced inventory order.
+- Sande Robert was added to the staff section as Site Agent. Verify any experience-year wording before treating it as official company history.
+
+## Procurement Request Flow
+
+The inward LPO route now has two meanings:
+
+- Quotation acceptance: still behaves like a priced inward LPO when opened from an accepted/generated quotation.
+- Customer procurement request: the normal public inward path lets customers type the items or services they want, with quantities, without requiring the items to exist in ETL inventory.
+
+Customer procurement requests are intentionally unpriced at submission time:
+
+- No unit-price, subtotal, VAT, total, or stock promise is shown to the customer.
+- ETL receives the request, management approves it, and staff then use `Prepare Quotation` from the dashboard.
+- The quotation generator can load the request with `?lpo_id=...`, prefill customer/request details, and let staff source items and enter actual prices.
+- After a generated quotation is saved from a procurement request, the source LPO/request status is patched to `issued`.
+- Public LPO view pages detect unpriced requests and render them as `CUSTOMER PROCUREMENT REQUEST` with request wording.
 
 ## Refactor Status
 
-Demo-safe refactor phase is mostly complete:
+Production-bound refactor phase is mostly complete:
 
 - Shared helpers exist for forms, item rows, previews, submits, emails, sharing, config, auth, and utils.
 - Dashboard is split into controller, data, view, action, invoice-view, and invoice-action modules.
 - Inventory and site stock are split out of inline HTML.
 - Form pages have extracted JS/CSS modules.
 - Large inline CSS blocks have mostly moved into page CSS files.
+- Shared header navigation lives in `src/data/navigation.ts`.
+- Shared server-side email HTML lives in `src/lib/email/build-etl-email-html.ts`.
+- `src/app/api/pagedata/route.ts` and unused/template leftovers were removed during cleanup.
 
 Remaining cleanup should be gradual:
 

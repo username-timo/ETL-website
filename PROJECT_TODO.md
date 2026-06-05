@@ -1,8 +1,12 @@
 # ETL Project TODO
 
+Last updated: June 5, 2026
+
 ## Current Refactor Status
 
 The project should now be treated as production-bound, not just demo-safe. The old public HTML tools are still available, but repeated logic has been pulled into shared JavaScript and CSS files so future changes are safer while we continue hardening the launch risks.
+
+The active procurement direction has changed: customers can now submit unpriced procurement requests with free-text items and quantities. ETL staff then source the items and prepare the priced quotation from the dashboard.
 
 Main public tool pages:
 - `public/ETL-Dashboard.html`
@@ -34,6 +38,33 @@ Main public tool pages:
 - Duplicate template assets and unused starter files were cleaned up.
 - Main LPO routing now uses `public/ETL-LPO-System.html` with mode query parameters instead of depending on the incomplete legacy outward page.
 - Removed the old `public/ETL-LPO-Outward.html` redirect stub after confirming active links already use `public/ETL-LPO-System.html?mode=outward`.
+- Navigation data now lives in `src/data/navigation.ts`.
+- Server-side ETL email HTML building now lives in `src/lib/email/build-etl-email-html.ts`.
+- `Aoscompo` was renamed/cleaned up through `src/utils/aos.tsx`.
+- Unused/template code was reduced with Knip-guided cleanup, including removal of the old `src/app/api/pagedata/route.ts`.
+- Header link handling was simplified and navigation keys now use stable hrefs instead of array indexes.
+- The quote-reminders route now reads Supabase config from env/public env fallbacks instead of a hardcoded project URL.
+
+## Completed Launch/UI Work Since May 22
+
+- Footer uses the ETL logo instead of the placeholder square, and working hours now show 9:00 AM - 6:00 PM.
+- Header logo was resized to fit inside the nav bar, and the extra large homepage logo was removed.
+- Staff Login button text was made white on the transparent/dark nav.
+- Homepage service/project card titles and cash/number text were brightened for readability.
+- Contact page ETL banner was replaced with a real image slider. The sign-post and Naguru asphalt slides use contained image fitting with a blurred fill layer.
+- Public portal wording now points customers to quotation requests and procurement requests/items pricing.
+- Sande Robert was added as a Site Agent in the staff section. Verify any experience-year wording before launch.
+
+## Completed Procurement Request Work
+
+- `public/ETL-LPO-System.html?mode=inward` now acts as a customer procurement request form unless opened from quotation acceptance.
+- Customer procurement requests allow free-text item/service descriptions and quantities without requiring warehouse inventory.
+- Price/unit/stock/subtotal/VAT/total fields are hidden from the customer request path.
+- Public LPO view can render unpriced records as `CUSTOMER PROCUREMENT REQUEST`.
+- Dashboard detects approved unpriced LPO records and shows `Prepare Quotation`.
+- Approving a procurement request notifies the staff quotation-preparation recipient at `tokui@usiu.ac.ke`.
+- Quotation generator supports `?lpo_id=...` to prefill from a procurement request, lets staff enter real prices, and patches the source request status to `issued`.
+- `supabase-launch-data-reset.sql` was added to clear launch/example operational records while preserving Supabase users and profiles.
 
 ## Remaining Cleanup
 
@@ -44,6 +75,7 @@ Main public tool pages:
   - New phase-1 internal controls script added: `supabase-internal-controls-phase1.sql`.
   - Run phase 1 to add audit logs and validation triggers for `invoices`, `invoice_payments`, `inventory_items`, `stock_movements`, and `site_stock` without removing staff edit paths.
   - After phase 1, move high-risk writes to controlled server/API/RPC actions table-by-table, starting with invoice payments.
+  - Run `supabase-launch-data-reset.sql` only when intentionally clearing demo/launch data in Supabase SQL Editor.
   - Keep doing XSS passes when touching any `innerHTML` render path.
   - Move high-risk writes and admin actions toward server/API routes where practical.
   - Keep secrets only in `.env` or Cloudflare Worker secrets, never in browser files.
@@ -60,6 +92,9 @@ Main public tool pages:
   - `public/dashboard/etl-dashboard-page.css`
 - Consider moving the biggest operational tools into proper Next.js pages/components later, after the demo is stable and the current structure is fully understood.
 - Keep checking for duplicated logic before adding new code. If quotation, LPO, invoice, dashboard, or inventory need the same behavior, prefer a shared helper.
+- Keep `memory.md`, `PROJECT_TODO.md`, and `project structure.md` in sync after meaningful workflow, route, security, database, or major UI changes.
+- Review procurement-request labels and LPO naming with real staff before launch so customers do not confuse an unpriced request with a binding purchase order.
+- Re-check the staff section content before launch, especially any placeholder photos or experience-year text.
 
 ## Launch Security Checklist
 
@@ -70,8 +105,10 @@ Main public tool pages:
 - Management-only operations verified for approve, reject, delete, and sensitive payment changes.
 - Broad authenticated `UPDATE true` policies reviewed, with staff-safe server/RPC hardening planned for financial and inventory edits.
 - `supabase-internal-controls-phase1.sql` executed and verified (audit log table + high-priority validation/audit triggers).
+- `supabase-launch-data-reset.sql` run only when ready to clear example operational data.
 - XSS pass complete for public/static pages that use `innerHTML`.
 - Email flows verified after any server-side auth or recipient logic changes.
+- Customer procurement request flow smoke-tested from public request -> management approval -> staff Prepare Quotation -> generated quotation.
 
 ## Future Feature Ideas
 
@@ -81,12 +118,15 @@ Main public tool pages:
 - Audit log for sensitive actions such as approve, reject, delete, and payment updates.
 - Warehouse/store manager role when a real stock manager account is needed.
 - EFRIS/URA compliance review with an accountant before going fully live.
+- Move high-risk financial/inventory writes behind controlled API/RPC actions with audit logs.
+- Add a clearer sourcing/quotation preparation queue if procurement requests grow beyond the current dashboard buttons.
 
 ## Testing Preference
 
 - For normal UI/refactor work, run light checks and light browser smoke tests only when useful.
 - For email workflow changes, run the full email flow test because those paths affect real delivery.
 - Avoid heavy browser testing unless specifically requested, to save tokens and avoid unnecessary live records.
+- For procurement workflow changes, smoke-test the full public request -> dashboard approval -> quotation generation path when practical.
 - For internal-controls/RLS hardening checks, use `npm run smoke:internal-controls` with:
   - `SMOKE_SUPABASE_URL`
   - `SMOKE_SUPABASE_ANON_KEY`

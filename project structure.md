@@ -1,6 +1,6 @@
 # ETL Project Structure and File Guide
 
-Last updated: May 20, 2026
+Last updated: June 5, 2026
 
 This file is a simple map of the ETL Next.js project. Use it when you want to know where a feature lives before editing.
 
@@ -43,6 +43,10 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | `package-lock.json` | Locks exact package versions installed by npm. Do not hand-edit. |
 | `.env` | Local-only environment variables. Do not commit real secrets. |
 | `.gitignore` | Tells Git which generated/private files to ignore. |
+| `.editorconfig` | Keeps line endings/format basics consistent across editors. |
+| `.gitattributes` | Normalizes Git text handling for the project. |
+| `.npmrc` | npm config for this project. |
+| `knip.json` | Knip configuration used for unused-code scans. |
 | `next.config.mjs` | Next.js config. Also initializes OpenNext Cloudflare dev support. |
 | `open-next.config.ts` | OpenNext Cloudflare adapter config. |
 | `wrangler.jsonc` | Cloudflare Worker config, non-secret Worker vars, asset binding, and cron trigger schedule. |
@@ -57,7 +61,7 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | `supabase-public-link-hardening.sql` | Supabase hardening migration that serves public document views through token RPC functions and removes direct anon SELECT from document tables. |
 | `supabase-authenticated-policy-hardening.sql` | Read-only Supabase review plan for logged-in staff risk. Documents broad update policies and the safer server/RPC plus audit-log direction without breaking staff edit workflows. |
 | `supabase-internal-controls-phase1.sql` | Runnable first-step internal-controls migration: adds `audit_log`, management-read audit policy, and validation/audit triggers for invoice/payment/inventory/stock tables without removing staff edit workflows. |
-| `md2.md` | Older feature-idea note. Useful as rough history, not source of truth. |
+| `supabase-launch-data-reset.sql` | Launch/demo reset SQL. Clears operational example records while preserving `auth.users` and `profiles`. Run intentionally in Supabase SQL Editor only. |
 
 ## Main Next.js App Structure
 
@@ -89,15 +93,15 @@ Edit source files in `src/`, `public/`, and root config files instead.
 |---|---|
 | `src/app/components/layout/header/index.tsx` | Main public-site top navigation. |
 | `src/app/components/layout/header/ThemeToggler.tsx` | Moon/sun dark-mode toggle. |
-| `src/app/components/layout/header/logo/index.tsx` | Header logo and company text. |
+| `src/app/components/layout/header/logo/index.tsx` | Header logo and company text. Logo is sized to sit inside the nav bar. |
 | `src/app/components/layout/header/navigation/HeaderLink.tsx` | Desktop header links. |
 | `src/app/components/layout/header/navigation/MobileHeaderLink.tsx` | Mobile menu links. |
-| `src/app/components/layout/footer/index.tsx` | Public-site footer. |
+| `src/app/components/layout/footer/index.tsx` | Public-site footer with ETL logo, WhatsApp CTA, contact details, and 9:00 AM - 6:00 PM working hours. |
 | `src/app/components/home/hero/index.tsx` | Homepage hero slider. |
 | `src/app/components/home/about/index.tsx` | Homepage About ETL section. |
 | `src/app/components/shared/features/index.tsx` | Services/features section and service modal content. |
 | `src/app/components/home/projects/index.tsx` | Homepage project preview section. |
-| `src/app/components/home/portal/index.tsx` | Homepage client/staff portal cards. |
+| `src/app/components/home/portal/index.tsx` | Homepage client/staff portal cards for quotation requests and procurement requests/items pricing. |
 | `src/app/components/home/staff/index.tsx` | Staff/team section. |
 | `src/app/components/home/turnover/index.tsx` | Turnover/statistics section. |
 | `src/app/components/home/history/index.tsx` | Company history section. |
@@ -106,6 +110,7 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | `src/app/components/shared/hero-sub/index.tsx` | Shared sub-page hero/banner. |
 | `src/app/components/breadcrumb/index.tsx` | Breadcrumb display for sub pages. |
 | `src/app/components/contact/contact-info/index.tsx` | Contact details cards. |
+| `src/app/components/contact/contact-hero-slider/index.tsx` | Contact page hero slider. First slides use ETL sign-post and Naguru asphalt photos with contained image fitting and blurred fill. |
 | `src/app/components/contact/form/index.tsx` | Public contact form UI. |
 | `src/app/components/contact/office-location/index.tsx` | Office/location display on contact page. |
 | `src/app/components/scroll-to-top/index.tsx` | Floating scroll-to-top button. |
@@ -115,9 +120,11 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | Path | What it does |
 |---|---|
 | `src/data/projects.ts` | Main project database for public project cards and service modal project lists. |
+| `src/data/navigation.ts` | Shared public navigation item list for the header. |
 | `src/utils/extendedConfig.ts` | Tailwind theme extension values. |
 | `src/utils/aos.tsx` | Animation-on-scroll helper setup. |
 | `src/utils/validateEmail.ts` | Email validation helper. |
+| `src/lib/email/build-etl-email-html.ts` | Shared server-side ETL email HTML builder used by email API routes. |
 | `src/app/types/data/breadcrumb.ts` | Type definitions for breadcrumb data. |
 | `src/app/types/layout/menu.ts` | Type definitions for menu/navigation items. |
 
@@ -127,7 +134,6 @@ Edit source files in `src/`, `public/`, and root config files instead.
 |---|---|
 | `src/app/api/send-email/route.ts` | Server-side email endpoint. Sends through Brevo, validates payloads, rate-limits requests, checks allowed origins, verifies Supabase sessions for internal email, and verifies Turnstile for public flows. |
 | `src/app/api/cron/quote-reminders/route.ts` | Quote reminder endpoint. Requires `CRON_SECRET` in production, then looks for generated quotations expiring in 3 days and emails reminder messages. |
-| `src/app/api/pagedata/route.ts` | Small page-data endpoint from the original template. Keep only if still used. |
 
 ## Public Static Tool Pages
 
@@ -135,12 +141,12 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 
 | File | What it does |
 |---|---|
-| `public/ETL-Dashboard.html` | Internal operations dashboard: quotation requests, LPO records, approvals, invoices, payments, KPIs. |
+| `public/ETL-Dashboard.html` | Internal operations dashboard: quotation requests, customer procurement requests, LPO records, approvals, invoices, payments, KPIs. |
 | `public/ETL-Quotation-Request.html` | Public quotation request form for clients. Uses Turnstile and sends requests to the `quotations` table. |
-| `public/ETL-Quotation-generator.html` | Internal quotation generator. Saves generated quotes to `quotations_generated`, emails the client, and opens the share modal. |
+| `public/ETL-Quotation-generator.html` | Internal quotation generator. Saves generated quotes to `quotations_generated`, emails the client, opens the share modal, and can prefill from approved procurement requests through `lpo_id`. |
 | `public/ETL-Quotation-View.html` | Public quotation view link opened by clients. Reads generated quote by `unique_link`. |
-| `public/ETL-LPO-System.html` | Main LPO form for inward/outward LPOs. Uses `?mode=inward` or `?mode=outward`. |
-| `public/ETL-LPO-View.html` | Public LPO view link. Shows issuer/supplier details and LPO items. |
+| `public/ETL-LPO-System.html` | Main LPO/procurement form. `?mode=outward` is ETL-to-supplier LPO. Normal `?mode=inward` is now a customer procurement request unless opened from quotation acceptance. |
+| `public/ETL-LPO-View.html` | Public LPO/procurement request view link. Detects unpriced customer requests and hides commercial totals. |
 | `public/ETL-Invoice.html` | Internal invoice generator and invoice payment tools. |
 | `public/ETL-Invoice-View.html` | Public invoice view link opened by clients. |
 | `public/ETL-Inventory.html` | Internal inventory management page. |
@@ -155,21 +161,21 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | `public/shared/etl-email.js` | Shared wrapper around `/api/send-email`. Keeps email POST logic out of every form. |
 | `public/shared/etl-utils.js` | Shared escaping, formatting, and response-error helpers. |
 | `public/forms/shared/etl-forms.css` | Shared form styling used by quotation, LPO, and invoice pages. |
-| `public/forms/shared/etl-items.js` | Shared add/remove/recalculate item-row behavior. |
+| `public/forms/shared/etl-items.js` | Shared add/remove/recalculate item-row behavior. Supports priced inventory rows and free-text customer procurement request rows. |
 | `public/forms/shared/etl-submit.js` | Shared form validation, date checks, item collection, and JSON submit helper. |
 | `public/forms/shared/etl-preview.js` | Shared preview rendering helpers for document pages. |
 | `public/forms/shared/etl-share.js` | Shared copy-link and WhatsApp share modal. Builds `wa.me` links and falls back to contact picker when no phone is available. |
-| `public/forms/shared/etl-inventory-autocomplete.js` | Shared autocomplete for inventory-backed item descriptions and prices. |
+| `public/forms/shared/etl-inventory-autocomplete.js` | Shared autocomplete for inventory-backed item descriptions and prices. Do not force this onto the public procurement request path. |
 
 ## Dashboard Modules
 
 | Path | What it does |
 |---|---|
 | `public/dashboard/etl-dashboard-core.js` | Core dashboard helpers: escaping, formatting, status classes, and shared helpers used by other dashboard modules. |
-| `public/dashboard/etl-dashboard-data.js` | Supabase REST data layer for dashboard records. |
+| `public/dashboard/etl-dashboard-data.js` | Supabase REST data layer for dashboard records, including LPO/procurement request loading. |
 | `public/dashboard/etl-dashboard-controller.js` | Main dashboard controller: tab switching, loading requests/LPOs/approvals, KPI refresh, and page startup. |
-| `public/dashboard/etl-dashboard-records-view.js` | Renders quotation request rows, LPO rows, approval tables, LPO details, request details, and stock-check modal content. |
-| `public/dashboard/etl-dashboard-records-actions.js` | Dashboard record actions: approve/reject, status updates, copy LPO link, stock check, and quotation emails. |
+| `public/dashboard/etl-dashboard-records-view.js` | Renders quotation request rows, LPO/procurement request rows, approval tables, details modals, stock-check modal content, and `Prepare Quotation`. |
+| `public/dashboard/etl-dashboard-records-actions.js` | Dashboard record actions: approve/reject, status updates, copy LPO link, stock check, approval notification emails, and procurement quotation preparation links. |
 | `public/dashboard/etl-dashboard-invoices-view.js` | Renders invoice list, payment summary, and invoice display helpers. |
 | `public/dashboard/etl-dashboard-invoices-actions.js` | Dashboard invoice actions such as payment/history workflows. |
 | `public/dashboard/etl-dashboard-page.css` | Dashboard styling, including tables, KPIs, mobile layout, modals, and dark theme support. |
@@ -180,15 +186,15 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 |---|---|
 | `public/forms/quotation/etl-quotation-request-page.js` | Public quotation request form logic: validation, Supabase insert, email notification, and WhatsApp share to ETL team. |
 | `public/forms/quotation/etl-quotation-request-page.css` | Styles for the public quotation request page. |
-| `public/forms/quotation/etl-quotation-generator-page.js` | Quotation generator logic: preview, save, email, share modal, and status update for source request. |
+| `public/forms/quotation/etl-quotation-generator-page.js` | Quotation generator logic: preview, save, email, share modal, status update for source quotation request, and prefill/status update for source procurement request. |
 | `public/forms/quotation/etl-quotation-generator-page.css` | Styles for the quotation generator page. |
 | `public/forms/quotation/etl-quotation-view-page.js` | Public quote view loader and renderer. |
 | `public/forms/quotation/etl-quotation-view-page.css` | Public quote view styles. |
-| `public/forms/lpo/etl-lpo-system-page.js` | LPO form logic for inward/outward modes: validation, preview, save, email, WhatsApp share, and quote prefill. |
+| `public/forms/lpo/etl-lpo-system-page.js` | LPO/procurement form logic for outward LPO, quotation-acceptance inward LPO, and unpriced customer procurement request mode. |
 | `public/forms/lpo/etl-lpo-system-page.css` | LPO system page styles. |
 | `public/forms/lpo/etl-lpo-inventory.js` | LPO inventory autocomplete/stock-related helper logic. |
 | `public/forms/lpo/etl-lpo-turnstile.js` | Turnstile behavior for public/anonymous LPO submissions. |
-| `public/forms/lpo/etl-lpo-view-page.js` | Public LPO view loader and renderer. |
+| `public/forms/lpo/etl-lpo-view-page.js` | Public LPO/procurement request view loader and renderer. |
 | `public/forms/lpo/etl-lpo-view-page.css` | Public LPO view styles. |
 | `public/forms/invoice/etl-invoice-page.js` | Invoice generator logic: LPO prefill, preview, save, email, payment link/share behavior. |
 | `public/forms/invoice/etl-invoice-page.css` | Invoice generator styles. |
@@ -211,6 +217,9 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | `public/etl-images/` | Main image folder for logos, homepage images, service modal images, and project photos. |
 | `public/etl-images/etl-logo.png` | Main ETL logo used by headers and forms. |
 | `public/etl-images/og-cover.jpg` | Social/share cover image. |
+| `public/etl-images/ETL SIGN POST.jpeg` | Original ETL sign-post upload kept in the project. |
+| `public/upscaled-ETL-images/ETL SIGN POST.png` | Clean/upscaled sign-post image used by the contact hero slider. |
+| `public/etl-images/naguru-asphalt-08.jpg.jpeg` | Naguru asphalt contact hero slider image. |
 | `public/etl-images/svc-*.jpg` | Service category images. |
 | `public/etl-images/*project*.jpg` and named project images | Project/service gallery images referenced from `src/data/projects.ts` and service modals. |
 
@@ -220,7 +229,7 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 |---|---|
 | `quotations` | Public incoming quotation requests from clients. |
 | `quotations_generated` | Generated quotations created by staff from the quotation generator. |
-| `lpos` | Local Purchase Orders, both inward and outward. |
+| `lpos` | Local Purchase Orders plus customer procurement requests. Unpriced customer requests are stored here until staff prepare a quotation. |
 | `invoices` | Generated client invoices. |
 | `invoice_payments` | Payment records linked to invoices. |
 | `inventory_items` | Store/inventory item master list. |
@@ -242,6 +251,8 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 - Real secrets such as `BREVO_API_KEY`, `TURNSTILE_SECRET_KEY`, `CRON_SECRET`, and `SUPABASE_SERVICE_KEY` belong in Cloudflare secrets or local `.env`, not public files.
 - Before launch, run `supabase-rls-audit.sql` in Supabase and review every anon grant/policy result.
 - Public document links should use RPC functions such as `get_public_quotation`, `get_public_lpo`, and `get_public_invoice`, not direct anon table SELECT.
+- `supabase-internal-controls-phase1.sql` adds audit logging and non-breaking validation triggers for high-risk invoice/payment/inventory/stock writes.
+- `supabase-launch-data-reset.sql` clears launch/demo operational records while preserving login accounts and profile roles.
 - Public/static pages still use some `innerHTML`; user/database text must be escaped before it is inserted into those HTML strings.
 
 ## Email Flows
@@ -251,6 +262,8 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | `internal_ops` | Internal quote/LPO/invoice/dashboard actions | Requires a valid Supabase session token. Does not require Turnstile. |
 | `public_quote_request` | Public quotation request form | Requires Turnstile and sends only to allowed ETL recipient emails. |
 | `public_lpo_submit` | Anonymous/public LPO submit path | Requires Turnstile. |
+
+Dashboard approval notifications for quotation/procurement preparation currently go to `tokui@usiu.ac.ke`.
 
 ## WhatsApp Share Behavior
 
@@ -265,6 +278,7 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 ```bash
 npx tsc --noEmit
 git diff --check
+node --check path/to/file.js
 npm run smoke:internal-controls
 npm run build
 npm run cf:build
