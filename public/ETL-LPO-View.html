@@ -41,7 +41,7 @@
 <div class="preview-controls" id="controls" style="display:none;">
   <button class="btn-ctrl btn-pdf" onclick="exportPDF()">⬇ Download PDF</button>
   <button class="btn-ctrl btn-print" onclick="window.print()">🖨 Print</button>
-  <span class="ctrl-info">LPO issued by Engineering Trade Links Co. Ltd</span>
+  <span class="ctrl-info" id="p-control-info">LPO issued by Engineering Trade Links Co. Ltd</span>
 </div>
 
 <!-- LPO DOCUMENT -->
@@ -56,13 +56,13 @@
         Email: tradelinks.ltd@gmail.com &nbsp;|&nbsp; TIN: 1000161539</p>
       </div>
       <div style="text-align:right;">
-        <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;margin-bottom:8px;">LOCAL PURCHASE ORDER</div>
+        <div id="p-document-title" style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;margin-bottom:8px;">LOCAL PURCHASE ORDER</div>
         <div class="doc-badge" id="p-lpo-badge">—</div>
       </div>
     </div>
 
     <div class="doc-ref-bar">
-      <div class="doc-ref-item"><label>LPO Number</label><span id="p-lpo-ref">—</span></div>
+      <div class="doc-ref-item"><label id="p-reference-label">LPO Number</label><span id="p-lpo-ref">—</span></div>
       <div class="doc-ref-item"><label>Issue Date</label><span id="p-date-i">—</span></div>
       <div class="doc-ref-item"><label>Delivery Date</label><span id="p-date-d">—</span></div>
       <div class="doc-ref-item"><label>Direction</label><span id="p-direction">—</span></div>
@@ -91,15 +91,15 @@
           <tr>
             <th style="width:5%">#</th>
             <th style="width:40%">Description of Goods / Services</th>
-            <th style="width:10%">Unit</th>
+            <th class="commercial-only" style="width:10%">Unit</th>
             <th style="width:8%">Qty</th>
-            <th style="width:18%">Unit Price (UGX)</th>
-            <th style="width:18%">Total (UGX)</th>
+            <th class="commercial-only" style="width:18%">Unit Price (UGX)</th>
+            <th class="commercial-only" style="width:18%">Total (UGX)</th>
           </tr>
         </thead>
         <tbody id="p-items-body"></tbody>
         <tfoot>
-          <tr class="total-row" id="p-total-row">
+          <tr class="total-row commercial-only" id="p-total-row">
             <td colspan="5" style="text-align:right;">GRAND TOTAL (UGX)</td>
             <td id="p-grand-total">—</td>
           </tr>
@@ -111,7 +111,7 @@
         <span id="p-notes-text"></span>
       </div>
 
-      <div class="doc-footer">
+      <div class="doc-footer commercial-only">
         <div>
           <div class="sig-area"></div>
           <div class="sig-label" id="p-preparer">Authorised By: ETL Management</div>
@@ -122,7 +122,7 @@
         </div>
       </div>
 
-      <div class="doc-notice" style="margin-top:20px;">
+      <div class="doc-notice" id="p-official-notice" style="margin-top:20px;">
         <strong>Official Notice:</strong> This document serves as an official authorisation of purchase/service delivery by Engineering Trade Links Co. Ltd. All deliveries must be accompanied by an original Delivery Note and Invoice quoting the LPO number above. ETL reserves the right to reject goods/services not conforming to the specifications stated herein.
       </div>
 

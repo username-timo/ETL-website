@@ -28,6 +28,26 @@
   /* ── FORM ── */
   /* Items table */
   .items-table { --items-table-min-width: 580px; --item-remove-size: 22px; }
+  .customer-request-mode .commercial-only,
+  .customer-request-doc .commercial-only { display: none !important; }
+  .customer-request-mode .items-table { --items-table-min-width: 0; table-layout: fixed; }
+  .customer-request-mode .items-table th:first-child,
+  .customer-request-mode .items-table .item-description-cell { width: auto !important; }
+  .customer-request-mode .items-table th:nth-child(3),
+  .customer-request-mode .items-table .item-quantity-cell { width: 120px !important; }
+  .customer-request-mode .items-table th:last-child,
+  .customer-request-mode .items-table .item-remove-cell { width: 52px !important; }
+  .customer-request-doc .doc-table { table-layout: fixed; }
+  .customer-request-doc .doc-table th:nth-child(2),
+  .customer-request-doc .doc-table td:nth-child(2) { width: auto !important; }
+  .customer-request-doc .doc-table th:nth-child(3),
+  .customer-request-doc .doc-table td:nth-child(3),
+  .customer-request-doc .doc-table th:nth-child(5),
+  .customer-request-doc .doc-table td:nth-child(5),
+  .customer-request-doc .doc-table th:nth-child(6),
+  .customer-request-doc .doc-table td:nth-child(6) { display: none; }
+  .customer-request-doc .doc-table th:nth-child(4),
+  .customer-request-doc .doc-table td:nth-child(4) { width: 90px !important; text-align: center; }
 
   /* ── PREVIEW ── */
   #preview-section { display: none; padding-bottom: 80px; }
@@ -137,5 +157,10 @@
     .doc-brand-footer { padding: 12px; flex-direction: column; gap: 8px; }
     #preview-section { padding: 0; margin: 0; }
     .preview-controls { padding: 10px 2%; gap: 8px; }
+    .customer-request-mode .items-wrap { overflow-x: visible; }
+    .customer-request-mode .items-table th:nth-child(3),
+    .customer-request-mode .items-table .item-quantity-cell { width: 72px !important; }
+    .customer-request-mode .items-table th:last-child,
+    .customer-request-mode .items-table .item-remove-cell { width: 38px !important; }
   }
   /* Autocomplete */

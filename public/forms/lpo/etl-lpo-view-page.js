@@ -10,6 +10,13 @@
 
   function fmt(n) { return Math.round(n||0).toLocaleString(); }
 
+  function isPricingRequest(lpo) {
+    const items = lpo.items || [];
+    return lpo.direction === 'inward'
+      && Number(lpo.total || 0) <= 0
+      && !items.some(item => Number(item.price || 0) > 0 || Number(item.total || 0) > 0);
+  }
+
   async function loadLPO() {
     // Get unique_link from URL ?lpo=xxxx
     const params = new URLSearchParams(window.location.search);
@@ -56,18 +63,23 @@
 
   function renderLPO(lpo) {
     const isOut = lpo.direction === 'outward';
+    const requestMode = isPricingRequest(lpo);
     const esc = ETLUtils.escapeHtml;
 
     document.getElementById('doc-header').className = 'doc-header ' + (isOut ? 'out' : 'in');
+    document.getElementById('lpo-document').classList.toggle('customer-request-doc', requestMode);
+    document.getElementById('p-document-title').innerText = requestMode ? 'CUSTOMER PROCUREMENT REQUEST' : 'LOCAL PURCHASE ORDER';
+    document.getElementById('p-reference-label').innerText = requestMode ? 'Request Reference' : 'LPO Number';
+    document.getElementById('p-control-info').innerText = requestMode ? 'Unpriced procurement request submitted to Engineering Trade Links Co. Ltd' : 'LPO issued by Engineering Trade Links Co. Ltd';
 
     document.getElementById('p-lpo-badge').innerText = lpo.lpo_number || '-';
     document.getElementById('p-lpo-ref').innerText   = lpo.lpo_number || '-';
     document.getElementById('p-date-i').innerText    = fmtDate(lpo.issue_date);
     document.getElementById('p-date-d').innerText    = fmtDate(lpo.delivery_date);
-    document.getElementById('p-direction').innerText = isOut ? 'ETL -> Supplier' : 'Client -> ETL';
+    document.getElementById('p-direction').innerText = requestMode ? 'ETL to source and price' : isOut ? 'ETL -> Supplier' : 'Client -> ETL';
 
     const entityLabel = document.getElementById('p-entity-label');
-    entityLabel.innerText   = isOut ? 'VENDOR / SUPPLIER DETAILS:' : 'CLIENT / ISSUER DETAILS:';
+    entityLabel.innerText   = isOut ? 'VENDOR / SUPPLIER DETAILS:' : requestMode ? 'CUSTOMER DETAILS:' : 'CLIENT / ISSUER DETAILS:';
     entityLabel.className   = 'party-label ' + (isOut ? 'label-out' : 'label-in');
     document.getElementById('p-entity-name').innerText   = lpo.entity_name || '-';
     const entityDetails = [
@@ -90,7 +102,10 @@
       </tr>`).join('');
 
     document.getElementById('p-grand-total').innerText = fmt(lpo.total);
-    document.getElementById('p-total-row').className   = 'total-row ' + (isOut ? 'out' : 'in');
+    document.getElementById('p-total-row').className   = 'total-row commercial-only ' + (isOut ? 'out' : 'in');
+    document.getElementById('p-official-notice').innerHTML = requestMode
+      ? '<strong>Request Notice:</strong> This is an unpriced request for ETL to source the listed items or services. ETL will confirm availability, specifications, delivery timing, and prices in a separate quotation.'
+      : '<strong>Official Notice:</strong> This document serves as an official authorisation of purchase/service delivery by Engineering Trade Links Co. Ltd. All deliveries must be accompanied by an original Delivery Note and Invoice quoting the LPO number above. ETL reserves the right to reject goods/services not conforming to the specifications stated herein.';
 
     if(lpo.notes) {
       document.getElementById('p-notes-block').style.display = 'block';
@@ -102,7 +117,7 @@
     document.getElementById('loading-state').style.display = 'none';
     document.getElementById('controls').style.display      = 'flex';
     document.getElementById('lpo-wrap').style.display      = 'block';
-    document.title = `LPO ${lpo.lpo_number || ''} - Engineering Trade Links`;
+    document.title = `${requestMode ? 'Procurement Request' : 'LPO'} ${lpo.lpo_number || ''} - Engineering Trade Links`;
   }
 
   function exportPDF() {
@@ -111,7 +126,7 @@
     const lpoNum = document.getElementById('p-lpo-ref').innerText;
     const opt = {
       margin: 0.3,
-      filename: `ETL_LPO_${lpoNum}.pdf`,
+      filename: `ETL_${document.getElementById('lpo-document').classList.contains('customer-request-doc') ? 'Procurement_Request' : 'LPO'}_${lpoNum}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
       html2canvas: { scale: 3 },
       jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }

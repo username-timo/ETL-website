@@ -52,6 +52,19 @@
     return '';
   }
 
+  function isPricingRequest(record) {
+    const items = record.items || [];
+    return record.direction === 'inward'
+      && Number(record.total || 0) <= 0
+      && !items.some(item => Number(item.price || 0) > 0 || Number(item.total || 0) > 0);
+  }
+
+  function renderLpoTotal(record) {
+    return isPricingRequest(record)
+      ? '<span style="color:var(--gold);font-weight:700;">Pricing required</span>'
+      : fmtTotal(record.total);
+  }
+
   function renderRequestAction(record) {
     const id = escapeJs(record.id);
     if (record.status === 'pending_approval') {
@@ -131,10 +144,10 @@
     const copy = record.status === 'approved' && record.direction === 'outward' && record.unique_link
       ? `<button class="action-btn gold" onclick="copyLink('${escapeJs(record.unique_link)}')">Copy Link</button>`
       : '';
-    const stock = record.status === 'approved' && record.direction === 'inward'
-      ? `<button class="action-btn" onclick="checkStockById('${id}')" style="background:var(--light-bg);color:var(--secondary);border-color:var(--secondary)">Check Stock</button>`
+    const prepareQuote = record.status === 'approved' && isPricingRequest(record)
+      ? `<button class="action-btn gold" onclick="prepareLpoQuotation('${id}')">Prepare Quotation</button>`
       : '';
-    return `<button class="action-btn" onclick="showLPOById('${id}')">View</button>${waiting}${copy}${stock}`;
+    return `<button class="action-btn" onclick="showLPOById('${id}')">View</button>${waiting}${copy}${prepareQuote}`;
   }
 
   function renderLpoRows(records, options) {
@@ -150,7 +163,7 @@
           <td>${escapeHtml(fallback(record.entity_name))}</td>
           <td><span class="badge badge-${directionClass}">${escapeHtml(fallback(record.direction))}</span></td>
           <td>${escapeHtml(fallback(record.entity_email))}</td>
-          <td>${fmtTotal(record.total)}</td>
+          <td>${renderLpoTotal(record)}</td>
           <td>${fmtDate(record.created_at)}</td>
           <td><span class="badge badge-lpo-${statusClass}" id="lpo-status-${escapeHtml(record.id)}">${escapeHtml(fallback(record.status))}</span></td>
           <td><div class="lpo-actions">
@@ -209,7 +222,7 @@
           <td data-label="Entity">${escapeHtml(fallback(record.entity_name))}</td>
           <td data-label="Direction"><span class="badge badge-${safeClass(record.direction)}">${escapeHtml(fallback(record.direction))}</span></td>
           <td data-label="Email">${escapeHtml(fallback(record.entity_email))}</td>
-          <td data-label="Total">${fmtMoney(record.total)}</td>
+          <td data-label="Total">${renderLpoTotal(record)}</td>
           <td data-label="Date">${fmtDate(record.created_at)}</td>
           <td data-label="Actions">
             <button class="action-btn" onclick="showLPOById('${id}')">View</button>
@@ -247,35 +260,35 @@
     const fmtDate = opts.fmtDate || formatLongDate;
     const direction = safeClass(record.direction);
     const status = safeClass(record.status);
+    const requestMode = isPricingRequest(record);
     const items = (record.items || []).map((item, index) => `
       <tr>
         <td>${index + 1}</td>
         <td>${escapeHtml(item.desc || '')}</td>
-        <td>${escapeHtml(item.unit || '')}</td>
         <td>${escapeHtml(item.qty ?? 0)}</td>
-        <td>${fmtMoney(item.price || 0)}</td>
-        <td>${fmtMoney(item.total || 0)}</td>
+        ${requestMode ? '' : `<td>${escapeHtml(item.unit || '')}</td><td>${fmtMoney(item.price || 0)}</td><td>${fmtMoney(item.total || 0)}</td>`}
       </tr>`).join('');
 
     return `
-      <h2>LPO Details</h2>
+      <h2>${requestMode ? 'Customer Procurement Request' : 'LPO Details'}</h2>
       <div class="modal-grid">
-        ${modalField('LPO Number', record.lpo_number)}
+        ${modalField(requestMode ? 'Request Reference' : 'LPO Number', record.lpo_number)}
         ${modalField('Direction', `<span class="badge badge-${direction}">${escapeHtml(record.direction || '-')}</span>`, { raw: true })}
         ${modalField('Entity Name', record.entity_name)}
         ${modalField('Email', record.entity_email)}
         ${modalField('Phone', record.entity_phone)}
         ${modalField('Issue Date', fmtDate(record.issue_date))}
         ${modalField('Delivery Date', fmtDate(record.delivery_date))}
-        ${modalField('Total Amount', `<strong>${fmtMoney(record.total || 0)}</strong>`, { raw: true })}
+        ${modalField(requestMode ? 'Pricing' : 'Total Amount', requestMode ? '<strong style="color:var(--gold)">Required</strong>' : `<strong>${fmtMoney(record.total || 0)}</strong>`, { raw: true })}
         ${modalField('Status', `<span class="badge badge-${status}">${escapeHtml(record.status || '-')}</span>`, { raw: true })}
         ${optionalModalField('Project / Contract Title', record.project_name, { full: true })}
         ${optionalModalField('Delivery Location', record.delivery_location)}
         ${optionalModalField('Notes', record.notes, { full: true })}
       </div>
-      ${items ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:var(--lighter-bg)"><th style="padding:8px;text-align:left">#</th><th style="padding:8px;text-align:left">Description</th><th style="padding:8px">Unit</th><th style="padding:8px">Qty</th><th style="padding:8px">Price</th><th style="padding:8px">Total</th></tr></thead><tbody>${items}</tbody></table>` : ''}
+      ${items ? `<table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:8px;"><thead><tr style="background:var(--lighter-bg)"><th style="padding:8px;text-align:left">#</th><th style="padding:8px;text-align:left">Description</th><th style="padding:8px">Qty</th>${requestMode ? '' : '<th style="padding:8px">Unit</th><th style="padding:8px">Price</th><th style="padding:8px">Total</th>'}</tr></thead><tbody>${items}</tbody></table>` : ''}
       <div class="modal-actions">
         <button class="modal-btn secondary" onclick="closeModal()">Close</button>
+        ${requestMode && record.status === 'approved' ? `<button class="modal-btn primary" onclick="prepareLpoQuotation('${escapeJs(record.id)}')">Prepare Quotation</button>` : ''}
         ${record.direction === 'outward' && record.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${escapeJs(record.unique_link)}')">Copy Supplier Link</button>` : ''}
         ${record.status === 'pending_approval' && role === 'management'
           ? `<button class="modal-btn green" onclick="approveLPO('${escapeJs(record.id)}');closeModal()">Approve</button>
@@ -315,63 +328,6 @@
       </div>`;
   }
 
-  function renderStockCheck(record, inventory) {
-    let allInStock = true;
-    let html = '<div class="stock-check-list">';
-
-    (record.items || []).forEach((item) => {
-      const desc = String(item.desc || '');
-      const inv = (inventory || []).find((stockItem) => {
-        const stockName = String(stockItem.name || '').toLowerCase();
-        const itemName = desc.toLowerCase();
-        return stockName && itemName && (stockName.includes(itemName) || itemName.includes(stockName));
-      });
-      let statusHtml = '';
-      if (inv) {
-        if (Number(inv.current_stock || 0) >= Number(item.qty || 0)) {
-          statusHtml = `<span style="color:var(--success);font-weight:700;">In Stock (${Math.round(Number(inv.current_stock) || 0).toLocaleString()} ${escapeHtml(inv.unit || '')})</span>`;
-        } else if (Number(inv.current_stock || 0) > 0) {
-          statusHtml = `<span style="color:var(--warning);font-weight:700;">Low (${Math.round(Number(inv.current_stock) || 0).toLocaleString()} / ${escapeHtml(item.qty || 0)} needed)</span>`;
-          allInStock = false;
-        } else {
-          statusHtml = '<span style="color:var(--danger);font-weight:700;">Out of Stock</span>';
-          allInStock = false;
-        }
-      } else {
-        statusHtml = '<span style="color:var(--text-muted);font-weight:700;">Not in Inventory</span>';
-        allInStock = false;
-      }
-      html += `<div class="stock-check-item">
-        <span><strong>${escapeHtml(desc)}</strong> - ${escapeHtml(item.qty || 0)} ${escapeHtml(item.unit || '')}</span>
-        ${statusHtml}
-      </div>`;
-    });
-
-    html += '</div>';
-    if (allInStock) {
-      html += `<div style="padding:16px;border-top:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
-        <p style="font-size:13px;color:var(--success);font-weight:600;flex:1;">All items are in stock. You can proceed.</p>
-        <button class="modal-btn primary" onclick="window.open('ETL-Invoice.html?lpo_id=${escapeJs(record.id)}','_blank');closeModal()">Generate Invoice</button>
-      </div>`;
-    } else {
-      html += `<div style="padding:16px;border-top:1px solid var(--border);">
-        <p style="font-size:13px;color:var(--warning);font-weight:600;margin-bottom:12px;">Some items are not in stock. Generate a supplier LPO first, then invoice when ready.</p>
-        <div style="display:flex;gap:10px;flex-wrap:wrap;">
-          <button class="modal-btn primary" onclick="window.open('ETL-LPO-System.html?mode=outward','_blank');closeModal()">Generate Supplier LPO</button>
-          <button class="modal-btn" style="background:var(--gold);color:#fff;" onclick="window.open('ETL-Invoice.html?lpo_id=${escapeJs(record.id)}','_blank');closeModal()">Generate Invoice Anyway</button>
-        </div>
-      </div>`;
-    }
-
-    return `
-      <h2>Stock Check - ${escapeHtml(record.lpo_number || '')}</h2>
-      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">Client: <strong>${escapeHtml(record.entity_name || '')}</strong> | Checking ${(record.items || []).length} item(s) against inventory</p>
-      ${html}
-      <div style="padding:0 16px 16px;">
-        <button class="modal-btn secondary" onclick="closeModal()" style="margin-top:8px;">Close</button>
-      </div>`;
-  }
-
   window.ETLDashboard = Object.assign(window.ETLDashboard || {}, {
     renderRequestTable,
     renderLpoTable,
@@ -379,7 +335,6 @@
     filterLpos,
     renderApprovals,
     renderLpoDetail,
-    renderRequestDetail,
-    renderStockCheck
+    renderRequestDetail
   });
 })();

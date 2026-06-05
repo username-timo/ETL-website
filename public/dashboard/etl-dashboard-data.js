@@ -93,7 +93,6 @@
     },
     updateQuotation: (id, payload, token) => readMinimal(patch('quotations', id, payload, token)),
     updateLpo: (id, payload, token) => readMinimal(patch('lpos', id, payload, token)),
-    fetchInventoryStock: (token) => readJson(get('inventory_items?select=name,current_stock,unit', token)),
     fetchInvoicesWithPayments: (token) => readJson(get('invoices?select=*,invoice_payments(*)&order=created_at.desc', token)),
     fetchReceivableInvoices: (token) => readJson(get('invoices?select=id,total,due_date,invoice_payments(amount)', token)),
     createInvoicePayment: (payload, token) => readJson(post('invoice_payments', payload, token)),

@@ -81,7 +81,7 @@ const Header: React.FC = () => {
 
           <a
             href="/ETL-Dashboard.html"
-            className={`hidden rounded-lg border px-4 py-2 text-sm font-semibold transition-all lg:block ${sticky ? "border-primary text-primary hover:bg-primary hover:text-white" : "border-white/60 text-white hover:bg-white/20"}`}
+            className={`hidden rounded-lg border px-4 py-2 text-sm font-semibold transition-all lg:block ${sticky ? "border-primary text-primary hover:bg-primary hover:!text-white" : "border-white/60 !text-white hover:bg-white/20 hover:!text-white"}`}
           >
             Staff Login
           </a>

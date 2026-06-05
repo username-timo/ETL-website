@@ -85,6 +85,18 @@
   .total-row.in  td { background: var(--gold); color: var(--white); }
 
   .doc-footer { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 24px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .customer-request-doc .commercial-only { display: none !important; }
+  .customer-request-doc .doc-table { table-layout: fixed; }
+  .customer-request-doc .doc-table th:nth-child(3),
+  .customer-request-doc .doc-table td:nth-child(3),
+  .customer-request-doc .doc-table th:nth-child(5),
+  .customer-request-doc .doc-table td:nth-child(5),
+  .customer-request-doc .doc-table th:nth-child(6),
+  .customer-request-doc .doc-table td:nth-child(6) { display: none; }
+  .customer-request-doc .doc-table th:nth-child(2),
+  .customer-request-doc .doc-table td:nth-child(2) { width: auto !important; }
+  .customer-request-doc .doc-table th:nth-child(4),
+  .customer-request-doc .doc-table td:nth-child(4) { width: 90px !important; text-align: center; }
   .sig-area { height: 56px; border-bottom: 1.5px solid var(--text); margin-bottom: 6px; }
   .sig-label { font-size: 11px; color: var(--text-muted); }
 

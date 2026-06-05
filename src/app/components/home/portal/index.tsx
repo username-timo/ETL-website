@@ -52,7 +52,7 @@ export default function Portal() {
             </span>
           </a>
 
-          {/* Tile 2: LPO System */}
+          {/* Tile 2: Procurement request */}
           <a href="/ETL-LPO-System.html?mode=inward"
             className="group flex flex-col items-center text-center p-8 rounded-3xl border-2 transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl cursor-pointer"
             style={{ borderColor: "rgba(255,255,255,0.2)", background: "rgba(255,255,255,0.07)" }}
@@ -63,14 +63,14 @@ export default function Portal() {
             </div>
             <h3 className="font-black text-white text-2xl mb-3"
               style={{ fontFamily: "var(--font-barlow, sans-serif)" }}>
-              LPO Management
+              Procurement Request
             </h3>
             <p className="text-white/70 text-sm leading-relaxed mb-6">
-              Track and manage Local Purchase Orders, invoices, inventory, and procurement documentation online.
+              List any item or service you need. ETL will source suitable options and send you a priced quotation.
             </p>
             <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white transition-all group-hover:gap-3"
               style={{ background: "linear-gradient(135deg,#c8860a,#e6a830)" }}>
-              Submit LPO
+              Request Pricing
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
               </svg>

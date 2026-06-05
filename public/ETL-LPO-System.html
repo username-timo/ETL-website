@@ -27,8 +27,8 @@
   <div class="top-nav-brand">
 <a href="/" aria-label="Go to ETL main site" style="display:inline-flex;align-items:center;text-decoration:none;"><img src="/etl-images/etl-logo.png" alt="ETL" class="top-nav-sq" style="width:74px;height:74px;object-fit:contain;display:block;"></a>
     <div>
-      <span class="top-nav-title">LPO Management System</span>
-      <span class="top-nav-sub">Operations Portal</span>
+      <span class="top-nav-title" id="top-nav-title">LPO Management System</span>
+      <span class="top-nav-sub" id="top-nav-sub">Operations Portal</span>
     </div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
@@ -48,7 +48,7 @@
 
 <!-- MODE TOGGLE -->
 <div class="mode-section">
-  <div class="mode-label">Select LPO Direction</div>
+  <div class="mode-label" id="mode-label">Select LPO Direction</div>
   <div class="mode-toggle" style="display:none;">
     <button class="mode-btn active-outward" id="btn-outward" onclick="setMode('outward')">
       📤 Outward — ETL Issues to Supplier
@@ -105,13 +105,13 @@
     <div class="form-card-header">
       <div class="form-card-num-out" id="card2-num">02</div>
       <div>
-        <h2>LPO Reference & Dates</h2>
-        <p class="card-sub">Set the LPO number, issue date and expected delivery</p>
+        <h2 id="card2-title">LPO Reference & Dates</h2>
+        <p class="card-sub" id="card2-sub">Set the LPO number, issue date and expected delivery</p>
       </div>
     </div>
     <div class="form-grid3">
       <div class="field">
-        <label>LPO Reference Number</label>
+        <label id="reference-label">LPO Reference Number</label>
         <input type="text" id="lpo-ref" value="ETL/LPO/2026/001" oninput="document.getElementById('lpo-badge-display').innerText=decode(this.value)">
       </div>
       <div class="field">
@@ -138,8 +138,8 @@
     <div class="form-card-header">
       <div class="form-card-num-out" id="card3-num">03</div>
       <div>
-        <h2>Items / Services Ordered</h2>
-        <p class="card-sub">List all goods or services being procured</p>
+        <h2 id="items-card-title">Items / Services Ordered</h2>
+        <p class="card-sub" id="items-card-sub">List all goods or services being procured</p>
       </div>
     </div>
     <div class="items-wrap">
@@ -147,21 +147,21 @@
         <thead>
           <tr>
             <th style="width:38%">Description of Supply / Service</th>
-            <th style="width:14%">Unit</th>
+            <th class="commercial-only" style="width:14%">Unit</th>
             <th style="width:9%">Qty</th>
-            <th style="width:17%">Unit Price (UGX)</th>
-            <th style="width:15%">Total (UGX)</th>
+            <th class="commercial-only" style="width:17%">Unit Price (UGX)</th>
+            <th class="commercial-only" style="width:15%">Total (UGX)</th>
             <th style="width:7%"></th>
           </tr>
         </thead>
         <tbody id="items-list">
           <tr>
-            <td><div class="desc-wrap"><input type="text" class="i-desc" name="item_desc[]" aria-label="Line item description" placeholder="Type item or service description..." oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-            <td><input type="text" class="i-unit" name="item_unit[]" aria-label="Line item unit" placeholder="Tons"></td>
-            <td><input type="number" class="i-qty" name="item_qty[]" aria-label="Line item quantity" value="1" min="0" oninput="recalc(this)"></td>
-            <td><input type="number" class="i-price" name="item_price[]" aria-label="Line item unit price" value="0" min="0" oninput="recalc(this)"></td>
-            <td><span class="row-total">0</span></td>
-            <td><button class="btn-rm" onclick="removeRow(this)" title="Remove">×</button></td>
+            <td class="item-description-cell"><div class="desc-wrap"><input type="text" class="i-desc" name="item_desc[]" aria-label="Line item description" placeholder="Type any item or service you need..."></div></td>
+            <td class="commercial-only"><input type="text" class="i-unit" name="item_unit[]" aria-label="Line item unit" placeholder="Tons"></td>
+            <td class="item-quantity-cell"><input type="number" class="i-qty" name="item_qty[]" aria-label="Line item quantity" value="1" min="0" oninput="recalc(this)"></td>
+            <td class="commercial-only"><input type="number" class="i-price" name="item_price[]" aria-label="Line item unit price" value="0" min="0" oninput="recalc(this)"></td>
+            <td class="commercial-only"><span class="row-total">0</span></td>
+            <td class="item-remove-cell"><button class="btn-rm" onclick="removeRow(this)" title="Remove">×</button></td>
           </tr>
         </tbody>
       </table>
@@ -169,7 +169,7 @@
     <div class="table-footer">
       <button class="btn-add-row" onclick="addRow()">+ Add Item Row</button>
     </div>
-    <div class="subtotal-panel">
+    <div class="subtotal-panel commercial-only">
       <div class="subtotal-row"><span>Subtotal</span><span id="subtotal-display">UGX 0</span></div>
       <div class="subtotal-row grand"><span>Grand Total</span><span id="grand-display">UGX 0</span></div>
     </div>
@@ -180,12 +180,12 @@
     <div class="form-card-header">
       <div class="form-card-num-out" id="card4-num">04</div>
       <div>
-        <h2>Authorization & Terms</h2>
-        <p class="card-sub">Set payment terms and authorization details</p>
+        <h2 id="terms-card-title">Authorization & Terms</h2>
+        <p class="card-sub" id="terms-card-sub">Set payment terms and authorization details</p>
       </div>
     </div>
     <div class="form-grid">
-      <div class="field">
+      <div class="field commercial-only">
         <label>Payment Terms</label>
         <select id="pay-terms">
           <option>On Delivery & Invoice</option>
@@ -194,7 +194,7 @@
           <option>As per Contract Agreement</option>
         </select>
       </div>
-      <div class="field">
+      <div class="field commercial-only">
         <label>Prepared By (ETL Staff)</label>
         <input type="text" id="preparer" placeholder="e.g. Wafula Harry — Logistics Officer">
       </div>
@@ -241,7 +241,7 @@
       </div>
       <div class="doc-header-right">
         <div class="doc-type-badge" id="p-direction-badge">OUTWARD LPO</div>
-        <h2>LOCAL PURCHASE ORDER</h2>
+        <h2 id="p-document-title">LOCAL PURCHASE ORDER</h2>
         <p>
           <strong style="color:rgba(255,255,255,0.9)">LPO No:</strong> <span id="p-lpo-ref"></span><br>
           <strong style="color:rgba(255,255,255,0.9)">Date Issued:</strong> <span id="p-date-i"></span><br>
@@ -253,7 +253,7 @@
     <div class="doc-ref-bar">
       <div class="doc-ref-item"><label>Project</label><span id="p-project"></span></div>
       <div class="doc-ref-item"><label>Delivery Location</label><span id="p-delivery-loc"></span></div>
-      <div class="doc-ref-item"><label>Payment Terms</label><span id="p-pay-terms"></span></div>
+      <div class="doc-ref-item commercial-only"><label>Payment Terms</label><span id="p-pay-terms"></span></div>
     </div>
 
     <div class="doc-body">
@@ -284,15 +284,15 @@
           <tr>
             <th style="width:5%">#</th>
             <th style="width:38%">Description of Supply / Service</th>
-            <th style="width:9%">Unit</th>
+            <th class="commercial-only" style="width:9%">Unit</th>
             <th style="width:8%">Qty</th>
-            <th style="width:18%">Unit Price (UGX)</th>
-            <th style="width:17%">Total (UGX)</th>
+            <th class="commercial-only" style="width:18%">Unit Price (UGX)</th>
+            <th class="commercial-only" style="width:17%">Total (UGX)</th>
           </tr>
         </thead>
         <tbody id="p-items-body"></tbody>
         <tfoot>
-          <tr class="doc-total-out doc-total-row" id="p-total-row">
+          <tr class="doc-total-out doc-total-row commercial-only" id="p-total-row">
             <td colspan="5" style="text-align:right;">GRAND TOTAL (UGX)</td>
             <td id="p-grand-total"></td>
           </tr>
@@ -304,7 +304,7 @@
         <p id="p-notes-text" style="font-size:13px; color:var(--text-muted); margin-top:6px; line-height:1.7;"></p>
       </div>
 
-      <div class="doc-sig-grid">
+      <div class="doc-sig-grid commercial-only">
         <div>
           <div class="doc-sig-area"></div>
           <div class="doc-sig-line" id="p-preparer-sig">Prepared By: ETL Logistics</div>
@@ -315,7 +315,7 @@
         </div>
       </div>
 
-      <div class="doc-notice">
+      <div class="doc-notice" id="p-official-notice">
         <strong>Official Notice:</strong> This document serves as an official authorization of purchase/service delivery by Engineering Trade Links Co. Ltd. All deliveries must be accompanied by an original Delivery Note and Invoice quoting the LPO number above. ETL reserves the right to reject goods/services not conforming to the specifications stated herein.
       </div>
     </div>
@@ -327,7 +327,6 @@
   </div>
 </div>
 
-<script src="/forms/lpo/etl-lpo-inventory.js"></script>
 <script src="/forms/lpo/etl-lpo-turnstile.js"></script>
 <script src="/forms/lpo/etl-lpo-system-page.js"></script>
 

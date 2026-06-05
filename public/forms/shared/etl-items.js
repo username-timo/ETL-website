@@ -18,6 +18,7 @@
   function createRowHtml(options, values) {
     const opts = options || {};
     const item = values || {};
+    const autocomplete = opts.autocomplete !== false;
     const desc = ETLUtils.escapeHtml(item.desc || '');
     const unit = ETLUtils.escapeHtml(item.unit || '');
     const qty = item.qty ?? 1;
@@ -26,14 +27,18 @@
     const priceAttrs = attrsToString(opts.priceAttrs);
     const descPlaceholder = ETLUtils.escapeHtml(opts.descPlaceholder || 'Search inventory or type...');
     const unitPlaceholder = ETLUtils.escapeHtml(opts.unitPlaceholder || 'Unit');
+    const descEvents = autocomplete
+      ? 'oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"'
+      : '';
+    const autocompleteList = autocomplete ? '<div class="autocomplete-list"></div>' : '';
 
     return `
-      <td><div class="desc-wrap"><input type="text" class="i-desc" name="item_desc[]" aria-label="Line item description" value="${desc}" placeholder="${descPlaceholder}" oninput="showAC(this)" onkeydown="handleACKey(event,this)" onblur="hideAC(this)" autocomplete="off"><div class="autocomplete-list"></div></div></td>
-      <td><input type="text" class="i-unit" name="item_unit[]" aria-label="Line item unit" value="${unit}" placeholder="${unitPlaceholder}"></td>
-      <td><input type="number" class="i-qty" name="item_qty[]" aria-label="Line item quantity" value="${ETLUtils.escapeHtml(qty)}" min="0" oninput="recalc(this)"></td>
-      <td><input type="number" class="i-price" name="item_price[]" aria-label="Line item unit price" value="${ETLUtils.escapeHtml(price)}" min="0" oninput="recalc(this)" ${priceAttrs}></td>
-      <td><span class="row-total">${total}</span></td>
-      <td><button class="btn-rm" onclick="removeRow(this)" title="Remove">&times;</button></td>
+      <td class="item-description-cell"><div class="desc-wrap"><input type="text" class="i-desc" name="item_desc[]" aria-label="Line item description" value="${desc}" placeholder="${descPlaceholder}" ${descEvents}>${autocompleteList}</div></td>
+      <td class="commercial-only"><input type="text" class="i-unit" name="item_unit[]" aria-label="Line item unit" value="${unit}" placeholder="${unitPlaceholder}"></td>
+      <td class="item-quantity-cell"><input type="number" class="i-qty" name="item_qty[]" aria-label="Line item quantity" value="${ETLUtils.escapeHtml(qty)}" min="0" oninput="recalc(this)"></td>
+      <td class="commercial-only"><input type="number" class="i-price" name="item_price[]" aria-label="Line item unit price" value="${ETLUtils.escapeHtml(price)}" min="0" oninput="recalc(this)" ${priceAttrs}></td>
+      <td class="commercial-only"><span class="row-total">${total}</span></td>
+      <td class="item-remove-cell"><button class="btn-rm" onclick="removeRow(this)" title="Remove">&times;</button></td>
     `;
   }
 

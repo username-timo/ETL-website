@@ -15,6 +15,14 @@
     return typeof getCurrentRole === 'function' ? getCurrentRole() : '';
   }
 
+  function isPricingRequest(record) {
+    const items = record && record.items ? record.items : [];
+    return !!record
+      && record.direction === 'inward'
+      && Number(record.total || 0) <= 0
+      && !items.some(item => Number(item.price || 0) > 0 || Number(item.total || 0) > 0);
+  }
+
   async function sendEmail(to, subject, body) {
     const result = await ETLEmail.send(to, subject, body, {
       flow: 'internal_ops',
@@ -126,6 +134,10 @@ Dashboard: ${DASHBOARD_URL}`);
     if (record) openGenerator(null, record);
   }
 
+  function prepareLpoQuotation(id) {
+    window.open(`ETL-Quotation-generator.html?lpo_id=${encodeURIComponent(id)}`, '_blank');
+  }
+
   function blockActionUntilApproval(actionName) {
     if (currentRole() === 'staff') {
       alert(`${actionName} is not available until the LPO is approved by Management.\n\nPlease ask your manager to review and approve this LPO first.`);
@@ -148,10 +160,25 @@ Dashboard: ${DASHBOARD_URL}`);
   }
 
   async function approveLPO(id) {
-    if (!confirm('Approve this LPO?')) return;
+    const record = (window._lpoData || []).find(lpo => lpo.id === id);
+    const requestMode = isPricingRequest(record);
+    if (!confirm(`Approve this ${requestMode ? 'customer procurement request' : 'LPO'}?`)) return;
     try {
       await ETLDashboardApi.updateLpo(id, { status: 'approved' }, sessionToken());
-      alert('LPO approved successfully!');
+      if (requestMode) {
+        const emailSent = await sendEmail('tokui@usiu.ac.ke', `Action Required: Prepare Quotation - ${record.entity_name || 'Customer'} | ${record.project_name || record.lpo_number || 'Procurement Request'}`, `A customer procurement request has been approved and is ready for sourcing and pricing.
+
+Customer: ${record.entity_name || '-'}
+Email: ${record.entity_email || '-'}
+Reference: ${record.lpo_number || '-'}
+Project: ${record.project_name || '-'}
+
+Log in to the ETL Dashboard and click Prepare Quotation to proceed.
+
+Dashboard: ${DASHBOARD_URL}`);
+        if (!emailSent) console.warn('Procurement request approved, but staff notification email could not be sent.');
+      }
+      alert(requestMode ? 'Procurement request approved. Staff can now prepare the quotation.' : 'LPO approved successfully!');
       await reloadApprovals();
       await reloadLPOs();
     } catch (e) {
@@ -242,23 +269,6 @@ tradelinks.ltd@gmail.com`);
     }
   }
 
-  async function checkStock(i, directRecord) {
-    const lpo = directRecord || window._lpoData[i];
-    if (!lpo.items || !lpo.items.length) {
-      alert('No items found in this LPO to check against inventory.');
-      return;
-    }
-
-    const inventory = await ETLDashboardApi.fetchInventoryStock(sessionToken());
-    document.getElementById('modal-content').innerHTML = ETLDashboard.renderStockCheck(lpo, inventory);
-    document.getElementById('detail-modal').classList.add('open');
-  }
-
-  function checkStockById(id) {
-    const record = (window._lpoData || []).find(lpo => lpo.id === id);
-    if (record) checkStock(null, record);
-  }
-
   function init(options) {
     options = options || {};
     getSessionToken = options.getSessionToken || getSessionToken;
@@ -277,6 +287,7 @@ tradelinks.ltd@gmail.com`);
     openGeneratorFromModal,
     openGenerator,
     openGeneratorById,
+    prepareLpoQuotation,
     blockActionUntilApproval,
     rejectLPO,
     approveLPO,
@@ -285,9 +296,7 @@ tradelinks.ltd@gmail.com`);
     doApproveById,
     doRejectById,
     approveRequest,
-    rejectRequest,
-    checkStock,
-    checkStockById
+    rejectRequest
   };
 
   window.closeModal = closeModal;
@@ -297,6 +306,7 @@ tradelinks.ltd@gmail.com`);
   window.openGeneratorFromModal = openGeneratorFromModal;
   window.openGenerator = openGenerator;
   window.openGeneratorById = openGeneratorById;
+  window.prepareLpoQuotation = prepareLpoQuotation;
   window.blockActionUntilApproval = blockActionUntilApproval;
   window.rejectLPO = rejectLPO;
   window.approveLPO = approveLPO;
@@ -306,6 +316,4 @@ tradelinks.ltd@gmail.com`);
   window.doRejectById = doRejectById;
   window.approveRequest = approveRequest;
   window.rejectRequest = rejectRequest;
-  window.checkStock = checkStock;
-  window.checkStockById = checkStockById;
 })();

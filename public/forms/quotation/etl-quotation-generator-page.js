@@ -124,6 +124,21 @@ Click the link below to view, download and print your quotation:`;
           console.warn('Could not update source request status:', updateResult.error);
         }
       }
+      if(SOURCE_LPO_ID) {
+        const updateResult = await ETLSubmit.sendJson(`${SUPABASE_URL}/rest/v1/lpos?id=eq.${SOURCE_LPO_ID}`, {
+          method: 'PATCH',
+          headers: {
+            'apikey': SUPABASE_KEY,
+            'Authorization': `Bearer ${sessionToken}`,
+            'Prefer': 'return=minimal'
+          },
+          payload: { status: 'issued' },
+          errorPrefix: 'Could not update source procurement request status'
+        });
+        if(!updateResult.ok) {
+          console.warn('Could not update source procurement request status:', updateResult.error);
+        }
+      }
 
       setTimeout(() => {
         ETLShare.openSharePanel({
@@ -162,15 +177,18 @@ Click the link below to view, download and print your quotation:`;
     SESSION_TOKEN = session ? session.access_token : '';
     window.SESSION_TOKEN = SESSION_TOKEN;
     loadInventoryItems();
+    await prefillFromLpoRequest();
   });
 
   // ref_id: the quotations row this quotation was generated from
   let SOURCE_REQUEST_ID = '';
+  let SOURCE_LPO_ID = '';
 
   // Auto-fill from dashboard request if URL params present
   (function() {
     const params = new URLSearchParams(window.location.search);
     SOURCE_REQUEST_ID = params.get('ref_id') || '';
+    SOURCE_LPO_ID = params.get('lpo_id') || '';
     if(params.get('client_name')) {
       document.getElementById('c-name').value     = params.get('client_name') || '';
       document.getElementById('c-contact').value  = params.get('contact_person') || '';
@@ -231,6 +249,50 @@ Click the link below to view, download and print your quotation:`;
 
   function addItem() { quoteItems.addRow(); }
   function removeRow(btn) { quoteItems.removeRow(btn); }
+
+  async function prefillFromLpoRequest() {
+    if (!SOURCE_LPO_ID) return;
+
+    try {
+      const response = await etlAuth.fetch(`/rest/v1/lpos?id=eq.${encodeURIComponent(SOURCE_LPO_ID)}&select=*&limit=1`);
+      if (!response.ok) throw new Error(await ETLUtils.readResponseError(response));
+
+      const [request] = await response.json();
+      if (!request) return;
+
+      document.getElementById('c-name').value = request.entity_name || '';
+      document.getElementById('c-contact').value = request.entity_contact || '';
+      document.getElementById('c-email').value = request.entity_email || '';
+      document.getElementById('c-phone').value = request.entity_phone || '';
+      document.getElementById('c-address').value = request.entity_address || '';
+      document.getElementById('p-title').value = request.project_name || `Procurement Request ${request.lpo_number || ''}`;
+      document.getElementById('p-location').value = request.delivery_location || '';
+      document.getElementById('p-scope').value = request.notes || `Source and price the requested items under ${request.lpo_number || 'the customer procurement request'}.`;
+      document.getElementById('p-cat').value = 'Other';
+
+      const requestedItems = request.items || [];
+      if (requestedItems.length) {
+        document.getElementById('items-list').innerHTML = '';
+        requestedItems.forEach(item => {
+          quoteItems.addRow({
+            desc: item.desc || item.description || item.name || '',
+            unit: item.unit || '',
+            qty: item.qty ?? item.quantity ?? 1,
+            price: 0
+          });
+        });
+        updateTotals();
+      }
+
+      const notice = document.createElement('div');
+      notice.style.cssText = 'background:#e6f7ef;border:1px solid #0f7a4a;color:#0f7a4a;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:16px;';
+      notice.innerText = 'Customer procurement request loaded. Source the items, confirm units, enter prices, and send the quotation.';
+      document.querySelector('.form-section')?.prepend(notice);
+    } catch (error) {
+      console.warn('Could not load customer procurement request:', error);
+      alert('Could not load the customer procurement request. Open it from the dashboard and try again.');
+    }
+  }
 
   async function generatePreview() {
     const required = ETLSubmit.validateRequired([
