@@ -74,7 +74,7 @@
     document.getElementById('card2-sub').innerText = requestMode ? 'Confirm the request date and when the items are needed' : 'Set the LPO number, issue date and expected delivery';
     document.getElementById('reference-label').innerText = requestMode ? 'Request Reference' : 'LPO Reference Number';
     document.getElementById('items-card-title').innerText = requestMode ? 'Items / Services Needed' : 'Items / Services Ordered';
-    document.getElementById('items-card-sub').innerText = requestMode ? 'Type any item or service. It does not need to be in ETL stock.' : 'List all goods or services being procured';
+    document.getElementById('items-card-sub').innerText = requestMode ? 'Type any item or service. ETL will source or confirm options and send pricing.' : 'List all goods or services being procured';
     document.getElementById('terms-card-title').innerText = requestMode ? 'Request Notes' : 'Authorization & Terms';
     document.getElementById('terms-card-sub').innerText = requestMode ? 'Add specifications, preferred brands, or delivery instructions' : 'Set payment terms and authorization details';
 
@@ -401,7 +401,7 @@ ${DASHBOARD_URL}`, emailOpts);
   }
 
   // Page access model:
-  //   • Authenticated staff  → full features (inventory autocomplete, quote prefill, internal notify email)
+  //   • Authenticated staff  → internal priced LPO tools where applicable (inventory autocomplete only for confirmed items, quote prefill, internal notify email)
   //   • Anonymous public     → inward-only submit + Turnstile + rate-limited public email flow
   // We do NOT use etlAuth.init() here because this page is deliberately public.
   (async function bootstrap() {

@@ -174,8 +174,8 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | `public/dashboard/etl-dashboard-core.js` | Core dashboard helpers: escaping, formatting, status classes, and shared helpers used by other dashboard modules. |
 | `public/dashboard/etl-dashboard-data.js` | Supabase REST data layer for dashboard records, including LPO/procurement request loading. |
 | `public/dashboard/etl-dashboard-controller.js` | Main dashboard controller: tab switching, loading requests/LPOs/approvals, KPI refresh, and page startup. |
-| `public/dashboard/etl-dashboard-records-view.js` | Renders quotation request rows, LPO/procurement request rows, approval tables, details modals, stock-check modal content, and `Prepare Quotation`. |
-| `public/dashboard/etl-dashboard-records-actions.js` | Dashboard record actions: approve/reject, status updates, copy LPO link, stock check, approval notification emails, and procurement quotation preparation links. |
+| `public/dashboard/etl-dashboard-records-view.js` | Renders quotation request rows, LPO/procurement request rows, approval tables, details modals, stock-check modal content, `Prepare Quotation`, and `Generate Invoice` for approved priced inward LPOs. |
+| `public/dashboard/etl-dashboard-records-actions.js` | Dashboard record actions: approve/reject, status updates, copy LPO link, stock check, approval notification emails, procurement quotation preparation links, and invoice generation links. |
 | `public/dashboard/etl-dashboard-invoices-view.js` | Renders invoice list, payment summary, and invoice display helpers. |
 | `public/dashboard/etl-dashboard-invoices-actions.js` | Dashboard invoice actions such as payment/history workflows. |
 | `public/dashboard/etl-dashboard-page.css` | Dashboard styling, including tables, KPIs, mobile layout, modals, and dark theme support. |
@@ -192,7 +192,7 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | `public/forms/quotation/etl-quotation-view-page.css` | Public quote view styles. |
 | `public/forms/lpo/etl-lpo-system-page.js` | LPO/procurement form logic for outward LPO, quotation-acceptance inward LPO, and unpriced customer procurement request mode. |
 | `public/forms/lpo/etl-lpo-system-page.css` | LPO system page styles. |
-| `public/forms/lpo/etl-lpo-inventory.js` | LPO inventory autocomplete/stock-related helper logic. |
+| `public/forms/lpo/etl-lpo-inventory.js` | Optional internal inventory autocomplete helper for priced LPO rows. Keep customer procurement requests source-first unless confirmed items are maintained. |
 | `public/forms/lpo/etl-lpo-turnstile.js` | Turnstile behavior for public/anonymous LPO submissions. |
 | `public/forms/lpo/etl-lpo-view-page.js` | Public LPO/procurement request view loader and renderer. |
 | `public/forms/lpo/etl-lpo-view-page.css` | Public LPO view styles. |

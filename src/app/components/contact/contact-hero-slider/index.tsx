@@ -7,10 +7,22 @@ interface ContactHeroSliderProps {
   description: string;
 }
 
+type SlideFit = "cover" | "contain" | "wide";
+type SlideTextMode = "standard" | "caption";
+
+interface ContactHeroSlide {
+  img: string;
+  fit?: SlideFit;
+  textMode?: SlideTextMode;
+  caption?: string;
+}
+
 const slides = [
   {
     img: "/upscaled-ETL-images/ETL%20SIGN%20POST.png",
-    fit: "contain",
+    fit: "wide",
+    textMode: "caption",
+    caption: "Tenders | Quotations | Project Partnerships",
   },
   {
     img: "/etl-images/naguru-asphalt-08.jpg.jpeg",
@@ -25,7 +37,7 @@ const slides = [
   {
     img: "/etl-images/mtn-bubada-01.jpg",
   },
-];
+] satisfies ContactHeroSlide[];
 
 export default function ContactHeroSlider({
   title,
@@ -43,6 +55,8 @@ export default function ContactHeroSlider({
   const goTo = (i: number) => setCurrent(i);
   const prev = () => goTo((current - 1 + slides.length) % slides.length);
   const next = () => goTo((current + 1) % slides.length);
+  const activeSlide = slides[current];
+  const captionOnly = activeSlide.textMode === "caption";
 
   return (
     <section className="relative w-full overflow-hidden py-0" style={{ height: "clamp(320px, 50vw, 620px)" }}>
@@ -52,38 +66,51 @@ export default function ContactHeroSlider({
           className="absolute inset-0 transition-opacity duration-1000"
           style={{ opacity: i === current ? 1 : 0, zIndex: i === current ? 1 : 0 }}
         >
-          {slide.fit === "contain" && (
+          {slide.fit === "contain" || slide.fit === "wide" ? (
             <div
               className="absolute inset-0 scale-110 bg-cover bg-center opacity-45 blur-xl"
               style={{ backgroundImage: `url(${slide.img})` }}
             />
-          )}
+          ) : null}
           <div
-            className={`absolute inset-0 bg-center bg-no-repeat ${slide.fit === "contain" ? "bg-contain" : "bg-cover"}`}
-            style={{ backgroundImage: `url(${slide.img})` }}
+            className={`absolute inset-0 bg-center bg-no-repeat ${slide.fit === "contain" ? "bg-contain" : slide.fit === "wide" ? "" : "bg-cover"}`}
+            style={{
+              backgroundImage: `url(${slide.img})`,
+              backgroundSize: slide.fit === "wide" ? "100% auto" : undefined,
+            }}
           />
           <div
             className="absolute inset-0"
             style={{
-              background:
-                "linear-gradient(to bottom, rgba(8,18,36,0.6) 0%, rgba(8,18,36,0.5) 55%, rgba(8,18,36,0.75) 100%)",
+              background: slide.textMode === "caption"
+                ? "linear-gradient(to bottom, rgba(8,18,36,0.32) 0%, rgba(8,18,36,0.2) 52%, rgba(8,18,36,0.62) 100%)"
+                : "linear-gradient(to bottom, rgba(8,18,36,0.6) 0%, rgba(8,18,36,0.5) 55%, rgba(8,18,36,0.75) 100%)",
             }}
           />
         </div>
       ))}
 
-      <div className="relative z-10 mx-auto flex h-full max-w-screen-xl flex-col items-center justify-end px-4 pb-20 text-center text-white sm:pb-24 lg:pb-28">
-        <h1
-          className="mb-4 max-w-5xl text-balance font-black tracking-[0.03em] text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)]"
-          style={{
-            fontFamily: "'Titillium Web', 'Barlow Condensed', sans-serif",
-            fontSize: "clamp(2.1rem, 5vw, 4rem)",
-            lineHeight: 1.02,
-          }}
-        >
-          {title}
-        </h1>
-        <p className="mb-7 max-w-3xl text-sm text-white/90 sm:text-base">{description}</p>
+      <div className="relative z-10 mx-auto flex h-full max-w-screen-xl flex-col items-center justify-end px-4 pb-14 text-center text-white sm:pb-16 lg:pb-20">
+        {captionOnly ? (
+          <p className="mb-8 max-w-3xl text-xs font-semibold uppercase tracking-[0.28em] text-white/80 drop-shadow-[0_4px_18px_rgba(0,0,0,0.55)] sm:text-sm">
+            {activeSlide.caption}
+          </p>
+        ) : (
+          <>
+            <h1
+              className="mb-4 max-w-5xl text-balance font-black tracking-[0.03em] text-white drop-shadow-[0_8px_30px_rgba(0,0,0,0.45)]"
+              style={{
+                fontFamily: "'Titillium Web', 'Barlow Condensed', sans-serif",
+                fontSize: "clamp(2.1rem, 5vw, 4rem)",
+                lineHeight: 1.02,
+                opacity: 0.7,
+              }}
+            >
+              {title}
+            </h1>
+            <p className="mb-7 max-w-3xl text-sm text-white/75 sm:text-base">{description}</p>
+          </>
+        )}
       </div>
 
       <button

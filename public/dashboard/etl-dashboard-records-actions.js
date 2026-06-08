@@ -23,6 +23,13 @@
       && !items.some(item => Number(item.price || 0) > 0 || Number(item.total || 0) > 0);
   }
 
+  function isInvoiceReadyLpo(record) {
+    return !!record
+      && record.direction === 'inward'
+      && !isPricingRequest(record)
+      && Number(record.total || 0) > 0;
+  }
+
   async function sendEmail(to, subject, body) {
     const result = await ETLEmail.send(to, subject, body, {
       flow: 'internal_ops',
@@ -134,8 +141,22 @@ Dashboard: ${DASHBOARD_URL}`);
     if (record) openGenerator(null, record);
   }
 
+  function lpoQuotationUrl(id) {
+    return `ETL-Quotation-generator.html?lpo_id=${encodeURIComponent(id)}`;
+  }
+
   function prepareLpoQuotation(id) {
-    window.open(`ETL-Quotation-generator.html?lpo_id=${encodeURIComponent(id)}`, '_blank');
+    const win = window.open(lpoQuotationUrl(id), '_blank');
+    if (!win) window.location.href = lpoQuotationUrl(id);
+  }
+
+  function lpoInvoiceUrl(id) {
+    return `ETL-Invoice.html?lpo_id=${encodeURIComponent(id)}`;
+  }
+
+  function prepareLpoInvoice(id) {
+    const win = window.open(lpoInvoiceUrl(id), '_blank');
+    if (!win) window.location.href = lpoInvoiceUrl(id);
   }
 
   function blockActionUntilApproval(actionName) {
@@ -162,6 +183,7 @@ Dashboard: ${DASHBOARD_URL}`);
   async function approveLPO(id) {
     const record = (window._lpoData || []).find(lpo => lpo.id === id);
     const requestMode = isPricingRequest(record);
+    const invoiceReady = isInvoiceReadyLpo(record);
     if (!confirm(`Approve this ${requestMode ? 'customer procurement request' : 'LPO'}?`)) return;
     try {
       await ETLDashboardApi.updateLpo(id, { status: 'approved' }, sessionToken());
@@ -178,9 +200,21 @@ Log in to the ETL Dashboard and click Prepare Quotation to proceed.
 Dashboard: ${DASHBOARD_URL}`);
         if (!emailSent) console.warn('Procurement request approved, but staff notification email could not be sent.');
       }
-      alert(requestMode ? 'Procurement request approved. Staff can now prepare the quotation.' : 'LPO approved successfully!');
       await reloadApprovals();
       await reloadLPOs();
+      if (requestMode) {
+        if (confirm('Procurement request approved. Open the quotation generator now?')) {
+          prepareLpoQuotation(id);
+        }
+        return;
+      }
+      if (invoiceReady) {
+        if (confirm('LPO approved. Open the invoice generator now?')) {
+          prepareLpoInvoice(id);
+        }
+        return;
+      }
+      alert('LPO approved successfully!');
     } catch (e) {
       alert('Error: ' + e.message);
     }
@@ -288,6 +322,7 @@ tradelinks.ltd@gmail.com`);
     openGenerator,
     openGeneratorById,
     prepareLpoQuotation,
+    prepareLpoInvoice,
     blockActionUntilApproval,
     rejectLPO,
     approveLPO,
@@ -307,6 +342,7 @@ tradelinks.ltd@gmail.com`);
   window.openGenerator = openGenerator;
   window.openGeneratorById = openGeneratorById;
   window.prepareLpoQuotation = prepareLpoQuotation;
+  window.prepareLpoInvoice = prepareLpoInvoice;
   window.blockActionUntilApproval = blockActionUntilApproval;
   window.rejectLPO = rejectLPO;
   window.approveLPO = approveLPO;

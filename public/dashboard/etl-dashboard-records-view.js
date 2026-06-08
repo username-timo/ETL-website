@@ -59,6 +59,12 @@
       && !items.some(item => Number(item.price || 0) > 0 || Number(item.total || 0) > 0);
   }
 
+  function isInvoiceReadyLpo(record) {
+    return record.direction === 'inward'
+      && !isPricingRequest(record)
+      && Number(record.total || 0) > 0;
+  }
+
   function renderLpoTotal(record) {
     return isPricingRequest(record)
       ? '<span style="color:var(--gold);font-weight:700;">Pricing required</span>'
@@ -147,7 +153,10 @@
     const prepareQuote = record.status === 'approved' && isPricingRequest(record)
       ? `<button class="action-btn gold" onclick="prepareLpoQuotation('${id}')">Prepare Quotation</button>`
       : '';
-    return `<button class="action-btn" onclick="showLPOById('${id}')">View</button>${waiting}${copy}${prepareQuote}`;
+    const prepareInvoice = record.status === 'approved' && isInvoiceReadyLpo(record)
+      ? `<button class="action-btn approve" onclick="prepareLpoInvoice('${id}')">Generate Invoice</button>`
+      : '';
+    return `<button class="action-btn" onclick="showLPOById('${id}')">View</button>${waiting}${copy}${prepareQuote}${prepareInvoice}`;
   }
 
   function renderLpoRows(records, options) {
@@ -216,6 +225,7 @@
     const fmtDate = (options && options.fmtDate) || formatLongDate;
     return records.map((record) => {
       const id = escapeJs(record.id);
+      const requestMode = isPricingRequest(record);
       return `
         <tr class="row-pending">
           <td data-label="LPO Number"><strong>${escapeHtml(fallback(decodeText(record.lpo_number)))}</strong></td>
@@ -226,7 +236,7 @@
           <td data-label="Date">${fmtDate(record.created_at)}</td>
           <td data-label="Actions">
             <button class="action-btn" onclick="showLPOById('${id}')">View</button>
-            <button class="action-btn approve" onclick="approveLPO('${id}')">Approve</button>
+            <button class="action-btn approve" onclick="approveLPO('${id}')">${requestMode ? 'Approve Request' : 'Approve'}</button>
             <button class="action-btn reject" onclick="rejectLPO('${id}')">Reject</button>
           </td>
         </tr>`;
@@ -244,8 +254,9 @@
       ));
     }
     if (lpos.length) {
+      const hasPricingRequests = lpos.some(isPricingRequest);
       sections.push(renderApprovalSection(
-        `Pending LPOs (${lpos.length})`,
+        `${hasPricingRequests ? 'Pending LPOs / Procurement Requests' : 'Pending LPOs'} (${lpos.length})`,
         ['LPO Number', 'Entity', 'Direction', 'Email', 'Total', 'Date', 'Actions'],
         renderApprovalLpoRows(lpos, options),
         false
@@ -289,6 +300,7 @@
       <div class="modal-actions">
         <button class="modal-btn secondary" onclick="closeModal()">Close</button>
         ${requestMode && record.status === 'approved' ? `<button class="modal-btn primary" onclick="prepareLpoQuotation('${escapeJs(record.id)}')">Prepare Quotation</button>` : ''}
+        ${record.status === 'approved' && isInvoiceReadyLpo(record) ? `<button class="modal-btn primary" onclick="prepareLpoInvoice('${escapeJs(record.id)}')">Generate Invoice</button>` : ''}
         ${record.direction === 'outward' && record.unique_link ? `<button class="modal-btn gold" onclick="copyLink('${escapeJs(record.unique_link)}')">Copy Supplier Link</button>` : ''}
         ${record.status === 'pending_approval' && role === 'management'
           ? `<button class="modal-btn green" onclick="approveLPO('${escapeJs(record.id)}');closeModal()">Approve</button>

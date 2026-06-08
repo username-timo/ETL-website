@@ -58,12 +58,16 @@ Main public tool pages:
 ## Completed Procurement Request Work
 
 - `public/ETL-LPO-System.html?mode=inward` now acts as a customer procurement request form unless opened from quotation acceptance.
-- Customer procurement requests allow free-text item/service descriptions and quantities without requiring warehouse inventory.
+- Customer procurement requests allow free-text item/service descriptions and quantities without depending on active warehouse inventory or saved items.
 - Price/unit/stock/subtotal/VAT/total fields are hidden from the customer request path.
+- Inventory remains optional/internal for confirmed items later; the launch customer path stays source-first.
 - Public LPO view can render unpriced records as `CUSTOMER PROCUREMENT REQUEST`.
 - Dashboard detects approved unpriced LPO records and shows `Prepare Quotation`.
+- Approving an unpriced procurement request now offers to open the quotation generator immediately.
+- Dashboard detects approved priced inward LPO records and shows `Generate Invoice`.
 - Approving a procurement request notifies the staff quotation-preparation recipient at `tokui@usiu.ac.ke`.
 - Quotation generator supports `?lpo_id=...` to prefill from a procurement request, lets staff enter real prices, and patches the source request status to `issued`.
+- Invoice generator supports `?lpo_id=...` to prefill from approved priced inward LPOs.
 - `supabase-launch-data-reset.sql` was added to clear launch/example operational records while preserving Supabase users and profiles.
 
 ## Remaining Cleanup

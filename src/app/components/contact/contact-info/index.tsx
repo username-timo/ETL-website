@@ -65,7 +65,7 @@ const ContactInfo = () => {
               </div>
             </div>
           </div>
-          <div className="md:pt-32 pt-11 md:pb-28 pb-8">
+          <div className="md:pt-8 pt-6 md:pb-28 pb-8">
             <iframe src="https://www.google.com/maps?q=Sonde%20Seeta%20Road%20Kampala%20Uganda&output=embed" width="1114" height="477" loading="lazy" referrerPolicy="no-referrer-when-downgrade" className="rounded-lg w-full"></iframe>
           </div>
         </div>

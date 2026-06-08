@@ -41,10 +41,10 @@ const highlights = [
 
 export default function About() {
   return (
-    <section id="about" className="pt-24 pb-8 bg-white dark:bg-darkmode lg:pt-14">
+    <section id="about" className="pt-12 pb-8 bg-white dark:bg-darkmode lg:pt-8">
       <div className="container lg:max-w-screen-xl md:max-w-screen-md mx-auto px-4 sm:px-6 lg:px-8">
 
-        <div className="relative flex flex-col items-start text-left mb-12 sm:mb-16 pt-16 pb-6 sm:pt-20 sm:pb-10 lg:mb-8 lg:pt-10 lg:pb-4">
+        <div className="relative flex flex-col items-start text-left mb-8 pt-6 pb-4 sm:mb-10 sm:pt-8 sm:pb-6 lg:mb-6 lg:pt-4 lg:pb-3">
           <h2 className="relative z-10 font-black text-midnight_text dark:text-white mb-3"
             style={{ fontFamily: "var(--font-barlow, sans-serif)", fontSize: "clamp(2rem,4vw,3rem)", lineHeight: 1.1 }}>
             About ETL

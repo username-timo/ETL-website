@@ -252,15 +252,22 @@ The wording should say "ETL team", not "director".
 The inward LPO route now has two meanings:
 
 - Quotation acceptance: still behaves like a priced inward LPO when opened from an accepted/generated quotation.
-- Customer procurement request: the normal public inward path lets customers type the items or services they want, with quantities, without requiring the items to exist in ETL inventory.
+- Customer procurement request: the normal public inward path lets customers type the items or services they want, with quantities, without depending on active warehouse inventory or saved items.
 
 Customer procurement requests are intentionally unpriced at submission time:
 
 - No unit-price, subtotal, VAT, total, or stock promise is shown to the customer.
+- Treat inventory as optional/internal until real confirmed items are maintained. The customer request path stays source-first.
 - ETL receives the request, management approves it, and staff then use `Prepare Quotation` from the dashboard.
+- Approving a customer procurement request now offers to open the quotation generator immediately, so management/staff see the next step without hunting through the LPO tab.
 - The quotation generator can load the request with `?lpo_id=...`, prefill customer/request details, and let staff source items and enter actual prices.
 - After a generated quotation is saved from a procurement request, the source LPO/request status is patched to `issued`.
 - Public LPO view pages detect unpriced requests and render them as `CUSTOMER PROCUREMENT REQUEST` with request wording.
+
+Priced inward LPOs are different from unpriced procurement requests:
+
+- If an inward LPO is approved and already has item prices/total, the dashboard should show `Generate Invoice`.
+- `Generate Invoice` opens `public/ETL-Invoice.html?lpo_id=...`, where the invoice generator pre-fills from that LPO.
 
 ## Refactor Status
 
