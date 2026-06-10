@@ -8,6 +8,15 @@ const ROLE_COLORS: Record<string, { tc: string; tbg: string }> = {
   "Sub-Contractor":  { tc: "#7c3aed", tbg: "#f5f3ff" },
 };
 
+const FEATURED_PROJECT_TITLE_PREFIXES = [
+  "Electoral Commission HQ",
+  "Asphalt Parking & Drainage",
+  "Proposed Warehouses",
+  "Ciforo Market Building",
+  "Ankole Tea Estates",
+  "MTN Tower",
+] as const;
+
 /* ─── Project Modal ─── */
 function ProjectModal({ project, onClose }: { project: Project; onClose: () => void }) {
   const [idx, setIdx] = useState(0);
@@ -172,7 +181,9 @@ export default function Projects() {
     setCardImgIdx(prev => ({ ...prev, [key]: ((prev[key] ?? 0) + dir + total) % total }));
   };
 
-  const featured = projects.slice(0, 6);
+  const featured = FEATURED_PROJECT_TITLE_PREFIXES
+    .map(prefix => projects.find(project => project.title.startsWith(prefix)))
+    .filter((project): project is Project => project !== undefined);
 
   return (
     <section id="projects" className="pt-14 pb-14 bg-white dark:bg-darkmode">
