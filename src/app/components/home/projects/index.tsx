@@ -10,7 +10,7 @@ const ROLE_COLORS: Record<string, { tc: string; tbg: string }> = {
 
 const FEATURED_PROJECT_TITLE_PREFIXES = [
   "Electoral Commission HQ",
-  "Asphalt Parking & Drainage",
+  "Naguru Asphalt Works",
   "Proposed Warehouses",
   "Ciforo Market Building",
   "Ankole Tea Estates",

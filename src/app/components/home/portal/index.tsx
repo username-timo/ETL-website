@@ -62,7 +62,7 @@ export default function Portal() {
               Procurement Request
             </h3>
             <p className="text-white/70 text-sm leading-relaxed mb-5">
-              List any item or service you need. ETL will source suitable options and send you a priced quotation.
+              List any item or service you need. ETL will check availability and supplier options, then send you a priced quotation.
             </p>
             <span className="inline-flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm text-white transition-all group-hover:gap-3"
               style={{ background: "linear-gradient(135deg,#c8860a,#e6a830)" }}>

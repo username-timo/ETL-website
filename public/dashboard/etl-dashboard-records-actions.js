@@ -188,7 +188,7 @@ Dashboard: ${DASHBOARD_URL}`);
     try {
       await ETLDashboardApi.updateLpo(id, { status: 'approved' }, sessionToken());
       if (requestMode) {
-        const emailSent = await sendEmail('tokui@usiu.ac.ke', `Action Required: Prepare Quotation - ${record.entity_name || 'Customer'} | ${record.project_name || record.lpo_number || 'Procurement Request'}`, `A customer procurement request has been approved and is ready for sourcing and pricing.
+        const emailSent = await sendEmail('tokui@usiu.ac.ke', `Action Required: Prepare Quotation - ${record.entity_name || 'Customer'} | ${record.project_name || record.lpo_number || 'Procurement Request'}`, `A customer procurement request has been approved and is ready for availability review, supplier checks where needed, and pricing.
 
 Customer: ${record.entity_name || '-'}
 Email: ${record.entity_email || '-'}

@@ -85,7 +85,7 @@
     // Mode hint
     document.getElementById('mode-hint').innerText = isOut
       ? 'Use Outward when ETL is purchasing goods or services from a supplier.'
-      : requestMode ? 'List anything you need. ETL will source suitable options and send you a priced quotation.' : 'Use Inward when a client has awarded ETL a contract and issued an LPO to ETL.';
+      : requestMode ? 'List anything you need. ETL will check availability and supplier options, then send you a priced quotation.' : 'Use Inward when a client has awarded ETL a contract and issued an LPO to ETL.';
   }
 
   const lpoItems = ETLItems.createController({

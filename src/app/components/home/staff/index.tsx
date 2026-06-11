@@ -36,14 +36,6 @@ const team = [
     accent: "#ec4899",
   },
   {
-    name: "Timbigamba Hilary",
-    role: "Quantity Surveyor",
-    qual: "Building Economics, Kyambogo University",
-    exp: "10 Years",
-    photo: PLACEHOLDER,
-    accent: "#8b5cf6",
-  },
-  {
     name: "Wafula Harry",
     role: "Logistics Officer",
     qual: "Diploma in Procurement & Logistics",
