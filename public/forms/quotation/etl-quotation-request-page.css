@@ -54,6 +54,7 @@
 
   @media(max-width:600px){
     .form-grid { grid-template-columns: 1fr; }
+    .request-type-grid, .boq-fields { grid-template-columns: 1fr; }
     .field select.mobile-native-hidden { display: none; }
     .mobile-category-picker { display: block; position: relative; }
     .mobile-category-button {
@@ -119,7 +120,20 @@
   }
   .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--secondary); background: var(--white); }
   .field textarea { resize: vertical; min-height: 100px; }
-  .field input.required-empty { border-color: #e53e3e !important; }
+  .field input.required-empty, .field select.required-empty, .field textarea.required-empty { border-color: #e53e3e !important; }
+
+  .request-type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .request-type-card {
+    display: flex; gap: 12px; align-items: flex-start; padding: 14px;
+    border: 1.5px solid var(--border); border-radius: 10px; background: var(--lighter-bg);
+    cursor: pointer; transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .request-type-card:hover, .request-type-card.selected { border-color: var(--secondary); background: var(--white); box-shadow: 0 8px 20px rgba(79,163,209,0.12); }
+  .request-type-card input { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--primary); flex-shrink: 0; }
+  .request-type-card strong { display: block; color: var(--primary); font-size: 13px; line-height: 1.25; }
+  .request-type-card small { display: block; color: var(--text-muted); font-size: 12px; line-height: 1.45; margin-top: 4px; }
+  .boq-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 14px; border: 1px solid var(--border); border-radius: 10px; background: #f8fbfe; }
+  .boq-fields[hidden] { display: none; }
 
   .services-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 10px; }
   .service-check { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.2s; background: var(--lighter-bg); }

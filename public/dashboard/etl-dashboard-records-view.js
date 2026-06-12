@@ -27,8 +27,9 @@
   function modalField(label, value, options) {
     const opts = options || {};
     const classes = opts.full ? 'modal-field full' : 'modal-field';
+    const valueClasses = opts.preserveLines ? ' class="preserve-lines"' : '';
     const text = opts.raw ? value : escapeHtml(fallback(value));
-    return `<div class="${classes}"><label>${label}</label><p${opts.style ? ` style="${opts.style}"` : ''}>${text}</p></div>`;
+    return `<div class="${classes}"><label>${label}</label><p${valueClasses}${opts.style ? ` style="${opts.style}"` : ''}>${text}</p></div>`;
   }
 
   function optionalModalField(label, value, options) {
@@ -325,7 +326,7 @@
         ${modalField('Budget', record.estimated_budget)}
         ${modalField('Timeline', record.timeline)}
         ${modalField('Services Needed', record.services_category, { full: true })}
-        ${modalField('Description', record.project_description, { full: true })}
+        ${modalField('Request Details', record.project_description, { full: true, preserveLines: true })}
         ${modalField('Status', `<span class="badge badge-${safeClass(record.status)}">${escapeHtml(fallback(record.status))}</span>`, { raw: true })}
         ${modalField('Submitted', fmtDate(record.created_at))}
         ${optionalModalField('Reviewed By', record.approved_by)}

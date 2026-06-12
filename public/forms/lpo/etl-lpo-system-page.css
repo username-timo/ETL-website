@@ -30,6 +30,7 @@
   .items-table { --items-table-min-width: 580px; --item-remove-size: 22px; }
   .customer-request-mode .commercial-only,
   .customer-request-doc .commercial-only { display: none !important; }
+  .doc-sig-grid[hidden] { display: none !important; }
   .customer-request-mode .items-table { --items-table-min-width: 0; table-layout: fixed; }
   .customer-request-mode .items-table th:first-child,
   .customer-request-mode .items-table .item-description-cell { width: auto !important; }

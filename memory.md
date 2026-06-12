@@ -1,6 +1,6 @@
 # ETL Next.js Project Memory
 
-Last updated: June 5, 2026
+Last updated: June 11, 2026
 
 This file is a handoff note for continuing the ETL project in another LLM or another coding session. It should be read together with:
 
@@ -41,7 +41,7 @@ Edit source files in `src/`, `public/`, and root config files.
 
 ## Current Git Notes
 
-As of the June 5, 2026 documentation refresh, `main` matched `origin/main` before these docs were edited.
+As of the June 11, 2026 documentation refresh, `main` matched `origin/main` before these docs were edited.
 
 Important commits since the May 22 documentation snapshot:
 
@@ -78,7 +78,7 @@ Important public website files:
 Important static tool pages:
 
 - `public/ETL-Dashboard.html` - internal operations dashboard.
-- `public/ETL-Quotation-Request.html` - public incoming quotation request form.
+- `public/ETL-Quotation-Request.html` - public incoming quotation request form. It now supports both item/procurement requests and construction/tender BOQ pricing requests.
 - `public/ETL-Quotation-generator.html` - internal generated quotation tool.
 - `public/ETL-Quotation-View.html` - public generated quotation view link.
 - `public/ETL-LPO-System.html` - main LPO form for inward and outward LPOs via query mode.
@@ -122,7 +122,7 @@ When adding new duplicated behavior, prefer extending one of these helpers inste
 
 Quotation:
 
-- `public/forms/quotation/etl-quotation-request-page.js` - public request submit logic.
+- `public/forms/quotation/etl-quotation-request-page.js` - public request submit logic, including request-type selection for item/procurement versus construction/tender BOQ pricing.
 - `public/forms/quotation/etl-quotation-generator-page.js` - generated quotation save/email/share logic, including prefill from approved customer procurement requests via `lpo_id`.
 - `public/forms/quotation/etl-quotation-view-page.js` - public quote view loader.
 
@@ -244,23 +244,37 @@ The wording should say "ETL team", not "director".
 - Inward LPO WhatsApp share goes to the ETL team number and uses ETL team wording.
 - Footer uses the ETL logo instead of the small square placeholder, and working hours are Monday - Friday, 9:00 AM - 6:00 PM.
 - Contact page hero now uses `ContactHeroSlider` instead of the old ETL banner. Current first slides are the ETL sign-post image and `naguru-asphalt-08.jpg.jpeg`; both use contained image fitting with a blurred fill layer behind them.
-- Homepage portal wording now points customers to quotation requests and procurement requests/items pricing rather than a priced inventory order.
-- Sande Robert was added to the staff section as Site Agent. Verify any experience-year wording before treating it as official company history.
+- Homepage portal wording now points customers to quotation requests and procurement requests/items pricing rather than a priced inventory order. The procurement card should say ETL checks availability and supplier options; do not make it sound like ETL always outsources.
+- Sande Robert was added to the staff section as Site Agent. Verify any experience-year wording before treating it as official company history. Timbigamba Hilary was removed from the senior management staff section.
+- Homepage featured projects are no longer just `projects.slice(0, 6)`. `src/app/components/home/projects/index.tsx` uses `FEATURED_PROJECT_TITLE_PREFIXES` in this order: Electoral Commission HQ, Naguru Asphalt Works - Addendum No.1, Proposed Warehouses - Namanve, Ciforo Market Building, Ankole Tea Estates, and MTN Tower - Bubada.
+- Project gallery images had a large cleanup on June 10-11. `src/data/projects.ts` is the source of truth for project cards/modals. Many recently uploaded project images were upscaled with Upscayl and copied from `C:\WORK\ETL\ETL_website\recent-images-to-upscale-2026-06-08\upscayl_png_remacri-4x_2x` into `public/etl-images/`; gallery references were updated to the new `.png` files where applicable.
+- After changing project gallery paths, run a local image-reference check against `public/etl-images` so missing files such as old deleted JPGs do not remain in `src/data/projects.ts`.
+- Public quotation request estimated budget placeholder now uses `10,000,000` instead of `50,000,000`.
+
+## Quotation Request Flow
+
+The public quotation request form now separates two client situations:
+
+- Items / Materials / Procurement: the client lists materials, services, or equipment they want ETL to check and price.
+- Construction / Tender / BOQ Pricing: the client has a building, road, or similar works package and may already have a Bill of Quantities or tender document prepared by a consultant/ministry.
+
+For the BOQ path, the form shows optional consultant/ministry, BOQ/tender reference, submission deadline, and site-visit date fields. To avoid a database migration during this step, those details are bundled into the existing `project_description` text saved in the `quotations` table. Add real BOQ document upload/storage later if staff need to attach files directly.
 
 ## Procurement Request Flow
 
 The inward LPO route now has two meanings:
 
 - Quotation acceptance: still behaves like a priced inward LPO when opened from an accepted/generated quotation.
-- Customer procurement request: the normal public inward path lets customers type the items or services they want, with quantities, without depending on active warehouse inventory or saved items.
+- Customer procurement request: the normal public inward path lets customers type the items or services they want, with quantities. ETL can then check warehouse/availability first and supplier options where needed. Direct public opens of `ETL-LPO-System.html` should default to this customer request path; staff outward LPO creation should use `?mode=outward`.
 
 Customer procurement requests are intentionally unpriced at submission time:
 
 - No unit-price, subtotal, VAT, total, or stock promise is shown to the customer.
-- Treat inventory as optional/internal until real confirmed items are maintained. The customer request path stays source-first.
+- No ETL preparer/authorization signature block is shown on the customer request preview; that block belongs only on commercial LPO documents.
+- Treat inventory as internal/optional for customer entry, not as nonexistent. The customer request path stays free-text, while staff handle availability review, warehouse checks, supplier checks where needed, and pricing.
 - ETL receives the request, management approves it, and staff then use `Prepare Quotation` from the dashboard.
 - Approving a customer procurement request now offers to open the quotation generator immediately, so management/staff see the next step without hunting through the LPO tab.
-- The quotation generator can load the request with `?lpo_id=...`, prefill customer/request details, and let staff source items and enter actual prices.
+- The quotation generator can load the request with `?lpo_id=...`, prefill customer/request details, and let staff enter actual prices after checking availability and supplier options where needed.
 - After a generated quotation is saved from a procurement request, the source LPO/request status is patched to `issued`.
 - Public LPO view pages detect unpriced requests and render them as `CUSTOMER PROCUREMENT REQUEST` with request wording.
 

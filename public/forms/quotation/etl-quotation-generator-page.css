@@ -40,6 +40,13 @@
   .btn-edit  { background: var(--lighter-bg); color: var(--text-muted); border: 1.5px solid var(--border); }
   .btn-edit:hover  { border-color: var(--secondary); color: var(--primary); }
 
+  #p-scope {
+    min-height: 118px;
+    overflow-y: hidden;
+    resize: none;
+    line-height: 1.55;
+  }
+
   /* Document Styles */
   .quotation-doc {
     background: var(--white); max-width: 880px;

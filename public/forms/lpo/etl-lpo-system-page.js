@@ -47,7 +47,7 @@
       : requestMode ? 'Customer Procurement Request' : 'Inward LPO — Client to ETL';
     document.getElementById('header-sub').innerText = isOut
       ? 'Issue a Local Purchase Order to a supplier or vendor'
-      : requestMode ? 'Tell ETL what you need. Our team will source it and send you prices.' : 'Record an LPO received from a client awarding ETL a contract';
+      : requestMode ? 'Tell ETL what you need. Our team will check availability, supplier options, and prices.' : 'Record an LPO received from a client awarding ETL a contract';
 
     // LPO ref prefix
     setLpoReference(ETLUtils.createReference(isOut ? 'LPO' : requestMode ? 'REQ' : 'INLPO'));
@@ -74,7 +74,7 @@
     document.getElementById('card2-sub').innerText = requestMode ? 'Confirm the request date and when the items are needed' : 'Set the LPO number, issue date and expected delivery';
     document.getElementById('reference-label').innerText = requestMode ? 'Request Reference' : 'LPO Reference Number';
     document.getElementById('items-card-title').innerText = requestMode ? 'Items / Services Needed' : 'Items / Services Ordered';
-    document.getElementById('items-card-sub').innerText = requestMode ? 'Type any item or service. ETL will source or confirm options and send pricing.' : 'List all goods or services being procured';
+    document.getElementById('items-card-sub').innerText = requestMode ? 'Type any item or service. ETL will check availability, supplier options, and pricing.' : 'List all goods or services being procured';
     document.getElementById('terms-card-title').innerText = requestMode ? 'Request Notes' : 'Authorization & Terms';
     document.getElementById('terms-card-sub').innerText = requestMode ? 'Add specifications, preferred brands, or delivery instructions' : 'Set payment terms and authorization details';
 
@@ -175,15 +175,16 @@
       'p-grand-total': fmt(grand)
     });
     document.getElementById('p-document-title').innerText = requestMode ? 'CUSTOMER PROCUREMENT REQUEST' : 'LOCAL PURCHASE ORDER';
+    document.getElementById('p-signature-block').hidden = requestMode;
     document.getElementById('p-official-notice').innerHTML = requestMode
-      ? '<strong>Request Notice:</strong> This is an unpriced request for ETL to source the listed items or services. ETL will confirm availability, specifications, delivery timing, and prices in a separate quotation.'
+      ? '<strong>Request Notice:</strong> This is an unpriced request for ETL to review the listed items or services. ETL will confirm availability, specifications, delivery timing, and prices in a separate quotation.'
       : '<strong>Official Notice:</strong> This document serves as an official authorization of purchase/service delivery by Engineering Trade Links Co. Ltd. All deliveries must be accompanied by an original Delivery Note and Invoice quoting the LPO number above. ETL reserves the right to reject goods/services not conforming to the specifications stated herein.';
 
     // Parties
     document.getElementById('p-entity-label').className   = 'doc-party-label ' + (isOut ? 'label-out' : 'label-in');
     const tin = document.getElementById('entity-tin').value;
     ETLPreview.setTexts({
-      'p-entity-label': isOut ? 'VENDOR / SUPPLIER DETAILS:' : 'CLIENT / ISSUER DETAILS:',
+      'p-entity-label': isOut ? 'VENDOR / SUPPLIER DETAILS:' : requestMode ? 'CUSTOMER DETAILS:' : 'CLIENT / ISSUER DETAILS:',
       'p-entity-name': eName,
       'p-entity-contact': document.getElementById('entity-contact').value,
       'p-entity-address': document.getElementById('entity-address').value,
@@ -305,7 +306,7 @@ ${DASHBOARD_URL}`, emailOpts);
           label: requestMode ? 'ETL procurement request' : 'official ETL LPO',
           title: requestMode ? 'Request Submitted' : isOut ? 'LPO Saved' : 'LPO Submitted',
           message: requestMode
-            ? 'Your request has been submitted. ETL will source the items and send you a priced quotation.'
+            ? 'Your request has been submitted. ETL will check availability and supplier options, then send you a priced quotation.'
             : isOut
             ? 'The LPO view link is ready. You can copy it or share it directly via WhatsApp.'
             : 'The inward LPO has been submitted. You can copy the link or send it to the ETL team via WhatsApp.',
@@ -406,7 +407,7 @@ ${DASHBOARD_URL}`, emailOpts);
   // We do NOT use etlAuth.init() here because this page is deliberately public.
   (async function bootstrap() {
     const forcePublic = PAGE_PARAMS.get('public') === '1';
-    const requestedMode = PAGE_PARAMS.get('mode') === 'inward' || PAGE_PARAMS.has('from_quotation') ? 'inward' : 'outward';
+    const requestedMode = PAGE_PARAMS.get('mode') === 'outward' ? 'outward' : 'inward';
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
     const { data: { session } } = await sbClient.auth.getSession();
     SESSION_TOKEN = !forcePublic && session ? session.access_token : '';

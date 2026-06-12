@@ -90,6 +90,90 @@ const { SUPABASE_URL, DASHBOARD_URL, SITE_BASE_URL } = window.ETLConfig;
 
 const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
 
+  const REQUEST_TYPES = {
+    procurement: {
+      label: 'Items / Materials / Procurement',
+      titlePlaceholder: 'e.g. Cement supply for staff quarters',
+      descriptionLabel: 'Scope of Works / Description *',
+      descriptionPlaceholder: 'List the items, materials, or services you need ETL to check and price...'
+    },
+    boq: {
+      label: 'Construction / Tender / BOQ Pricing',
+      titlePlaceholder: 'e.g. Classroom block construction tender',
+      descriptionLabel: 'Scope / BOQ Notes *',
+      descriptionPlaceholder: 'Describe the tender, BOQ package, or construction works ETL should review and price...'
+    }
+  };
+
+  function valueOf(id) {
+    const el = document.getElementById(id);
+    return el ? el.value.trim() : '';
+  }
+
+  function getRequestType() {
+    const checked = document.querySelector('input[name="request-type"]:checked');
+    return checked ? checked.value : 'procurement';
+  }
+
+  function getRequestTypeConfig() {
+    return REQUEST_TYPES[getRequestType()] || REQUEST_TYPES.procurement;
+  }
+
+  function formatDateValue(value) {
+    if(!value) return '';
+    const date = new Date(`${value}T00:00:00`);
+    if(Number.isNaN(date.getTime())) return value;
+    return date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+
+  function buildProjectDescription(baseDescription, requestType) {
+    const config = REQUEST_TYPES[requestType] || REQUEST_TYPES.procurement;
+    const lines = [`Request Type: ${config.label}`, ''];
+
+    if(requestType === 'boq') {
+      const details = [
+        ['Consultant / Supervising Entity', valueOf('p-consultant')],
+        ['BOQ / Tender Reference', valueOf('p-boq-ref')],
+        ['Submission Deadline', formatDateValue(valueOf('p-deadline'))],
+        ['Site Visit Date', formatDateValue(valueOf('p-site-visit'))]
+      ].filter(([, value]) => value);
+
+      if(details.length) {
+        lines.push('BOQ / Tender Details:');
+        details.forEach(([label, value]) => lines.push(`${label}: ${value}`));
+        lines.push('');
+      }
+    }
+
+    lines.push(requestType === 'boq' ? 'Scope / BOQ Notes:' : 'Scope / Notes:');
+    lines.push(baseDescription);
+    return lines.join('\n').trim();
+  }
+
+  function updateRequestTypeUI() {
+    const requestType = getRequestType();
+    const config = REQUEST_TYPES[requestType] || REQUEST_TYPES.procurement;
+    const boqFields = document.getElementById('boq-fields');
+    const descriptionLabel = document.getElementById('p-description-label');
+    const description = document.getElementById('p-description');
+    const title = document.getElementById('p-title');
+
+    document.querySelectorAll('.request-type-card').forEach(card => {
+      const input = card.querySelector('input[name="request-type"]');
+      card.classList.toggle('selected', !!input && input.checked);
+    });
+
+    if(boqFields) boqFields.hidden = requestType !== 'boq';
+    if(descriptionLabel) descriptionLabel.textContent = config.descriptionLabel;
+    if(description) description.placeholder = config.descriptionPlaceholder;
+    if(title) title.placeholder = config.titlePlaceholder;
+  }
+
+  document.querySelectorAll('input[name="request-type"]').forEach(input => {
+    input.addEventListener('change', updateRequestTypeUI);
+  });
+  updateRequestTypeUI();
+
   // Checkbox visual toggle
   document.querySelectorAll('.service-check input').forEach(cb => {
     cb.addEventListener('change', () => {
@@ -187,6 +271,8 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
     const cPhone   = document.getElementById('c-phone').value.trim();
     const pTitle   = document.getElementById('p-title').value.trim();
     const pDesc    = document.getElementById('p-description').value.trim();
+    const requestType = getRequestType();
+    const requestTypeConfig = getRequestTypeConfig();
 
     // Validate
     let valid = true;
@@ -202,8 +288,6 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
       return;
     }
 
-    // Get selected services
-
     const ref = generateRef();
     const btn = document.getElementById('submit-btn');
     btn.disabled = true;
@@ -218,9 +302,9 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
       client_address:  document.getElementById('c-address').value.trim(),
       project_title:   pTitle,
       project_location: document.getElementById('p-location').value.trim(),
-          services_category: document.getElementById('p-category').value,
-          project_duration:  document.getElementById('p-duration').value.trim(),
-      project_description: pDesc,
+      services_category: document.getElementById('p-category').value,
+      project_duration:  document.getElementById('p-duration').value.trim(),
+      project_description: buildProjectDescription(pDesc, requestType),
       estimated_budget: document.getElementById('p-budget').value.trim(),
       reference:       ref,
       status:          'pending_approval'
@@ -235,6 +319,7 @@ const SUPABASE_KEY = window.ETLConfig.SUPABASE_ANON_KEY;
 
 Client: ${cName}
 Email: ${cEmail}
+Request Type: ${requestTypeConfig.label}
 Project: ${pTitle}
 
 Dashboard: ${DASHBOARD_URL}`);
@@ -254,7 +339,7 @@ Dashboard: ${DASHBOARD_URL}`);
             message: emailSent
               ? 'Your quotation request was submitted. You can also send the reference to ETL via WhatsApp.'
               : 'Your request was saved, but the notification email may not have sent. Please share the reference with ETL via WhatsApp.',
-            whatsAppMessage: `Hello ETL, I have submitted a quotation request.\n\nReference: ${ref}\nClient: ${cName}\nPhone: ${cPhone}\nEmail: ${cEmail}\nProject: ${pTitle}\n\nRequest form:\n${SITE_BASE_URL}/ETL-Quotation-Request.html`
+            whatsAppMessage: `Hello ETL, I have submitted a quotation request.\n\nReference: ${ref}\nRequest Type: ${requestTypeConfig.label}\nClient: ${cName}\nPhone: ${cPhone}\nEmail: ${cEmail}\nProject: ${pTitle}\n\nRequest form:\n${SITE_BASE_URL}/ETL-Quotation-Request.html`
           });
         }, 300);
         window.scrollTo(0, 0);

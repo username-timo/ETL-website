@@ -1,12 +1,12 @@
 # ETL Project TODO
 
-Last updated: June 5, 2026
+Last updated: June 11, 2026
 
 ## Current Refactor Status
 
 The project should now be treated as production-bound, not just demo-safe. The old public HTML tools are still available, but repeated logic has been pulled into shared JavaScript and CSS files so future changes are safer while we continue hardening the launch risks.
 
-The active procurement direction has changed: customers can now submit unpriced procurement requests with free-text items and quantities. ETL staff then source the items and prepare the priced quotation from the dashboard.
+The active procurement direction has changed: customers can now submit unpriced procurement requests with free-text items and quantities. ETL staff then check warehouse/availability, use supplier options where needed, and prepare the priced quotation from the dashboard.
 
 Main public tool pages:
 - `public/ETL-Dashboard.html`
@@ -52,15 +52,21 @@ Main public tool pages:
 - Staff Login button text was made white on the transparent/dark nav.
 - Homepage service/project card titles and cash/number text were brightened for readability.
 - Contact page ETL banner was replaced with a real image slider. The sign-post and Naguru asphalt slides use contained image fitting with a blurred fill layer.
-- Public portal wording now points customers to quotation requests and procurement requests/items pricing.
-- Sande Robert was added as a Site Agent in the staff section. Verify any experience-year wording before launch.
+- Public portal wording now points customers to quotation requests and procurement requests/items pricing. Procurement wording should say ETL checks availability and supplier options, not that ETL always outsources.
+- Homepage featured projects now use an explicit order: Electoral Commission HQ, Naguru Asphalt Works - Addendum No.1, Proposed Warehouses - Namanve, Ciforo Market Building, Ankole Tea Estates, and MTN Tower - Bubada.
+- Project gallery photos were cleaned up across civil, road, water, and electrical projects. Recently uploaded photos were upscaled and the relevant gallery paths now point to `.png` versions in `public/etl-images/`.
+- The Upscayl output folder used for the recent gallery batch was `C:\WORK\ETL\ETL_website\recent-images-to-upscale-2026-06-08\upscayl_png_remacri-4x_2x`.
+- Public quotation request estimated budget placeholder was changed from `50,000,000` to `10,000,000`.
+- Public quotation request now asks whether the client needs item/procurement pricing or construction/tender/BOQ pricing. BOQ details are saved into the existing request details for now, so no Supabase table migration is required.
+- Sande Robert remains a Site Agent in the staff section; Timbigamba Hilary was removed from senior management. Verify any experience-year wording before launch.
 
 ## Completed Procurement Request Work
 
 - `public/ETL-LPO-System.html?mode=inward` now acts as a customer procurement request form unless opened from quotation acceptance.
-- Customer procurement requests allow free-text item/service descriptions and quantities without depending on active warehouse inventory or saved items.
+- Customer procurement requests allow free-text item/service descriptions and quantities without making the customer select saved warehouse items.
 - Price/unit/stock/subtotal/VAT/total fields are hidden from the customer request path.
-- Inventory remains optional/internal for confirmed items later; the launch customer path stays source-first.
+- Customer request previews hide ETL preparer/authorization signature lines; those remain for commercial LPO documents only.
+- Inventory/warehouse checking is an internal staff step. The customer path remains free-text; staff review availability first and use suppliers where needed before pricing.
 - Public LPO view can render unpriced records as `CUSTOMER PROCUREMENT REQUEST`.
 - Dashboard detects approved unpriced LPO records and shows `Prepare Quotation`.
 - Approving an unpriced procurement request now offers to open the quotation generator immediately.
@@ -99,6 +105,7 @@ Main public tool pages:
 - Keep `memory.md`, `PROJECT_TODO.md`, and `project structure.md` in sync after meaningful workflow, route, security, database, or major UI changes.
 - Review procurement-request labels and LPO naming with real staff before launch so customers do not confuse an unpriced request with a binding purchase order.
 - Re-check the staff section content before launch, especially any placeholder photos or experience-year text.
+- When replacing project gallery photos, update `src/data/projects.ts`, copy any upscaled outputs into `public/etl-images/`, and verify every local `/etl-images/...` reference exists before committing.
 
 ## Launch Security Checklist
 
@@ -124,6 +131,7 @@ Main public tool pages:
 - EFRIS/URA compliance review with an accountant before going fully live.
 - Move high-risk financial/inventory writes behind controlled API/RPC actions with audit logs.
 - Add a clearer sourcing/quotation preparation queue if procurement requests grow beyond the current dashboard buttons.
+- Add real BOQ/tender document upload storage later if clients need to attach bidding documents directly instead of sending references/links.
 
 ## Testing Preference
 

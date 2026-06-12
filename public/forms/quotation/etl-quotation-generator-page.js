@@ -165,10 +165,26 @@ Click the link below to view, download and print your quotation:`;
     document.getElementById('q-number-display').innerText = ref;
   }
 
+  function resizeScopeField() {
+    const scope = document.getElementById('p-scope');
+    if (!scope) return;
+    scope.style.height = 'auto';
+    scope.style.height = `${scope.scrollHeight + 2}px`;
+  }
+
+  function initScopeAutoGrow() {
+    const scope = document.getElementById('p-scope');
+    if (!scope) return;
+    scope.addEventListener('input', resizeScopeField);
+    resizeScopeField();
+  }
+
   // Auto-generate a collision-resistant quotation number.
   (function() {
     setQuotationReference(ETLUtils.createReference('QT'));
   })();
+
+  initScopeAutoGrow();
 
   // Gate data loading on Supabase Auth
   etlAuth.init({ redirectIfNoSession: '/ETL-Dashboard.html' }).then(async () => {
@@ -213,6 +229,7 @@ Click the link below to view, download and print your quotation:`;
       if(!document.getElementById('p-scope').value) {
         document.getElementById('p-scope').value = params.get('p_description') || '';
       }
+      resizeScopeField();
       const notice = document.createElement('div');
       notice.style.cssText = 'background:#e6f7ef;border:1px solid #0f7a4a;color:#0f7a4a;padding:12px 18px;border-radius:8px;font-size:13px;font-weight:700;margin-bottom:16px;';
       notice.innerText = '✅ Client details pre-filled from quotation request. Review and complete the line items below.';
@@ -268,6 +285,7 @@ Click the link below to view, download and print your quotation:`;
       document.getElementById('p-title').value = request.project_name || `Procurement Request ${request.lpo_number || ''}`;
       document.getElementById('p-location').value = request.delivery_location || '';
       document.getElementById('p-scope').value = request.notes || `Source and price the requested items under ${request.lpo_number || 'the customer procurement request'}.`;
+      resizeScopeField();
       document.getElementById('p-cat').value = 'Other';
 
       const requestedItems = request.items || [];

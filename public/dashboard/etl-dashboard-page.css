@@ -178,6 +178,7 @@
   .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
   .modal-field label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted); display: block; margin-bottom: 3px; }
   .modal-field p { font-size: 14px; color: var(--text); font-weight: 500; }
+  .modal-field p.preserve-lines { white-space: pre-line; line-height: 1.55; }
   .modal-field.full { grid-column: 1/-1; }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
   .modal-btn { padding: 10px 22px; border-radius: 8px; font-size: 13px; font-weight: 700; cursor: pointer; border: none; }

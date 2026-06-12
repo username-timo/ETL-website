@@ -1,6 +1,6 @@
 # ETL Project Structure and File Guide
 
-Last updated: June 5, 2026
+Last updated: June 11, 2026
 
 This file is a simple map of the ETL Next.js project. Use it when you want to know where a feature lives before editing.
 
@@ -100,8 +100,8 @@ Edit source files in `src/`, `public/`, and root config files instead.
 | `src/app/components/home/hero/index.tsx` | Homepage hero slider. |
 | `src/app/components/home/about/index.tsx` | Homepage About ETL section. |
 | `src/app/components/shared/features/index.tsx` | Services/features section and service modal content. |
-| `src/app/components/home/projects/index.tsx` | Homepage project preview section. |
-| `src/app/components/home/portal/index.tsx` | Homepage client/staff portal cards for quotation requests and procurement requests/items pricing. |
+| `src/app/components/home/projects/index.tsx` | Homepage project preview section. Uses `FEATURED_PROJECT_TITLE_PREFIXES` to control the six featured projects without reordering the full project database. |
+| `src/app/components/home/portal/index.tsx` | Homepage client/staff portal cards for quotation requests and procurement requests/items pricing. Procurement wording should mention availability checks and supplier options, not outsourcing only. |
 | `src/app/components/home/staff/index.tsx` | Staff/team section. |
 | `src/app/components/home/turnover/index.tsx` | Turnover/statistics section. |
 | `src/app/components/home/history/index.tsx` | Company history section. |
@@ -119,7 +119,7 @@ Edit source files in `src/`, `public/`, and root config files instead.
 
 | Path | What it does |
 |---|---|
-| `src/data/projects.ts` | Main project database for public project cards and service modal project lists. |
+| `src/data/projects.ts` | Main project database for public project cards, homepage featured project lookup, service modal project lists, and gallery image references. |
 | `src/data/navigation.ts` | Shared public navigation item list for the header. |
 | `src/utils/extendedConfig.ts` | Tailwind theme extension values. |
 | `src/utils/aos.tsx` | Animation-on-scroll helper setup. |
@@ -142,10 +142,10 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | File | What it does |
 |---|---|
 | `public/ETL-Dashboard.html` | Internal operations dashboard: quotation requests, customer procurement requests, LPO records, approvals, invoices, payments, KPIs. |
-| `public/ETL-Quotation-Request.html` | Public quotation request form for clients. Uses Turnstile and sends requests to the `quotations` table. |
+| `public/ETL-Quotation-Request.html` | Public quotation request form for clients. Supports item/procurement requests and construction/tender/BOQ pricing requests. Uses Turnstile and sends requests to the `quotations` table. Current budget placeholder example is `10,000,000`. |
 | `public/ETL-Quotation-generator.html` | Internal quotation generator. Saves generated quotes to `quotations_generated`, emails the client, opens the share modal, and can prefill from approved procurement requests through `lpo_id`. |
 | `public/ETL-Quotation-View.html` | Public quotation view link opened by clients. Reads generated quote by `unique_link`. |
-| `public/ETL-LPO-System.html` | Main LPO/procurement form. `?mode=outward` is ETL-to-supplier LPO. Normal `?mode=inward` is now a customer procurement request unless opened from quotation acceptance. |
+| `public/ETL-LPO-System.html` | Main LPO/procurement form. `?mode=outward` is ETL-to-supplier LPO. Direct/default public opens and normal `?mode=inward` are customer procurement requests unless opened from quotation acceptance. |
 | `public/ETL-LPO-View.html` | Public LPO/procurement request view link. Detects unpriced customer requests and hides commercial totals. |
 | `public/ETL-Invoice.html` | Internal invoice generator and invoice payment tools. |
 | `public/ETL-Invoice-View.html` | Public invoice view link opened by clients. |
@@ -165,7 +165,7 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 | `public/forms/shared/etl-submit.js` | Shared form validation, date checks, item collection, and JSON submit helper. |
 | `public/forms/shared/etl-preview.js` | Shared preview rendering helpers for document pages. |
 | `public/forms/shared/etl-share.js` | Shared copy-link and WhatsApp share modal. Builds `wa.me` links and falls back to contact picker when no phone is available. |
-| `public/forms/shared/etl-inventory-autocomplete.js` | Shared autocomplete for inventory-backed item descriptions and prices. Do not force this onto the public procurement request path. |
+| `public/forms/shared/etl-inventory-autocomplete.js` | Shared autocomplete for inventory-backed item descriptions and prices. Keep it as an internal/priced-row helper; public procurement requests stay free-text while staff check availability/warehouse and suppliers where needed. |
 
 ## Dashboard Modules
 
@@ -184,15 +184,15 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 
 | Path | What it does |
 |---|---|
-| `public/forms/quotation/etl-quotation-request-page.js` | Public quotation request form logic: validation, Supabase insert, email notification, and WhatsApp share to ETL team. |
-| `public/forms/quotation/etl-quotation-request-page.css` | Styles for the public quotation request page. |
+| `public/forms/quotation/etl-quotation-request-page.js` | Public quotation request form logic: request-type UI, BOQ/tender detail bundling into request details, validation, Supabase insert, email notification, and WhatsApp share to ETL team. |
+| `public/forms/quotation/etl-quotation-request-page.css` | Styles for the public quotation request page, including the request-type cards and BOQ/tender fields. |
 | `public/forms/quotation/etl-quotation-generator-page.js` | Quotation generator logic: preview, save, email, share modal, status update for source quotation request, and prefill/status update for source procurement request. |
 | `public/forms/quotation/etl-quotation-generator-page.css` | Styles for the quotation generator page. |
 | `public/forms/quotation/etl-quotation-view-page.js` | Public quote view loader and renderer. |
 | `public/forms/quotation/etl-quotation-view-page.css` | Public quote view styles. |
 | `public/forms/lpo/etl-lpo-system-page.js` | LPO/procurement form logic for outward LPO, quotation-acceptance inward LPO, and unpriced customer procurement request mode. |
 | `public/forms/lpo/etl-lpo-system-page.css` | LPO system page styles. |
-| `public/forms/lpo/etl-lpo-inventory.js` | Optional internal inventory autocomplete helper for priced LPO rows. Keep customer procurement requests source-first unless confirmed items are maintained. |
+| `public/forms/lpo/etl-lpo-inventory.js` | Optional internal inventory autocomplete helper for priced LPO rows. Keep customer procurement requests free-text; staff can check warehouse/availability and suppliers before pricing. |
 | `public/forms/lpo/etl-lpo-turnstile.js` | Turnstile behavior for public/anonymous LPO submissions. |
 | `public/forms/lpo/etl-lpo-view-page.js` | Public LPO/procurement request view loader and renderer. |
 | `public/forms/lpo/etl-lpo-view-page.css` | Public LPO view styles. |
@@ -214,14 +214,22 @@ These are the operational/demo tools. The HTML files mostly hold page structure 
 
 | Path | What it does |
 |---|---|
-| `public/etl-images/` | Main image folder for logos, homepage images, service modal images, and project photos. |
+| `public/etl-images/` | Main image folder for logos, homepage images, service modal images, project photos, and upscaled project gallery PNGs. |
 | `public/etl-images/etl-logo.png` | Main ETL logo used by headers and forms. |
 | `public/etl-images/og-cover.jpg` | Social/share cover image. |
 | `public/etl-images/ETL SIGN POST.jpeg` | Original ETL sign-post upload kept in the project. |
 | `public/upscaled-ETL-images/ETL SIGN POST.png` | Clean/upscaled sign-post image used by the contact hero slider. |
 | `public/etl-images/naguru-asphalt-08.jpg.jpeg` | Naguru asphalt contact hero slider image. |
 | `public/etl-images/svc-*.jpg` | Service category images. |
-| `public/etl-images/*project*.jpg` and named project images | Project/service gallery images referenced from `src/data/projects.ts` and service modals. |
+| `public/etl-images/*project*` and named project images | Project/service gallery images referenced from `src/data/projects.ts` and service modals. Many recent project galleries now point to upscaled `.png` versions. |
+
+Recent project-image workflow:
+
+- Temporary input/staging folder: `C:\WORK\ETL\ETL_website\recent-images-to-upscale-2026-06-08`.
+- Upscayl output folder used for the latest batch: `C:\WORK\ETL\ETL_website\recent-images-to-upscale-2026-06-08\upscayl_png_remacri-4x_2x`.
+- Finished PNGs should be copied into `public/etl-images/`.
+- `src/data/projects.ts` must point at the finished filenames the site should load.
+- After editing gallery paths, verify all local `/etl-images/...` references exist under `public/etl-images/`.
 
 ## Supabase Tables Used by the Current App
 

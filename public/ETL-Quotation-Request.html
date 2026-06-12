@@ -94,6 +94,25 @@
       <div class="form-body">
         <div class="form-grid">
           <div class="field full">
+            <label>What do you need? *</label>
+            <div class="request-type-grid" id="request-type-grid">
+              <label class="request-type-card selected">
+                <input type="radio" name="request-type" value="procurement" checked>
+                <span>
+                  <strong>Items / Materials / Procurement</strong>
+                  <small>For materials, equipment, services, or items ETL should check and price.</small>
+                </span>
+              </label>
+              <label class="request-type-card">
+                <input type="radio" name="request-type" value="boq">
+                <span>
+                  <strong>Construction / Tender / BOQ Pricing</strong>
+                  <small>For buildings, roads, and tender documents with a Bill of Quantities.</small>
+                </span>
+              </label>
+            </div>
+          </div>
+          <div class="field full">
             <label>Project Title *</label>
             <input type="text" id="p-title" placeholder="e.g. Construction of Staff Quarters">
           </div>
@@ -120,11 +139,29 @@
           </div>
           <div class="field">
             <label>Expected Duration</label>
-            <input type="text" id="p-duration" placeholder="e.g. 3 months, 6 weeks">
+            <input type="text" id="p-duration">
+          </div>
+          <div class="boq-fields full" id="boq-fields" hidden>
+            <div class="field">
+              <label>Consultant / Ministry / Supervising Entity</label>
+              <input type="text" id="p-consultant" placeholder="e.g. Ministry of Education, consultant name">
+            </div>
+            <div class="field">
+              <label>BOQ / Tender Document Link or Reference</label>
+              <input type="text" id="p-boq-ref" placeholder="Paste a link, tender reference, or write 'To be shared separately'">
+            </div>
+            <div class="field">
+              <label>Submission Deadline</label>
+              <input type="date" id="p-deadline">
+            </div>
+            <div class="field">
+              <label>Site Visit Date</label>
+              <input type="date" id="p-site-visit">
+            </div>
           </div>
           <div class="field full">
-            <label>Scope of Works / Description *</label>
-            <textarea id="p-description" rows="4" placeholder="Describe the works you need ETL to carry out..."></textarea>
+            <label id="p-description-label">Scope of Works / Description *</label>
+            <textarea id="p-description" rows="4" placeholder="List the items, materials, or services you need ETL to check and price..."></textarea>
           </div>
           <div class="field">
             <label>Estimated Budget (UGX)</label>
